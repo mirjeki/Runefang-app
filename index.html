@@ -345,7 +345,7 @@ h3.mh{margin-top:14px}
    RUNEFANG — Old World campaign companion
    Phase 1: data model, storage, export/import, rosters, gold
    ===================================================================== */
-const APP_VERSION = '3.0 · phase 3';
+const APP_VERSION = '3.0.1 · phase 3';
 const SCHEMA = 3;
 const FORMAT = 'runefang-campaign';
 
@@ -1091,9 +1091,10 @@ function save() {
   C.updated = Date.now(); dirty = true; setDot('saving', 'Saving…');
   clearTimeout(saveTimer); saveTimer = setTimeout(flush, 250);
 }
+let BOOT_READ_FAILED = false;
 async function flush() {
   clearTimeout(saveTimer);
-  if (!dirty || !C) return;
+  if (!dirty || !C || BOOT_READ_FAILED) return;
   dirty = false; saving = true;
   try {
     await DB.put('kv', 'campaign', C);
@@ -1967,16 +1968,29 @@ async function undoImport() {
   render(); toast('Restored');
 }
 async function newCampaignFlow() {
-  if (!await confirmBox({ title: 'Begin anew?', text: '<p>Start a fresh campaign with the default rosters? Export first if you want to keep the current one. An undo copy is kept on this phone too.</p>', ok: 'Continue', danger: true })) return;
+  if (!await confirmBox({ title: 'Begin anew?', text: '<p>Start a fresh campaign with fresh rosters? Export first if you want to keep the current one. An undo copy is kept on this phone too.</p>', ok: 'Continue', danger: true })) return;
   const v = await formSheet({ title: 'New campaign', ok: 'Begin', fields: [
     { key: 'name', label: 'Campaign name', value: 'The Shattered Runefang' },
     { key: 'p1', label: 'Player commanding the Sigmarite Expedition', value: EX('sig').player },
     { key: 'p2', label: 'Player commanding the Ulrican Expedition', value: EX('ulr').player },
+    { key: 'keep', type: 'toggle', label: 'Keep our world: map images, regions, pins, edited tables and house rules', value: true,
+      hint: 'Rosters, gold, positions, shards, missions, flags and the Chronicle always start fresh. Turn this off only for a completely blank slate.' },
   ] });
   if (!v) return;
-  if (!await confirmBox({ title: 'Last chance', text: '<p>The current campaign will be replaced. The daemon will choose afresh which vision it planted.</p>', ok: 'Begin the campaign', danger: true })) return;
+  if (!await confirmBox({ title: 'Last chance', text: `<p>The current campaign will be replaced${v.keep ? '. Your maps, pins and tables are kept' : ', <b>including all map images and pins</b>'}. The daemon will choose afresh which vision it planted.</p>`, ok: 'Begin the campaign', danger: true })) return;
   await snapshotForUndo();
-  await replaceCampaign(newCampaign({ name: v.name.trim(), p1: v.p1.trim(), p2: v.p2.trim() }), {});
+  const nc = newCampaign({ name: v.name.trim(), p1: v.p1.trim(), p2: v.p2.trim() });
+  let keepImages = {};
+  if (v.keep) {
+    Object.assign(nc, { regions: clone(C.regions), overview: clone(C.overview), tables: clone(C.tables), unitCatalog: clone(C.unitCatalog),
+      perkLibrary: clone(C.perkLibrary), settings: clone(C.settings) });
+    for (const r of nc.regions) r.pins.forEach(p => { delete p.visited; });
+    for (const sd of SIDES) { const e = nc.ex[sd]; e.pos = null; e.trail = []; e.gold = Math.max(0, Math.round(num(nc.settings.startingGold, 200))); if (e.ledger) e.ledger = []; }
+    nc.shards.forEach(x => { x.regionId = null; x.pinId = undefined; });
+    seedPhase2(nc); seedPhase3(nc);
+    try { for (const k of await DB.keys('images')) keepImages[k] = await DB.get('images', k); } catch (e) { console.warn(e); }
+  }
+  await replaceCampaign(nc, keepImages);
   UI.side = 'sig'; go('home'); toast('A new campaign begins');
 }
 function chronicleText() {
@@ -3775,8 +3789,16 @@ window.addEventListener('resize', setTopH);
    ===================================================================== */
 async function boot() {
   await DB.open();
-  let c = null;
-  try { c = await DB.get('kv', 'campaign'); } catch (e) { console.warn(e); }
+  let c = null, readErr = null;
+  for (let i = 0; i < 3; i++) {
+    try { c = await DB.get('kv', 'campaign'); readErr = null; break; } catch (e) { readErr = e; console.warn(e); await new Promise(r => setTimeout(r, 300)); }
+  }
+  if (readErr) {
+    // Never write over a save we could not read: show a blank campaign but don't save it.
+    C = newCampaign(); BOOT_READ_FAILED = true; render();
+    return alertBox('Could not open your campaign', '<p>The phone would not let the app read its saved campaign. Nothing has been changed or deleted.</p><p>Close the app completely (swipe it away) and open it again. If this keeps happening, restore from an exported backup.</p>');
+  }
+  const fresh = !c;
   if (!c) { c = newCampaign(); C = c; dirty = true; await flush(); }
   const was = c.schema;
   C = migrate(c);
@@ -3785,7 +3807,7 @@ async function boot() {
   if (DB.fallback) toast('App storage unavailable. Export often!', 5000);
   render();
   requestPersist();
-  cleanOrphanImages();
+  if (!fresh) cleanOrphanImages();
 }
 boot();
 
