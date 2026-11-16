@@ -272,6 +272,11 @@ details>summary{min-height:44px;display:flex;align-items:center;cursor:pointer;f
 body.mapmode{overflow:hidden}
 .shards{grid-template-columns:repeat(7,minmax(0,1fr))}
 .shard svg{display:block}
+/* steppers: keep 48px buttons but leave room for three digits in half-width columns */
+.stepper{gap:4px}
+.stepper button{width:48px;flex:none}
+.form .stepper input{padding:6px 2px;min-width:3.2ch;font-variant-numeric:tabular-nums}
+@media (max-width:370px){.two{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -292,7 +297,7 @@ body.mapmode{overflow:hidden}
    RUNEFANG — Old World campaign companion
    Phase 1: data model, storage, export/import, rosters, gold
    ===================================================================== */
-const APP_VERSION = '2.0 · phase 2';
+const APP_VERSION = '2.1 · phase 2';
 const SCHEMA = 2;
 const FORMAT = 'runefang-campaign';
 
@@ -1184,6 +1189,14 @@ async function fillCodexAsync() {
 function findReg(id) { for (const s of SIDES) { const r = EX(s).regiments.find(x => x.id === id); if (r) return [r, s]; } return [null, null]; }
 function findChar(id) { for (const s of SIDES) { const r = EX(s).characters.find(x => x.id === id); if (r) return [r, s]; } return [null, null]; }
 
+function unitTypeField(d) {
+  const cat = C.unitCatalog, inCat = cat.some(u => u.name === d.unitType);
+  return `<div class="f"><label class="l" for="f_unitSel">Unit type</label>
+    <select id="f_unitSel" data-unitsel>${cat.map(u => `<option value="${esc(u.name)}" ${u.name === d.unitType ? 'selected' : ''}>${esc(u.name)} · ${u.ppm} pts</option>`).join('')}
+      <option value="__custom" ${inCat ? '' : 'selected'}>Other (type your own)…</option></select>
+    ${inCat ? `<input type="hidden" name="unitType" value="${esc(d.unitType)}">` : `<input name="unitType" value="${esc(d.unitType)}" placeholder="e.g. Free Company Militia" autocomplete="off" style="margin-top:8px">`}
+    <div class="hint">Picking a unit from the muster roll sets its points per model. Edit the list in Codex → Muster roll.</div></div>`;
+}
 function catalogDatalist() { return `<datalist id="dl_units">${C.unitCatalog.map(u => `<option value="${esc(u.name)}">`).join('')}</datalist>`; }
 
 function editRegiment(id, isNew = false) {
@@ -1196,6 +1209,15 @@ function editRegiment(id, isNew = false) {
     onMount: sh => {
       draw();
       sh.body.addEventListener('input', () => { readInputs($('.form', sh.body), d); updPts(); });
+      sh.body.addEventListener('change', e => {
+        if (!e.target.matches('[data-unitsel]')) return;
+        readInputs($('.form', sh.body), d);
+        const val = e.target.value;
+        if (val === '__custom') { d.unitType = ''; draw(); const ci = $('[name=unitType]', sh.body); if (ci) ci.focus(); return; }
+        const u = C.unitCatalog.find(x => x.name === val); d.unitType = val;
+        if (u) { d.ppm = u.ppm; toast(`${u.name}: ${u.ppm} pts per model`, 1600); }
+        draw();
+      });
       sh.body.addEventListener('click', e => {
         const b = e.target.closest('[data-x]'); if (!b) return;
         readInputs($('.form', sh.body), d);
@@ -1228,7 +1250,7 @@ function editRegiment(id, isNew = false) {
       function draw() {
         sh.body.innerHTML = `<form class="form" onsubmit="return false">${catalogDatalist()}
           ${fieldHtml({ key: 'name', label: 'Name', value: d.name })}
-          <div class="f"><label class="l">Unit type</label><div class="row"><input name="unitType" list="dl_units" value="${esc(d.unitType)}" class="grow" style="width:auto;flex:1;min-height:48px;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:#fffaea"><button type="button" class="btn sm" data-x="fromCat">Use roll pts</button></div></div>
+          ${unitTypeField(d)}
           <div class="two">${fieldHtml({ key: 'models', label: 'Models now', type: 'stepper', value: d.models, min: 0, max: 999 })}${fieldHtml({ key: 'maxModels', label: 'Full strength', type: 'stepper', value: d.maxModels, min: 1, max: 999 })}</div>
           <div class="two">${fieldHtml({ key: 'ppm', label: 'Points per model', type: 'number', value: d.ppm })}<div class="f"><label class="l">Unit total</label><div class="big" id="ptsOut" style="padding-top:8px"></div></div></div>
           <div class="two">${fieldHtml({ key: 'xp', label: 'Experience', type: 'stepper', value: d.xp, min: 0, max: 999 })}${fieldHtml({ key: 'rank', label: 'Veterancy rank', type: 'stepper', value: d.rank, min: 0, max: 3 })}</div>

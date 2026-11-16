@@ -1,6 +1,6 @@
 /* Runefang service worker: offline cache for the app shell.
    Bump VERSION whenever index.html changes so phones pick up the update. */
-const VERSION = 'runefang-v2.0-p2';
+const VERSION = 'runefang-v2.1-p2';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png'];
 
 self.addEventListener('install', e => {
