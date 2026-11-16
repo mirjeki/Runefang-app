@@ -276,6 +276,54 @@ body.mapmode{overflow:hidden}
 .stepper{gap:4px}
 .stepper button{width:48px;flex:none}
 .form .stepper input{padding:6px 2px;min-width:3.2ch;font-variant-numeric:tabular-nums}
+/* ---------- phase 3: turn, events, missions ---------- */
+.steps{margin-top:10px;padding-left:6px}
+.stp{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px dashed var(--line);min-height:52px}
+.stp .num{width:28px;height:28px;flex:none;border-radius:50%;border:1.5px solid var(--ink2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;background:#fbf3dc}
+.stp.done .num{background:var(--ok);border-color:var(--ok);color:#fff}
+.stp.done{color:var(--ink2)}
+.stp .btn{flex:none}
+.chainbox{margin:10px 0 0 6px;padding:10px;border:1.5px solid var(--gold);border-radius:10px;background:linear-gradient(#fbf0cf,#f3e2b2)}
+.chainbox .mini{width:18px;height:24px;flex:none}
+.chainbox .btn{margin-top:8px}
+.evk{display:inline-block;font-family:'FellSC',serif;font-size:.85rem;padding:2px 10px;border-radius:999px;color:#fff;background:var(--ink2);white-space:nowrap}
+.evk-choice{background:#6b4a1f}.evk-purchase{background:#2b5f78}.evk-gamble{background:#7a2f6b}.evk-camp{background:var(--ok)}.evk-battle{background:var(--seal)}
+.evtext{font-size:1.05rem;margin:12px 0}
+.pick[disabled]{opacity:.5}
+.chosen{font-weight:700;padding:10px 12px;border-left:4px solid var(--seal);background:#fbf3dc;border-radius:6px;margin:8px 0}
+.roll{font-family:'FellSC',serif;color:var(--ink2);margin:8px 0}
+.fxl{margin:6px 0;padding-left:20px}
+.fxl li{margin:3px 0}
+.mhead{padding:8px 0 4px}
+.chip .shield{width:14px;height:17px}
+.fdot{display:inline-block;width:12px;height:12px;border-radius:50%;flex:none;border:1px solid rgba(0,0,0,.3)}
+.chip.scale-mordheim{background:#efe2f3}.chip.scale-march{background:#f6e7c3}.chip.scale-full{background:#f3d4cf}
+h3.mh{margin-top:14px}
+.inset{position:relative;height:190px;margin:10px 0 4px;border-radius:10px;overflow:hidden;border:3px double #b9913f;background:#4a3420;cursor:pointer}
+.inset-cv{position:absolute;inset:0;width:100%;height:100%}
+.inset .pin{position:absolute}
+.inset-lab{position:absolute;left:8px;bottom:8px;background:rgba(42,27,14,.85);color:#f8e8c0;border-radius:8px;padding:3px 8px;font-size:.82rem}
+.inset-msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#f3e1b4;font-style:italic;padding:10px;text-align:center}
+.elist{border:1px solid var(--line);border-radius:10px;background:#fbf3dc;padding:2px 10px;margin-top:6px}
+.elist .el{display:flex;gap:8px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:.95rem}
+.elist .el:last-child{border-bottom:0}
+.elist .el.rm{text-decoration:line-through;color:var(--muted)}
+.elist .el.ex{color:var(--bad)}
+.elist .el.tot{font-weight:700}
+.ab-side h3{margin-bottom:2px}
+.ab-reg{padding:8px 0;border-bottom:1px dashed var(--line)}
+.ab-reg .toggle{min-height:40px}
+.ab-reg .stepper{max-width:190px}
+.ab-hero{padding:8px 0;border-bottom:1px dashed var(--line)}
+.ab-hero .seg{margin-top:6px}
+.ab-hero .seg button{font-size:.9rem}
+.ab-inj{padding:10px 0;border-bottom:1px dashed var(--line)}
+.ab-inj select{width:100%;min-height:48px;margin-top:6px;padding:8px 10px;border:1.5px solid var(--line);border-radius:10px;background:#fffaea}
+.clue{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--line)}
+.clue .heat{flex:none;min-width:64px;text-align:center;font-family:'FellSC',serif;font-size:.82rem;border-radius:999px;padding:2px 8px;color:#fff;background:#6b7d8f}
+.clue.h-here .heat{background:#b3302a}.clue.h-hot .heat{background:#c2571e}.clue.h-warm .heat{background:#b8902e}.clue.h-cool .heat{background:#5f7f8f}.clue.h-cold .heat{background:#4a5a6a}.clue.h-rumour .heat{background:#6b4a1f}
+.choice-ed{background:#f3e6c4}
+
 @media (max-width:370px){.two{grid-template-columns:1fr}}
 </style>
 </head>
@@ -297,8 +345,8 @@ body.mapmode{overflow:hidden}
    RUNEFANG — Old World campaign companion
    Phase 1: data model, storage, export/import, rosters, gold
    ===================================================================== */
-const APP_VERSION = '2.1 · phase 2';
-const SCHEMA = 2;
+const APP_VERSION = '3.0 · phase 3';
+const SCHEMA = 3;
 const FORMAT = 'runefang-campaign';
 
 /* ---------- tiny helpers ---------- */
@@ -327,6 +375,15 @@ const DEFAULT_SETTINGS = {
   rankNames: ['Raw Recruits', 'Blooded', 'Veterans', 'Elite'],
   totalShards: 7,
   revelationShards: 5,
+  missions: {
+    mordheim: [150, 400], march: [400, 750], full: [1000, 2000],
+    xpBattle: 1, xpWin: 1, xpObjective: 1, heroXp: 1,
+    loot: { win: 100, draw: 50, loss: 15 },
+    afterBattleMult: 15,
+    chainWin: 'Momentum: you choose the deployment zone, and the enemy fields one unit fewer.',
+    chainDraw: 'The enemy regroups. No other modifier.',
+    chainLoss: 'The enemy is emboldened and fields an extra unit.',
+  },
 };
 
 const DEFAULT_PERKS = [
@@ -578,6 +635,292 @@ function seedPhase2(c) {
   return c;
 }
 
+/* =====================================================================
+   PHASE 3 SEED: road events, investigation, twists, loot, scenarios,
+   opposition lists. All of it is data in C.tables and editable in the Codex.
+   Effects ("fx") are short lines, separated by ";" — see FX_HELP below.
+   ===================================================================== */
+const EVc = (label, fx = '', text = '', o = {}) => ({ label, cost: 0, chance: 0, text, fx, failText: '', failFx: '', req: '', ...o });
+const EVt = (id, title, kind, where, weight, text, choices, o = {}) => ({ id, title, kind, where, weight, text, req: '', once: false, side: '', choices, ...o });
+
+const DEFAULT_ROAD_EVENTS = [
+  /* ---- choices with consequences ---- */
+  EVt('burning-farm', 'Smoke on the Horizon', 'choice', '', 3, 'A farmstead burns beside the road to {pin}. Figures move in the smoke: raiders, or survivors?', [
+    EVc('Ride to their aid', 'relic; flag helped_farmers', 'You drive off a handful of looters. The grateful farmer presses a family heirloom into {priest}’s hands.', { chance: 60, failText: 'It was a trap. Raiders burst from the barn!', failFx: 'battle region mordheim' }),
+    EVc('Keep marching', 'flag ignored_farmers', 'The column marches on. The smoke follows you for miles.')]),
+  EVt('strange-lights', 'Strange Lights', 'choice', '', 2, 'Pale lights dance among the trees after dark. The men mutter about corpse-candles and will-o’-the-wisps.', [
+    EVc('Follow the lights', 'relic', 'They lead to a forgotten barrow, and a blade still keen after centuries.', { chance: 50, failText: 'The lights lead you in circles. A scout is lost in the bog.', failFx: 'lose 2; flag followed_lights' }),
+    EVc('Post a double watch', '', 'Nobody sleeps. The lights fade at dawn.')]),
+  EVt('toll', 'The Toll-keeper', 'choice', '', 2, 'A surly toll-keeper bars the bridge on the road to {pin}, backed by a dozen hired cudgels.', [
+    EVc('Pay the toll', '', 'The bar lifts.', { cost: 15 }),
+    EVc('Bribe him for news', 'clue', 'Coin loosens his tongue about what lies ahead.', { cost: 30 }),
+    EVc('Force the bridge', 'gold 10; flag bullied_toll', 'The cudgel-men scatter at the sight of steel, leaving the toll-box behind.', { chance: 70, failText: 'They don’t scatter. Bandits pour out of the toll-house.', failFx: 'battle bandits mordheim' })]),
+  EVt('deserter', 'The Deserter', 'choice', '', 2, 'A starving soldier in Empire colours begs to join you. He fled his regiment after a battle with the dead.', [
+    EVc('Take him in', 'xp 1 one; flag took_deserter', 'He fights like a man with something to prove.'),
+    EVc('Hand him to the road wardens', 'gold 15', 'The wardens pay a bounty. He does not look back as they lead him away.'),
+    EVc('Turn him away', '', 'He limps off into the rain.')]),
+  EVt('witch-hunter', 'The Witch Hunter', 'choice', '', 2, 'A Witch Hunter of the Order of the Silver Hammer blocks the road. He has heard that one of the priests dreams of things no god would send…', [
+    EVc('Submit to his questions', 'flag witch_hunter_satisfied', 'He finds nothing, and leaves with a grunt.', { chance: 70, failText: 'He finds a camp-follower’s charms and hangs her from a roadside oak. The men are sullen.', failFx: 'lose 1; flag witch_hunter_hanged' }),
+    EVc('Pay him to look elsewhere', 'flag witch_hunter_bribed; threat cult 1', 'He pockets the coin. His eyes linger on {priest}.', { cost: 25 }),
+    EVc('Drive him off', 'flag witch_hunter_angered', 'He goes, promising to return with the Order.')]),
+  EVt('plague-village', 'Plague Village', 'choice', '', 2, 'Red crosses daub the doors of a hamlet ahead. Moans come from within.', [
+    EVc('Skirt around it', '', 'A day lost in the marshes, but nobody falls sick.'),
+    EVc('Send {priest} to bless the sick', 'xp 1 all; flag blessed_plague', 'Prayers and boiled water: the villagers rally, and {priest}’s name spreads.', { chance: 60, failText: 'The fever follows you out.', failFx: 'lose 3; wound' }),
+    EVc('Buy their grain cheap', 'gold 20', 'Good grain, cheaply bought.', { chance: 50, failText: 'Grain and fever both.', failFx: 'gold 20; lose 4' })]),
+  EVt('refugees', 'Refugees', 'choice', '', 2, 'A column of refugees fleeing the wilds of {region} asks for your protection.', [
+    EVc('Escort them', 'unit Free Company Militia 5 as Refugee Levy; flag escorted_refugees', 'It costs you rations, but some of the young men take up spears and follow your banner.', { cost: 10 }),
+    EVc('Leave them to the road', 'flag abandoned_refugees', 'You do not look back.')]),
+  EVt('captive-beast', 'The Captive', 'choice', '', 1, 'Woodsmen have caught a wounded gor. It speaks broken Reikspiel and offers to trade secrets for its life.', [
+    EVc('Hear it out, then let it go', 'clue; flag freed_beastman', 'It tells of a buried prize before vanishing into the trees.'),
+    EVc('Hear it out, then burn it', 'xp 1 one', 'Its secrets were lies anyway. The men cheer the flames.'),
+    EVc('Kill it at once', '', 'Quick and clean.')]),
+  EVt('flagellants', 'Flagellant Procession', 'choice', '', 1, 'A procession of penitents howls of the End Times and begs to follow {priest} into battle.', [
+    EVc('Accept them', 'unit Flagellants 6 as Wandering Penitents', 'They fall in behind the baggage, wailing and whipping.'),
+    EVc('Send them on their way', '', 'Their howling fades behind you.')]),
+  EVt('desertion', 'Desertion', 'choice', '', 2, 'Morning roll-call is short. Men have slipped away in the night.', [
+    EVc('Send riders after them', '', 'They are dragged back in chains.', { chance: 50, failText: 'The riders find nothing but bootprints.', failFx: 'lose 3' }),
+    EVc('Let them go', 'lose 2', 'Cowards are no loss. Probably.')]),
+
+  /* ---- purchases ---- */
+  EVt('pedlar', 'The Relic Pedlar', 'purchase', '', 2, 'A pedlar with a covered cart swears every one of his wares was blessed by a saint.', [
+    EVc('Buy a relic', 'relic', 'It hums faintly in the hand. Genuine!', { cost: 50, chance: 75, failText: 'A pig’s knucklebone in a velvet bag.' }),
+    EVc('Haggle hard', 'relic', 'A bargain, and a real one!', { cost: 35, chance: 45, failText: 'You paid for a painted pebble.' }),
+    EVc('No, thank you', '', 'He tips his hat and rattles on.')]),
+  EVt('mercenaries', 'Sellswords for Hire', 'purchase', '', 2, 'A mercenary captain in a battered breastplate offers his company for the season.', [
+    EVc('Hire the company', 'unit Spearmen 10 as Hired Sellswords', 'The company falls in behind your banners.', { cost: 60 }),
+    EVc('Decline', '', 'He shrugs. There is always another war.')]),
+  EVt('horse-trader', 'The Horse-trader', 'purchase', '', 2, 'A horse-trader offers fresh mounts at a fair price, and buys lame ones at an unfair one.', [
+    EVc('Buy remounts', 'clue; xp 1 one', 'Fresh horses let your scouts range further ahead.', { cost: 30 }),
+    EVc('Sell him the spare nags', 'gold 20', 'Twenty crowns for animals that would not have lasted the week.'),
+    EVc('Move on', '', '')]),
+  EVt('physician', 'The Travelling Physician', 'purchase', '', 2, 'A physician with a cart of leeches and saws offers his services.', [
+    EVc('Pay for treatment', 'heal', 'Stitched, bled and bandaged.', { cost: 20 }),
+    EVc('Decline', '', 'Nobody trusts the leeches.')]),
+  EVt('dwarf-engineer', 'A Dwarf Engineer', 'purchase', '', 1, 'A grizzled dwarf engineer offers powder kegs, “made properly, not like your manling rubbish”.', [
+    EVc('Buy the kegs', 'relic Dwarf Powder Kegs', 'He counts the coins twice.', { cost: 40 }),
+    EVc('Ask about runesmiths', 'flag heard_of_runesmith', 'He spits. “Alaric’s line? Ask in the mountains, manling. If you dare.”'),
+    EVc('Leave him be', '', '')]),
+  EVt('cathay-envoy', 'The Envoy of the Dragon', 'purchase', '', 1, 'A Cathayan envoy travelling with silk and gunpowder offers a gift, in exchange for a promise.', [
+    EVc('Accept the gift and the promise', 'relic Jade Talisman; flag cathay_promise', '“The Dragon remembers its friends,” he bows. “And its debtors.”'),
+    EVc('Trade honestly', 'relic', 'A fair bargain, sealed with tea.', { cost: 40 }),
+    EVc('Decline politely', 'flag cathay_snubbed', 'His smile does not reach his eyes.')]),
+
+  /* ---- gambles ---- */
+  EVt('mummers', 'Dice with the Mummers', 'gamble', '', 2, 'Travelling players at a roadside inn invite your officers to a game of bones.', [
+    EVc('Stake 20 gc (1 in 2 to win 40)', 'gold 40', 'The dice are kind.', { cost: 20, chance: 50, failText: 'The mummers are better at dice than at acting.' }),
+    EVc('Stake 50 gc (1 in 3 to win 150)', 'gold 150', 'A roar goes up from the inn. You clean them out!', { cost: 50, chance: 33, failText: 'Snake-eyes. The mummers buy the next round with your money.' }),
+    EVc('Watch the play instead', 'xp 1 one', 'A fine tragedy about Sigmar at Black Fire Pass. The men are in good spirits.')]),
+  EVt('ferryman', 'The Ferryman’s Wager', 'gamble', '', 2, 'The ferryman bets you can’t get the whole column across before the storm breaks.', [
+    EVc('Wager 30 gc (40% to win 75)', 'gold 75', 'The last wagon rolls off the ferry as the first raindrops fall.', { cost: 30, chance: 40, failText: 'Lightning, panic and a cart in the river.', failFx: 'lose 1' }),
+    EVc('Pay the fare and wait out the storm', '', 'A wet night, but everyone crosses safely.', { cost: 5 })]),
+  EVt('arm-wrestle', 'Strongest in the Camp', 'gamble', '', 1, 'A blacksmith challenges your champions to arm-wrestle for a purse.', [
+    EVc('Accept the challenge', 'gold 25; xp 1 one', 'Your champion slams the smith’s hand down to cheers.', { cost: 10, chance: 55, failText: 'Your champion’s arm goes with a crack.', failFx: 'wound' }),
+    EVc('Decline', '', '')]),
+  EVt('stranger-cards', 'The Stranger’s Game', 'gamble', '', 1, 'A pale stranger offers a game of cards. His stake is an old reliquary. Yours is 30 gc.', [
+    EVc('Play', 'relic; threat cult 1', 'You win the reliquary. The stranger smiles as though he meant you to.', { cost: 30, chance: 35, failText: 'You lose. The stranger is gone before dawn.' }),
+    EVc('Refuse', '', 'He shrugs, and the candle gutters.')]),
+
+  /* ---- camp and travel ---- */
+  EVt('fair-weather', 'Fair Weather', 'camp', '', 3, 'Clear skies and dry roads. The expedition makes good time and drills in the evenings.', [EVc('Onward', 'xp 1 one', '')]),
+  EVt('shrine', 'Wayside Shrine', 'camp', '', 2, 'A shrine to {god} stands at the crossroads, its candles long burnt out.', [
+    EVc('Leave an offering and pray', 'heal', 'The wounded rise a little straighter.', { cost: 10 }),
+    EVc('Pray', '', 'The prayers bring comfort, if nothing more.')]),
+  EVt('lame-horse', 'A Lame Horse', 'camp', '', 2, 'A baggage horse goes lame. Buy another, or leave supplies behind?', [
+    EVc('Buy a new horse', '', 'The column rolls on.', { cost: 15 }),
+    EVc('Leave the supplies', 'lose 1', 'Lean rations: a man slips away in the night.')]),
+  EVt('campfire', 'Songs by the Fire', 'camp', '', 2, 'Around the fire the old soldiers sing of Hel Fenn and the Wars of the Three Emperors.', [EVc('Rest well', 'xp 1 one', '')]),
+  EVt('long-rain', 'The Long Rain', 'camp', '', 2, 'Three days of rain. Boots rot and tempers fray, but nobody dies of it.', [EVc('March on', '', '')]),
+  EVt('comet', 'A Twin-tailed Comet', 'camp', '', 1, 'A comet streaks across the night sky. The Sigmarites take heart; the Ulricans mutter.', [EVc('Read the omen', 'flag saw_comet', '')]),
+
+  /* ---- battles ---- */
+  EVt('ambush', 'Ambush!', 'battle', '', 3, 'Arrows hiss from the undergrowth on the road to {pin}. The enemy has been waiting for you.', [EVc('To arms!', 'battle region march', '')]),
+  EVt('night-raid', 'Night Raid', 'battle', '', 2, 'Shapes slip past the pickets in the dark, making for the baggage and the wagons.', [EVc('Rouse the camp!', 'battle region mordheim', '')]),
+  EVt('rival-scouts', 'Rival Scouts', 'battle', '', 2, 'Riders in the colours of {rival} watch you from a ridge. They are mapping your road.', [
+    EVc('Chase them down', 'battle rival march', ''),
+    EVc('Let them watch', 'threat rival 1', 'They ride off to report your route.')]),
+  EVt('roadblock', 'Barricade on the Road', 'battle', '', 2, 'Felled trees across the road, and armed men behind them demanding 40 gc for passage.', [
+    EVc('Pay', '', 'They drag one tree aside, grinning.', { cost: 40 }),
+    EVc('Clear it by force', 'battle bandits march', '')]),
+  EVt('hunted', 'Hunted', 'battle', '', 1, 'Horns in the distance. Something has been tracking the column for days.', [
+    EVc('Turn and fight', 'battle region march', ''),
+    EVc('Force-march to lose them', '', 'You outpace them, footsore but whole.', { chance: 50, failText: 'They catch the rearguard at dusk.', failFx: 'battle region mordheim' })]),
+
+  /* ---- regional ---- */
+  EVt('kelham', 'The Villagers of Kelham', 'choice', 'stirland', 4, 'Kelham’s headman begs for help: something has been digging up the graveyard at night.', [
+    EVc('Help the villagers', 'flag helped_kelham; xp 1 one', 'Your soldiers stand vigil and burn what crawls out. Kelham will remember.'),
+    EVc('We have no time', 'flag refused_kelham', 'The headman watches you go in silence.')], { once: true }),
+  EVt('kelham-gratitude', 'Kelham Remembers', 'choice', '', 6, 'Riders from Kelham catch up with the column: the village has raised a militia to march with you.', [
+    EVc('Welcome them', 'unit Free Company Militia 10 as Kelham Militia', 'Farmers with spears, but brave ones.')], { once: true, req: 'helped_kelham' }),
+  EVt('kelham-necromancer', 'The Necromancer of Kelham', 'battle', '', 6, 'Kelham fell to the dead you would not stop. Its new master has followed your trail, and he has brought the villagers.', [
+    EVc('Face him', 'battle undead march', '')], { once: true, req: 'refused_kelham' }),
+  EVt('moot-pies', 'Halfling Hospitality', 'camp', 'stirland', 3, 'Halflings of the Moot offer pies, ale and a great deal of gossip.', [
+    EVc('Feast!', 'heal; xp 1 one', 'Nobody marches well the next morning, but everybody is happy.', { cost: 10 }),
+    EVc('Just the gossip', 'rumour', '')]),
+  EVt('wolf-shrine', 'Shrine of the White Wolf', 'camp', 'middenheim', 3, 'A wolf-skull shrine stands in a Drakwald clearing, hung with old offerings.', [
+    EVc('Make an offering', 'xp 1 all', 'A wolf howls somewhere close. The men take it as a blessing.', { cost: 10 }),
+    EVc('Pass by', '', '')]),
+  EVt('herdstone', 'The Herdstone', 'choice', 'middenheim', 3, 'Your scouts find a blood-soaked herdstone deep in the forest.', [
+    EVc('Topple it', 'battle beasts march; flag toppled_herdstone', ''),
+    EVc('Mark it on the map and move on', 'clue', 'The herd’s trails tell you much about the land.')]),
+  EVt('vampire-invite', 'An Invitation', 'choice', 'sylvania', 4, 'A black coach waits by the road. A card bears the von Carstein crest: an invitation to dine.', [
+    EVc('Accept: send the Captain', 'relic; threat cult 1', 'The Captain returns pale, silent, and bearing a gift.', { chance: 50, failText: 'He returns days later, changed.', failFx: 'wound; flag captain_bitten' }),
+    EVc('Burn the coach', 'battle undead mordheim', ''),
+    EVc('Ignore it', '', 'The coach is gone by morning. No tracks lead away.')], { once: true }),
+  EVt('sylvania-mist', 'The Mist', 'camp', 'sylvania', 3, 'A grave-cold mist rolls in. Voices of the drowned call names from it.', [
+    EVc('Hold fast and pray', '', 'The mist passes. Everyone is accounted for.', { chance: 60, failText: 'Some answered when their names were called.', failFx: 'lose 2' })]),
+  EVt('wyrdstone', 'Wyrdstone Seller', 'purchase', 'ostermark', 3, 'A scarred scavenger offers glowing green stones from the ruins of Mordheim.', [
+    EVc('Buy a shard', 'relic Wyrdstone Shard; threat cult 1', 'It is warm to the touch.', { cost: 30 }),
+    EVc('Seize the stones for the Witch Hunters', 'flag seized_wyrdstone', 'The scavenger curses you to Sigmar and back.'),
+    EVc('Refuse', '', '')]),
+  EVt('scavengers', 'Scavengers', 'battle', 'ostermark', 3, 'Desperate scavengers think your baggage is easier pickings than the ruins.', [EVc('Teach them otherwise', 'battle bandits mordheim', '')]),
+  EVt('horse-fair', 'The Averheim Horse Fair', 'purchase', 'averland', 3, 'The great horse fair is in full swing, and every rider in Averland is looking for work.', [
+    EVc('Hire riders', 'unit Pistoliers 4 as Averland Riders', 'Young nobles with pistols and too much courage.', { cost: 80 }),
+    EVc('Sell your spare mounts', 'gold 25', ''),
+    EVc('Enjoy the fair', 'xp 1 one', '')]),
+  EVt('greenskin-raid', 'Greenskin Raiders', 'battle', 'averland', 3, 'Greenskins down from the Black Mountains are burning their way along the road.', [EVc('Form ranks!', 'battle orcs march', '')]),
+  EVt('runesmith-rumour', 'Rumour of the Runesmith', 'choice', 'worlds_edge', 5, 'A dwarf prospector speaks of a runesmith of Alaric’s line who still works in a hold no manling has seen.', [
+    EVc('Buy him ale and listen', 'flag runesmith_rumour', 'He names a hold, and a price: an old grudge to be settled.', { cost: 10 }),
+    EVc('Ask nothing', '', '')], { once: true }),
+  EVt('rockfall', 'Rockfall', 'camp', 'worlds_edge', 3, 'The pass ahead is choked with loose scree.', [
+    EVc('Hire dwarf guides', '', 'They know a safer path, for a price.', { cost: 20 }),
+    EVc('Push on through', 'lose 2', 'The mountain takes its toll.')]),
+  EVt('robber-prince', 'The Robber-Prince', 'choice', 'border_princes', 4, 'A petty prince with a gilded helm and forty cutthroats demands tribute.', [
+    EVc('Pay tribute', 'flag paid_robber_prince', 'He waves you through his “realm”.', { cost: 40 }),
+    EVc('Refuse', 'battle bandits march', '')]),
+  EVt('cathay-court', 'The Celestial Court’s Offer', 'choice', 'cathay', 4, 'A mandarin offers Cathayan rockets, in exchange for word of where the other shards lie.', [
+    EVc('Accept', 'relic Dragon-fire Rockets; flag cathay_promise; threat rival 1', 'The rockets are crated with great ceremony.'),
+    EVc('Refuse', 'flag cathay_snubbed', 'The mandarin bows very slightly.')]),
+  EVt('condottieri', 'Condottieri', 'purchase', 'tilea', 4, 'A Tilean condottiere offers a company of pikes, paid in advance, naturally.', [
+    EVc('Hire the pikes', 'unit Spearmen 15 as Tilean Pikes', 'They march in step, singing.', { cost: 70 }),
+    EVc('Decline', '', '')]),
+  EVt('longships', 'Longships!', 'battle', 'nordland', 3, 'Dragon-prowed longships ground on the beach. Norse raiders pour ashore.', [EVc('Stand and fight', 'battle chaos march', '')]),
+  EVt('questing-knight', 'A Questing Knight', 'gamble', 'bretonnia', 3, 'A Questing Knight challenges your finest warrior to a joust, for honour and a blessed blade.', [
+    EVc('Accept the joust', 'relic', 'Victory! The knight yields his blade with courtesy.', { chance: 50, failText: 'Unhorsed and bruised.', failFx: 'wound' }),
+    EVc('Decline with courtesy', '', '')]),
+  EVt('long-rifle', 'The Hochland Hunter', 'purchase', 'hochland', 3, 'A hunter with a long rifle offers to guide you through the forests.', [
+    EVc('Hire him as a guide', 'clue; xp 1 one', 'He knows every deer-path for fifty miles.', { cost: 25 }),
+    EVc('Find your own way', '', '')]),
+];
+
+const DEFAULT_INVESTIGATE = [
+  { id: 'locals', title: 'Questioning the Locals', weight: 5, text: 'Villagers and charcoal-burners share what they have seen.', fx: 'clue' },
+  { id: 'tracks', title: 'Tracks and Signs', weight: 4, text: 'Your huntsmen read the ground.', fx: 'clue' },
+  { id: 'records', title: 'Dusty Records', weight: 2, text: 'A temple archive records strange comings and goings.', fx: 'clue; rumour' },
+  { id: 'cache', title: 'A Hidden Cache', weight: 2, text: 'Behind loose stones: a dead soldier’s hoard.', fx: 'gold 35' },
+  { id: 'altar', title: 'A Forgotten Altar', weight: 1, text: 'An altar to a forgotten saint still holds an offering.', fx: 'relic' },
+  { id: 'tavern', title: 'Tavern Talk', weight: 3, text: 'Ale loosens tongues. Some of it may even be true.', fx: 'rumour' },
+  { id: 'nothing', title: 'Nothing but Mud', weight: 3, text: 'Two days of searching turn up nothing but mud and rumours of rumours.', fx: '' },
+  { id: 'dream', title: 'A Troubling Dream', weight: 1, text: '{priest} wakes shaking from a dream of a burning sword, and will not speak of it.', fx: 'flag troubling_dream; threat cult 1' },
+  { id: 'disturbed', title: 'Disturbed Something', weight: 3, text: 'Your search disturbs something that should have stayed buried.', fx: 'battle region mordheim' },
+  { id: 'watched', title: 'You Were Watched', weight: 2, text: 'The enemy has been watching you search, and now they strike.', fx: 'battle region march' },
+  { id: 'lair', title: 'The Lair', weight: 1, text: 'The trail leads straight into an enemy lair.', fx: 'battle region march' },
+];
+
+const DEFAULT_TWISTS = [
+  { id: 'fog', name: 'Thick Fog', effect: 'Visibility is 18" for the first two turns. Nothing may shoot beyond it.', weight: 2 },
+  { id: 'rain', name: 'Driving Rain', effect: 'Black powder weapons misfire on a roll of 1 or 2. −1 to hit with all missile weapons.', weight: 2 },
+  { id: 'omen', name: 'Ill Omen', effect: 'Each side picks one enemy unit: it suffers −1 Leadership on turn 1.', weight: 1 },
+  { id: 'holy', name: 'Hallowed Ground', effect: 'Each Priest gets +1 to their prayers or spells while within 12" of the table centre.', weight: 1 },
+  { id: 'winds', name: 'Wild Winds of Magic', effect: 'Wizards add +1 to casting rolls, but miscast on any double.', weight: 1 },
+  { id: 'late', name: 'Late Arrivals', effect: 'Each player picks one of their own units. It arrives from their table edge at the end of turn 2.', weight: 2 },
+  { id: 'sunset', name: 'Sunset', effect: 'The battle lasts only 5 turns.', weight: 1 },
+  { id: 'night', name: 'Night Battle', effect: 'Roll 2D6 × 3" for visibility at the start of each turn.', weight: 1 },
+  { id: 'dead', name: 'The Dead Stir', effect: 'At the start of turn 3, a unit of 10 Zombies rises in the table centre. It attacks the nearest unit of either side.', weight: 1 },
+  { id: 'turncoats', name: 'Turncoats', effect: 'The side with fewer points on the table may add 5 Bandits (Cutthroats) for free.', weight: 1 },
+  { id: 'clear', name: 'Clear Skies', effect: 'No effect. A fine day for war.', weight: 3 },
+  { id: 'comet', name: 'Sign of the Comet', effect: 'Sigmarite units add +1 Leadership on turn 1. Chaos and Undead units suffer −1.', weight: 1 },
+  { id: 'wolves', name: 'Howling Wolves', effect: 'Ulrican units are Immune to Fear on turn 1. Cavalry of either side must test for Panic if they start a move next to woods.', weight: 1 },
+  { id: 'river', name: 'Swollen Streams', effect: 'All rivers and marshes count as dangerous terrain this battle.', weight: 1 },
+];
+
+const DEFAULT_LOOT = [
+  { id: 'purse', name: 'A purse of crowns', effect: '', gold: 30, weight: 4 },
+  { id: 'strongbox', name: 'A strongbox', effect: '', gold: 60, weight: 2 },
+  { id: 'tithe', name: 'Tithe-silver from a burned chapel', effect: '', gold: 40, weight: 2 },
+  { id: 'striking', name: 'Sword of Striking', effect: '+1 to hit in combat.', gold: 0, weight: 2 },
+  { id: 'talisman', name: 'Talisman of Protection', effect: '6+ ward save.', gold: 0, weight: 2 },
+  { id: 'shield', name: 'Enchanted Shield', effect: '+2 armour save.', gold: 0, weight: 2 },
+  { id: 'dragonhelm', name: 'Dragonhelm', effect: '+1 armour save; 2+ ward against flaming attacks.', gold: 0, weight: 1 },
+  { id: 'luckstone', name: 'Luckstone', effect: 'Once per game, re-roll a failed armour save.', gold: 0, weight: 2 },
+  { id: 'potion', name: 'Potion of Strength', effect: 'One use: +3 Strength for one turn.', gold: 0, weight: 2 },
+  { id: 'knucklebone', name: 'Saint’s Knucklebone', effect: 'Friendly units within 6" of the bearer add +1 Leadership.', gold: 0, weight: 1 },
+  { id: 'ruby', name: 'Ruby Ring of Ruin', effect: 'Bound spell: Fireball (power level 3).', gold: 0, weight: 1 },
+  { id: 'gromril', name: 'Gromril Hauberk', effect: '+1 armour save that can never be worse than 5+.', gold: 0, weight: 1 },
+  { id: 'map', name: 'Torn Map Fragment', effect: 'Show it at your next investigation: you may roll twice and choose.', gold: 0, weight: 1 },
+  { id: 'kegs', name: 'Dwarf Powder Kegs', effect: 'One use: a war machine re-rolls a misfire.', gold: 0, weight: 0 },
+  { id: 'jade', name: 'Jade Talisman', effect: '5+ ward save against magic.', gold: 0, weight: 0 },
+  { id: 'rockets', name: 'Dragon-fire Rockets', effect: 'One use: a Strength 4 flaming template shot (range 36").', gold: 0, weight: 0 },
+  { id: 'wyrd', name: 'Wyrdstone Shard', effect: '+1 to cast. On a casting roll of a double 1, the bearer takes a wound.', gold: 0, weight: 0 },
+];
+
+const SC = (id, name, scales, tags, objective, special = '') => ({ id, name, scales, tags, objective, special });
+const DEFAULT_SCENARIOS = [
+  SC('search', 'Search the Ruins', ['mordheim'], ['investigate', 'shard', 'ruins', 'town'], 'Place 5 search markers across the table. A hero in base contact at the end of their move rolls a D6: on a 4+ they find something. The side with more finds at the end of turn 6 wins.', 'The first marker found in the enemy half is a decoy.'),
+  SC('assassin', 'The Assassin’s Blade', ['mordheim'], ['investigate', 'road', 'any'], 'Slay the enemy leader, or keep yours alive until the end of turn 6.', 'Each leader may have one bodyguard model that may take a hit for them on a 4+.'),
+  SC('infiltrate', 'Night Infiltration', ['mordheim'], ['shard', 'investigate', 'fortress', 'town', 'village'], 'The attacker must get a hero into the central building and back to their own table edge.', 'Night: visibility 12". Defenders start as sentries and may only move D6" until the alarm is raised.'),
+  SC('lanes', 'Ambush in the Lanes', ['mordheim'], ['road', 'town', 'village'], 'Break through to the far table edge, or stop at least half of them.', 'Attackers deploy hidden. Reveal them when the enemy comes within 8" or when they act.'),
+  SC('relic', 'Hold the Relic', ['mordheim'], ['shard'], 'A casket sits in the centre. The side with a model carrying it at the end of turn 6 wins.', 'A model carrying the casket moves at half speed.'),
+  SC('scouts', 'Scouts’ Duel', ['mordheim', 'march'], ['rival', 'road'], 'Get two units into the enemy deployment zone, or stop the enemy doing the same.', 'Fast units may make a free 6" move before the first turn.'),
+  SC('ambush', 'Ambush!', ['march'], ['road', 'forest', 'road'], 'The defender must get at least half of its units off the far table edge.', 'Defender deploys in the centre in marching column. Attacker splits between both long edges and takes the first turn.'),
+  SC('raid', 'Raid on the Camp', ['march', 'mordheim'], ['road', 'investigate'], 'The attacker must burn 3 tents or wagons (a unit in contact rolls a D6: 4+ it burns).', 'The defender’s units start the game scattered and asleep: only half may act on turn 1.'),
+  SC('crossing', 'Hold the Crossing', ['march', 'full'], ['investigate', 'shard', 'river'], 'Control the bridge or ford at the end of the game.', 'Units in the river count as being in dangerous terrain.'),
+  SC('escort', 'Escort the Reliquary Wagon', ['march'], ['shard', 'road'], 'The wagon must leave the far table edge. It moves 6" a turn and has 4 wounds, T5.', ''),
+  SC('siege', 'Break the Siege', ['march', 'full'], ['investigate', 'fortress', 'town'], 'Relieve the defenders: get a unit into the walled area and hold it at the end of the game.', ''),
+  SC('pitched', 'Pitched Battle', ['full', 'march'], ['rival', 'shard', 'any'], 'Score more victory points than the enemy.', ''),
+  SC('clash', 'Clash of Expeditions', ['full'], ['rival'], 'Score more victory points. Slaying the enemy Priest is worth 200 extra.', 'The side holding more shards may re-roll one failed Leadership test.'),
+  SC('storm', 'Storm the Stronghold', ['full'], ['shard', 'fortress'], 'The attacker must control the keep at the end of the game.', 'Walls give hard cover. The defender may deploy one war machine on the walls.'),
+  SC('revealed', 'The Shard Revealed', ['full', 'march'], ['shard'], 'The shard lies in the centre of the table. Control it at the end of turn 6.', 'A character carrying the shard causes Fear.'),
+  SC('meeting', 'Meeting Engagement', ['full', 'march'], ['road', 'rival', 'any'], 'Score more victory points than the enemy.', 'Both sides deploy alternately, one unit at a time, with only half their army. The rest arrives from turn 2.'),
+];
+
+const EN = (name, kind, pts, ppm = 0, min = 0, max = 0) => kind === 'unit' ? { name, kind, ppm, min, max } : { name, kind, pts };
+// Approximate points for suggestions only. Edit them to match your army books and your models.
+const DEFAULT_ENEMIES = {
+  undead: [EN('Vampire', 'char', 140), EN('Banshee', 'char', 75), EN('Crypt Ghouls', 'unit', 0, 9, 10, 25), EN('Zombies', 'unit', 0, 4, 15, 40), EN('Cairn Wraith', 'mon', 60), EN('Varghulf', 'mon', 180)],
+  beasts: [EN('Beastlord', 'char', 150), EN('Great Bray-Shaman', 'char', 110), EN('Wargor', 'char', 75), EN('Gor Herd', 'unit', 0, 7, 10, 30), EN('Ungor Herd', 'unit', 0, 5, 10, 30), EN('Bestigor Herd', 'unit', 0, 13, 10, 20), EN('Chaos Warhounds', 'unit', 0, 7, 5, 10), EN('Centigors', 'unit', 0, 22, 5, 10), EN('Minotaurs', 'unit', 0, 55, 3, 6)],
+  chaos: [EN('Exalted Champion', 'char', 120), EN('Chaos Marauders', 'unit', 0, 6, 10, 30), EN('Chaos Warriors', 'unit', 0, 16, 10, 20), EN('Chaos Spawn', 'mon', 60)],
+  orcs: [EN('Orc Warboss', 'char', 110), EN('Orc Shaman', 'char', 70), EN('Night Goblins', 'unit', 0, 3.5, 15, 40), EN('Orc Mob', 'unit', 0, 7, 10, 30), EN('Troll', 'mon', 45)],
+  bandits: [EN('Bandit Chief', 'char', 55), EN('Hedge Wizard', 'char', 45), EN('Cutthroats', 'unit', 0, 5, 10, 20), EN('Brigand Archers', 'unit', 0, 6, 5, 15), EN('Outlaw Riders', 'unit', 0, 14, 5, 8), EN('Ogre Sellsword', 'mon', 45)],
+  dwarfs: [EN('Dwarf Thane', 'char', 85), EN('Slayer', 'char', 70), EN('Dwarf Warriors', 'unit', 0, 9, 10, 30), EN('Handgunners', 'unit', 0, 11, 10, 20), EN('Miners', 'unit', 0, 12, 10, 20), EN('Cannon', 'mon', 110)],
+  cathay: [EN('Strategist', 'char', 100), EN('Alchemist', 'char', 85), EN('Jade Warriors', 'unit', 0, 8, 10, 25), EN('Peasant Longbowmen', 'unit', 0, 6, 10, 20), EN('Crane Gunners', 'unit', 0, 9, 5, 15), EN('Jade Lancers', 'unit', 0, 20, 5, 10), EN('Celestial Dragon Guard', 'unit', 0, 13, 10, 20), EN('Fire Rain Rocket Battery', 'mon', 90)],
+};
+
+// What each injury does to the roster (phase 3). Matched by name for older saves.
+const INJ_DEFAULTS = {
+  'Dead': { status: 'dead', keep: false, xp: 0, special: '' },
+  'Multiple Injuries': { status: 'wounded', keep: false, xp: 0, special: 'multi' },
+  'Deep Wound': { status: 'out', keep: false, xp: 0, special: '' },
+  'Robbed': { status: 'fit', keep: false, xp: 0, special: 'robbed' },
+  'Full Recovery': { status: 'fit', keep: false, xp: 0, special: '' },
+  'Bitter Enmity': { status: 'fit', keep: true, xp: 0, special: '' },
+  'Captured': { status: 'out', keep: true, xp: 0, special: '' },
+  'Hardened': { status: 'fit', keep: true, xp: 0, special: '' },
+  'Horrible Scars': { status: 'fit', keep: true, xp: 0, special: '' },
+  'Lucky Escape': { status: 'fit', keep: false, xp: 1, special: '' },
+  'Survives Against the Odds': { status: 'fit', keep: false, xp: 2, special: '' },
+};
+const injuryDefaults = x => INJ_DEFAULTS[x.name] || { status: 'wounded', keep: true, xp: 0, special: '' };
+
+/* Idempotent: adds the phase 3 tables and fields, never touches rosters, regions or pins. */
+function seedPhase3(c) {
+  const t = c.tables = c.tables || {};
+  if (!Array.isArray(t.injuries)) t.injuries = clone(DEFAULT_INJURIES);
+  if (!Array.isArray(t.roadEvents)) t.roadEvents = clone(DEFAULT_ROAD_EVENTS);
+  if (!Array.isArray(t.investigate)) t.investigate = clone(DEFAULT_INVESTIGATE);
+  if (!Array.isArray(t.twists)) t.twists = clone(DEFAULT_TWISTS);
+  if (!Array.isArray(t.loot)) t.loot = clone(DEFAULT_LOOT);
+  if (!Array.isArray(t.scenarios)) t.scenarios = clone(DEFAULT_SCENARIOS);
+  if (!t.enemies || typeof t.enemies !== 'object') t.enemies = {};
+  for (const k in FACTIONS) if (!Array.isArray(t.enemies[k])) t.enemies[k] = clone(DEFAULT_ENEMIES[k] || []);
+  t.injuries.forEach(x => { if (x.status === undefined) Object.assign(x, injuryDefaults(x)); });
+  c.missions = c.missions || []; c.chains = c.chains || []; c.flags = c.flags || {};
+  c.threat = c.threat || { rival: 0, cult: 0 };
+  for (const s of SIDES) { const e = c.ex[s]; e.clues = e.clues || []; e.record = e.record || { win: 0, draw: 0, loss: 0 }; }
+  if (c.ts === undefined) c.ts = null;
+  c.schema = Math.max(c.schema || 1, 3);
+  return c;
+}
+
 function reg(name, unitType, models, ppm, opts = {}) {
   return { id: uid('reg'), name, unitType, models, maxModels: opts.max ?? models, ppm, xp: opts.xp ?? 0, rank: 0,
            perks: [], upgrades: opts.upgrades ?? [], notes: opts.notes ?? '' };
@@ -666,6 +1009,7 @@ function newCampaign(opts = {}) {
   c.chronicle.push({ id: uid('ch'), ts: Date.now(), turn: 1, side: null, kind: 'story',
     text: 'The Reikland Runefang lies shattered, and Karl Franz bleeds from a daemon’s wound. Two expeditions set out to recover the scattered shards: the Sigmarite Expedition marching from Stirland, and the Ulrican Expedition from Middenland under the White Wolf’s banner. Each priest swears his vision shows the way.' });
   seedPhase2(c);
+  seedPhase3(c);
   return c;
 }
 
@@ -693,6 +1037,7 @@ function migrate(c) {
     e.characters.forEach(h => { h.injuries = h.injuries || []; h.xp = h.xp || 0; h.status = h.status || 'fit'; });
   }
   seedPhase2(c);   // schema 1 → 2: regions, pins, shard sites, expedition positions
+  seedPhase3(c);   // schema 2 → 3: road events, investigation, twists, loot, scenarios, opposition lists
   return c;
 }
 
@@ -995,11 +1340,7 @@ function viewHome() {
       <button class="btn ghost" style="color:#f3e1b4;border-color:#f3e1b4" data-act="undoLost" data-side="${s}">Undo (it was a mistake)</button></div>`;
   }
 
-  h += `<div class="card turn-card side-${a}"><div class="row"><div class="grow" style="padding-left:6px">
-      <h3 class="sc">The road calls</h3>
-      <div class="title">${esc(exName(a))} marches this turn</div>
-      <div class="small muted">${esc(EX(other(a)).player)} commands the opposition.</div></div></div>
-      <div class="btns" style="margin-top:10px"><button class="btn seal" data-act="openMap">Open the map</button><button class="btn" data-act="passTurn">End turn · pass to ${esc(exShort(other(a)))}</button></div></div>`;
+  h += turnCardHtml();
 
   for (const s of SIDES) {
     const e = EX(s), p = priestOf(s);
@@ -1150,6 +1491,17 @@ function viewMore() {
       <button class="btn block" data-act="setPerks">Perk library (${C.perkLibrary.length})</button>
       <button class="btn block" data-act="setCatalog">Muster roll: hireable units (${C.unitCatalog.length})</button>
       <button class="btn block" data-act="setInjuries">Injury table (${C.tables.injuries.length})</button>
+    </div></div>
+    <div class="section-h"><h2 class="bl">Missions & tables</h2></div>
+    <div class="card"><div class="btns" style="flex-direction:column">
+      <button class="btn block seal" data-act="missionLog">Mission log (${C.missions.length})</button>
+      <button class="btn block" data-act="setMissions">Missions & scales</button>
+      <button class="btn block" data-act="setRoadEvents">Road events (${C.tables.roadEvents.length})</button>
+      <button class="btn block" data-act="setInvestigate">Investigation results (${C.tables.investigate.length})</button>
+      <button class="btn block" data-act="setScenarios">Scenarios (${C.tables.scenarios.length})</button>
+      <button class="btn block" data-act="setEnemies">Opposition lists</button>
+      <button class="btn block" data-act="setTwists">Battlefield twists (${C.tables.twists.length})</button>
+      <button class="btn block" data-act="setLoot">Loot table (${C.tables.loot.length})</button>
     </div></div>
     <div class="section-h"><h2 class="bl">Backup & sharing</h2></div>
     <div class="card"><p class="small muted" style="margin-top:0">One file holds the entire campaign: rosters, chronicle, regions, pins and your map images. Send it to the other phone and import it there.</p>
@@ -1644,8 +1996,9 @@ const ACT = {
   side: el => { UI.side = el.dataset.side; render(); },
   goRoster: el => { UI.side = el.dataset.side; go('roster'); },
   passTurn: async () => {
-    const n = other(C.active);
-    if (!await confirmBox({ title: 'End the turn?', text: `<p>${esc(exName(C.active))} makes camp. Turn ${C.turn + 1} begins and <b>${esc(exName(n))}</b> marches.</p>`, ok: 'End turn' })) return;
+    const n = other(C.active), ts = TS();
+    const warn = [ts.event && !ts.event.resolved ? 'The road event has not been resolved.' : '', pendingMissions().some(m => m.side === C.active || m.oppSide === C.active) ? 'A battle is still waiting for its result (you can record it later).' : ''].filter(Boolean);
+    if (!await confirmBox({ title: 'End the turn?', text: `<p>${esc(exName(C.active))} makes camp. Turn ${C.turn + 1} begins and <b>${esc(exName(n))}</b> marches.</p>${warn.length ? `<div class="note-box warnbox">${warn.map(esc).join('<br>')}</div>` : ''}`, ok: 'End turn' })) return;
     C.turn += 1; C.active = n; UI.side = n;
     chron(n, 'turn', `Turn ${C.turn}: ${exName(n)} breaks camp and takes the road.`);
     save(); render(); toast(`Turn ${C.turn}: ${exShort(n)} marches`);
@@ -2264,32 +2617,43 @@ function editPin(r, p, isNew = false, after) {
 function pinSheet(r, p) {
   const t = TERRAIN[p.terrain] || {}, f = FACTIONS[p.faction];
   const fought = missionsAt(r.id, p.id), here = SIDES.filter(s => EX(s).pos && EX(s).pos.pinId === p.id);
-  const a = C.active, b = other(a);
+  const a = C.active, b = other(a), ts = TS();
+  const pend = (C.missions || []).filter(m => m.status === 'active' && m.regionId === r.id && m.pinId === p.id);
+  const canInv = here.includes(a) && ts.marched && ts.event && ts.event.resolved && !ts.investigated && !activeChain(a) && EX(a).status !== 'lost';
   openSheet({ title: p.name,
     html: `<div class="row" style="margin-top:8px"><span class="pin static" style="background:${facColor(p.faction)}">${terrIcon(p.terrain)}</span>
         <div class="grow"><b>${esc(t.label || p.terrain)}</b><div class="small muted">${f ? 'Haunt of the ' + esc(f.label) : 'No faction affinity'} · ${esc(r.name)}</div></div></div>
       <div class="note-box" style="margin-top:10px"><b class="sc">Table setup.</b> ${esc(t.setup || '')}</div>
       ${p.notes ? `<p class="flavour">${esc(p.notes)}</p>` : ''}
       ${here.map(s => `<div class="row small" style="margin-top:8px;gap:6px">${shieldSvg(s)}<span>The ${esc(exShort(s))} Expedition is camped here.</span></div>`).join('')}
-      ${fought.length ? `<h3 class="sc" style="margin-top:12px">Battles fought here</h3>${fought.map(m => `<div class="listed small"><span class="wax">✠</span><span class="grow">${esc(m.name || 'Battle')} · ${esc(exShort(m.side))} · ${esc(m.result || '')}</span><span class="muted">T${m.turn || '?'}</span></div>`).join('')}` : ''}
+      ${pend.map(m => `<button class="pick" data-a="mission" data-id="${m.id}"><b>⚔ ${esc(m.name)}</b><div class="muted">${esc(exShort(m.side))} vs ${esc(oppLabel(m))} · to be fought</div></button>`).join('')}
+      ${fought.length ? `<h3 class="sc" style="margin-top:12px">Battles fought here</h3>${fought.map(m => `<div class="listed small tap" data-a="mission" data-id="${m.id}" style="cursor:pointer"><span class="wax">✠</span><span class="grow">${esc(m.name || 'Battle')} · ${esc(exShort(m.side))} · ${esc(RES_WORD[m.result] || m.result || '')}</span><span class="muted">T${m.turn || '?'}</span></div>`).join('')}` : ''}
+      ${cluesHtml(r, p.id)}
       <div class="btns" style="flex-direction:column;margin-top:14px">
-        <button class="btn seal block" data-a="march" data-s="${a}" ${here.includes(a) ? 'disabled' : ''}>March the ${esc(exShort(a))} Expedition here</button>
+        ${canInv ? `<button class="btn seal block" data-a="investigate">Investigate ${esc(p.name)}</button>` : ''}
+        <button class="btn ${canInv ? '' : 'seal'} block" data-a="march" data-s="${a}" ${here.includes(a) ? 'disabled' : ''}>${ts.marched && EX(a).status !== 'lost' ? `Move the ${esc(exShort(a))} Expedition here (already marched)` : `March the ${esc(exShort(a))} Expedition here`}</button>
         <button class="btn block" data-a="march" data-s="${b}" ${here.includes(b) ? 'disabled' : ''}>Move the ${esc(exShort(b))} Expedition here</button>
-        <button class="btn block ghost" data-a="edit">Edit pin</button></div>`,
+        <button class="btn block ghost" data-a="edit">Edit pin</button></div>
+      <p class="small muted">Marching the ${esc(exShort(a))} Expedition rolls a road event. Moving the other expedition is a free correction.</p>`,
     onMount: sh => sh.body.addEventListener('click', e => {
       const btn = e.target.closest('[data-a]'); if (!btn) return;
       sh.close();
       if (btn.dataset.a === 'edit') editPin(r, p);
-      if (btn.dataset.a === 'march') marchTo(btn.dataset.s, r, p);
+      if (btn.dataset.a === 'march') marchFlow(btn.dataset.s, r, p);
+      if (btn.dataset.a === 'investigate') investigate(a);
+      if (btn.dataset.a === 'mission') missionSheet(missionById(btn.dataset.id));
     }) });
 }
-function marchTo(s, r, p) {
+function marchTo(s, r, p, opts = {}) {
   const e = EX(s);
   e.pos = { regionId: r.id, pinId: p.id };
   e.trail.push({ regionId: r.id, pinId: p.id, x: p.x, y: p.y, turn: C.turn, ts: Date.now() });
   if (e.trail.length > 300) e.trail.splice(0, e.trail.length - 300);
   chron(s, 'march', `${e.name} marched to ${p.name}${p.name.includes(r.short || r.name) ? '' : ' in ' + (r.short || r.name)}.`);
-  save(); refreshMap(); toast(`${exShort(s)} Expedition marched to ${p.name}`);
+  save(); refreshMap();
+  if (opts.silent || s !== C.active || e.status === 'lost') return toast(`${exShort(s)} Expedition moved to ${p.name}`);
+  const ts = TS(); Object.assign(ts, { marched: true, at: { regionId: r.id, pinId: p.id }, event: null, investigated: false, invest: null });
+  save(); render(); arrive(s, r, p);
 }
 function stepBack(s) {
   const e = EX(s); if (e.trail.length < 2) return toast('Nowhere to step back to');
@@ -2307,6 +2671,7 @@ function regionSheet(r) {
   openSheet({ title: r.name,
     html: `<p class="flavour">${esc(r.blurb || '')}</p>
       ${rum.length ? rum.map(x => `<div class="row small rumour"><span class="mini">${shardSvg(x.status)}</span><span>${x.status === 'rumoured' ? 'Rumoured here' : x.status === 'lost' ? 'Lost here' : 'Recovered here'}: <b>${esc(x.name)}</b></span></div>`).join('') : '<p class="small muted">No shard is rumoured here.</p>'}
+      ${cluesHtml(r)}
       <h3 class="sc" style="margin-top:14px">Map image</h3>
       <div class="card" style="margin:6px 0">${m ? `<div class="row">${m.thumb ? `<img class="thumbbig" src="${m.thumb}" alt="">` : ''}<div class="grow small">${m.w} × ${m.h} px · ${MB(m.bytes || 0)}<br><span class="muted">${esc(m.name || '')}</span>${shapeOff ? `<div style="color:var(--warn)">Shape differs from the seeded layout (${ratioTxt(r.aspect)}). Check the pins.</div>` : ''}</div></div>` : `<p class="small muted" style="margin-top:0">No image yet. Expected shape: ${ratioTxt(r.aspect)}.</p>`}
         <div class="btns" style="margin-top:8px"><button class="btn seal" data-a="upload">${m ? 'Replace image' : 'Add map image'}</button>${m ? '<button class="btn danger" data-a="rmimg">Remove</button>' : ''}</div></div>
@@ -2401,6 +2766,1006 @@ Object.assign(ACT, {
   ovSheet, newRegion: newRegionFlow,
   openMap: () => go('map'), goChron: () => go('chron'), goCodex: () => go('more'),
 });
+
+/* =====================================================================
+   PHASE 3: turn state, effects, road events, investigation, missions,
+   shard chains, rival clashes, after-battle
+   ===================================================================== */
+const SCALES = {
+  mordheim: { label: 'Mordheim', sub: 'Skirmish: heroes and a small escort' },
+  march: { label: 'Battle March', sub: 'A small Old World game' },
+  full: { label: 'Full Old World', sub: 'A pitched battle' },
+};
+const EV_KINDS = { choice: 'Choice', purchase: 'Purchase', gamble: 'Gamble', camp: 'Camp & road', battle: 'Battle' };
+const RES_WORD = { win: 'Victory', draw: 'Draw', loss: 'Defeat' };
+const flipRes = r => ({ win: 'loss', loss: 'win', draw: 'draw' })[r] || r;
+const d6 = () => 1 + Math.floor(Math.random() * 6);
+const d100 = () => 1 + Math.floor(Math.random() * 100);
+const pickOne = a => a[Math.floor(Math.random() * a.length)];
+function wpick(list, w = x => x.weight ?? 1) {
+  const ws = list.map(x => Math.max(0, num(w(x))));
+  const tot = ws.reduce((a, b) => a + b, 0); if (tot <= 0) return null;
+  let r = Math.random() * tot;
+  for (let i = 0; i < list.length; i++) { r -= ws[i]; if (r < 0) return list[i]; }
+  return list[list.length - 1];
+}
+const theN = (n, cap) => { n = String(n || ''); return /^the\s/i.test(n) ? (cap ? 'T' : 't') + n.slice(1) : (cap ? 'The ' : 'the ') + n; };
+const article = w => (/^[aeiou]/i.test(w) ? 'an ' : 'a ') + w;
+const oppLabel = m => m.opp === 'rival' ? exName(m.oppSide) : (FACTIONS[m.opp] || {}).label || 'the enemy';
+const oppColor = m => m.opp === 'rival' ? `var(--${m.oppSide})` : facColor(m.opp);
+const activeChain = (s, shard) => (C.chains || []).find(c => c.side === s && c.status === 'active' && (shard == null || c.shard === shard));
+const missionById = id => (C.missions || []).find(m => m.id === id) || null;
+const pendingMissions = () => (C.missions || []).filter(m => m.status === 'active');
+
+/* ---------- turn state: one march (road event, investigation) per turn ---------- */
+function TS() {
+  if (!C.ts || C.ts.turn !== C.turn || C.ts.side !== C.active)
+    C.ts = { turn: C.turn, side: C.active, marched: false, at: null, event: null, investigated: false, invest: null };
+  return C.ts;
+}
+
+/* ---------- flags (per expedition; phase 4 reads them too) ---------- */
+function setFlag(key, s, r) {
+  const f = C.flags[key] = C.flags[key] && typeof C.flags[key] === 'object' ? C.flags[key] : { sides: {} };
+  f.sides = f.sides || {}; f.sides[s] = C.turn; f.turn = C.turn; if (r) f.regionId = r.id;
+}
+function unsetFlag(key, s) { const f = C.flags[key]; if (!f || !f.sides) return; delete f.sides[s]; if (!Object.keys(f.sides).length) delete C.flags[key]; }
+const hasFlag = (key, s) => { const f = C.flags[key]; if (!f) return false; if (f === true || !f.sides) return true; return s ? !!f.sides[s] : Object.keys(f.sides).length > 0; };
+// "key" = this expedition set it · "!key" = it didn't · "any:key" = either expedition · "gold>=50"
+function reqOk(req, s) {
+  return String(req || '').split(/[,;]+/).map(x => x.trim()).filter(Boolean).every(tok => {
+    const neg = tok.startsWith('!'); let k = tok.replace(/^!/, '').trim(), v;
+    if (/^gold\s*>=\s*\d+$/i.test(k)) v = EX(s).gold >= num(k.split('=')[1]);
+    else if (/^any:/i.test(k)) v = hasFlag(k.slice(4).trim());
+    else v = hasFlag(k, s);
+    return neg ? !v : v;
+  });
+}
+function fill(t, s, r, p) {
+  const pr = priestOf(s), cap = EX(s).characters.find(h => !h.isPriest && h.status !== 'dead');
+  const map = { pin: p ? p.name : 'the road', region: r ? (r.short || r.name) : 'the wilds', ex: exName(s), rival: theN(exName(other(s)), false),
+    god: s === 'sig' ? 'Sigmar' : 'Ulric', priest: pr ? pr.name : 'the Priest', captain: cap ? cap.name : 'the Captain' };
+  return String(t || '').replace(/\{(\w+)\}/g, (m0, k) => map[k] ?? m0);
+}
+
+/* ---------- clues & rumours ---------- */
+const CLUE_TEXT = {
+  here: ['The trail ends here. Whatever is hidden lies close enough to touch. Investigate this place!'],
+  hot: ['The trail is hot. Fresh tracks and frightened locals point {dir}, no more than a day’s march.', 'A shepherd saw strange lights {dir}, very close. The trail is hot.'],
+  warm: ['The trail grows warm. Talk in the taverns points {dir}.', 'Your huntsmen find old campfires leading {dir}. The trail is warm.'],
+  cool: ['The trail is cool. Faint rumours drift in from somewhere {dir}, a good way off.', 'A pedlar heard something {dir}, far from here. The trail is cool.'],
+  cold: ['The trail is cold. Nobody here has seen or heard anything of a shard.', 'Cold. The locals shrug: whatever you seek is far from here.'],
+};
+const DIRS = ['to the east', 'to the north-east', 'to the north', 'to the north-west', 'to the west', 'to the south-west', 'to the south', 'to the south-east'];
+const HEAT_LABEL = { here: 'Burning', hot: 'Hot', warm: 'Warm', cool: 'Cool', cold: 'Cold', rumour: 'Rumour' };
+function pinDist(r, a, b) { const asp = r.aspect || 1.414; return Math.hypot((a.x - b.x) * asp, a.y - b.y) / Math.max(asp, 1); }
+function recordClue(s, r, p, heat, text, shardId) {
+  const e = EX(s); e.clues.push({ id: uid('clu'), turn: C.turn, regionId: r ? r.id : null, pinId: p ? p.id : null, heat, text, shard: shardId || null });
+  if (e.clues.length > 200) e.clues.splice(0, e.clues.length - 200);
+}
+function nearestRumourRegion(r) {
+  const cands = C.shards.filter(x => x.status === 'rumoured' && x.regionId && (!r || x.regionId !== r.id)).map(x => regionById(x.regionId)).filter(Boolean);
+  if (!cands.length) return null;
+  if (!r) return cands[0];
+  return cands.sort((a, b) => Math.hypot(a.hot.x - r.hot.x, a.hot.y - r.hot.y) - Math.hypot(b.hot.x - r.hot.x, b.hot.y - r.hot.y))[0];
+}
+function clueFor(s, r, p) {
+  const sh = r && C.shards.find(x => x.status === 'rumoured' && x.regionId === r.id && x.pinId && pinOf(r, x.pinId));
+  if (!sh || !p) {
+    const R = nearestRumourRegion(r);
+    const t = R ? `No shard lies in ${r ? (r.short || r.name) : 'these lands'}. But travellers from ${R.short || R.name} tell of something buried there.` : 'The trail is cold everywhere. Every rumour has run dry.';
+    recordClue(s, r, p, 'cold', t, null); return t;
+  }
+  const tp = pinOf(r, sh.pinId), d = pinDist(r, p, tp);
+  const heat = tp.id === p.id ? 'here' : d < 0.12 ? 'hot' : d < 0.25 ? 'warm' : d < 0.45 ? 'cool' : 'cold';
+  const ang = Math.atan2(-(tp.y - p.y), (tp.x - p.x) * (r.aspect || 1.414));
+  const dir = DIRS[(Math.round(ang / (Math.PI / 4)) + 8) % 8];
+  const t = pickOne(CLUE_TEXT[heat]).replace('{dir}', dir);
+  recordClue(s, r, p, heat, t, sh.id); return t;
+}
+function rumourFor(s, r, p) {
+  const sh = r && C.shards.find(x => x.status === 'rumoured' && x.regionId === r.id && x.pinId && pinOf(r, x.pinId));
+  let t;
+  if (sh) {
+    const tp = pinOf(r, sh.pinId), others = r.pins.filter(x => x.id !== tp.id && (!p || x.id !== p.id));
+    if (others.length >= 2 && Math.random() < 0.5) {
+      const a = pickOne(others), b = pickOne(others.filter(x => x !== a));
+      t = `A trustworthy source swears ${theN(sh.name, false)} is not at ${a.name}, nor at ${b.name}.`;
+    } else t = `Tavern talk: ${theN(sh.name, false)} lies hidden at ${article(((TERRAIN[tp.terrain] || {}).label || tp.terrain).toLowerCase())} somewhere in ${r.short || r.name}.`;
+  } else {
+    const R = nearestRumourRegion(r);
+    t = R ? `Merchants swear a shard of the Runefang lies somewhere in ${R.name}.` : 'Every rumour has run dry.';
+  }
+  recordClue(s, r, p, 'rumour', t, sh ? sh.id : null); return t;
+}
+
+/* ---------- effects: "gold -20; relic; flag helped_kelham; battle undead march" ---------- */
+const FX_HELP = `<details class="note-box" style="margin:8px 0"><summary>Effect words</summary><div class="small">
+  Separate effects with <b>;</b>. Anything not listed is shown as a reminder note.<br>
+  <b>gold 30</b> / <b>gold -20</b> · <b>relic</b> (random from the loot table) or <b>relic Sword of Striking</b> · <b>loot</b> (roll the loot table) · <b>lose-relic</b><br>
+  <b>unit Spearmen 10 as Hired Swords</b> (a muster-roll unit, models, optional name) · <b>lose 2</b> (models from a random regiment)<br>
+  <b>wound</b> (a hero) · <b>wound priest</b> · <b>heal</b> · <b>xp 1 one</b> / <b>xp 1 all</b><br>
+  <b>flag name</b> · <b>unflag name</b> · <b>threat rival 1</b> / <b>threat cult 1</b> · <b>clue</b> · <b>rumour</b><br>
+  <b>battle</b> + opponent (<i>region</i>, <i>rival</i>, ${Object.keys(FACTIONS).join(', ')}) + scale (<i>mordheim</i>, <i>march</i>, <i>full</i>)<br>
+  Requirements: <b>helped_kelham</b> (this expedition set it), <b>!name</b> (it didn’t), <b>any:name</b> (either did), <b>gold&gt;=50</b>.</div></details>`;
+
+function makeRelic(s, entry) {
+  const e = EX(s); const rl = { id: uid('rel'), name: entry.name, effect: entry.effect || '', assignedTo: null, found: C.turn };
+  e.relics.push(rl); return rl;
+}
+const lootPool = () => C.tables.loot.filter(x => num(x.weight, 1) > 0);
+function runFx(s, str, ctx = {}) {
+  const e = EX(s), out = { lines: [], battle: null }, L = t => out.lines.push(t);
+  const alive = () => e.regiments.filter(r => r.models > 0);
+  for (const part of String(str || '').split(/[;\n]+/).map(x => x.trim()).filter(Boolean)) {
+    const [verb0, ...rest] = part.split(/\s+/), verb = verb0.toLowerCase(), arg = rest.join(' ').trim();
+    switch (verb) {
+      case 'gold': { const n = Math.round(num(rest[0])); if (n) { addGold(s, n, ctx.title || 'Event'); L(`${n > 0 ? '+' : '−'}${Math.abs(n)} gc`); } break; }
+      case 'relic': {
+        let x = arg && C.tables.loot.find(l => l.name.toLowerCase() === arg.toLowerCase());
+        if (!x && arg) x = { name: arg, effect: '' };
+        if (!x) x = wpick(lootPool().filter(l => !num(l.gold)));
+        if (x) { makeRelic(s, x); L(`Relic: ${x.name}`); }
+        break; }
+      case 'loot': { const x = wpick(lootPool()); if (!x) break; if (num(x.gold)) { addGold(s, num(x.gold), x.name); L(`${x.name}: +${num(x.gold)} gc`); } else { makeRelic(s, x); L(`Relic: ${x.name}`); } break; }
+      case 'lose-relic': case 'loserelic': { if (!e.relics.length) break; const x = pickOne(e.relics); e.relics = e.relics.filter(r => r !== x); L(`Lost the relic ${x.name}`); break; }
+      case 'unit': {
+        const m = arg.match(/^(.*?)\s+(\d+)(?:\s+as\s+(.+))?$/i); if (!m) { L(part); break; }
+        const type = m[1].trim(), n = +m[2], nm = (m[3] || '').trim() || type;
+        const u = C.unitCatalog.find(x => x.name.toLowerCase() === type.toLowerCase());
+        const rg = reg(nm, u ? u.name : type, n, u ? u.ppm : 5, { max: n, notes: `Joined: ${ctx.title || 'event'}, turn ${C.turn}.` });
+        e.regiments.push(rg); L(`New regiment: ${nm} (${n} ${u ? u.name : type})`); break; }
+      case 'lose': {
+        const n = Math.max(1, Math.round(num(rest[0], 1))), list = alive(); if (!list.length) break;
+        const r = pickOne(list), k = Math.min(n, r.models); r.models -= k; L(`${r.name} lose ${k} ${k === 1 ? 'model' : 'models'}${r.models <= 0 ? ' and are destroyed' : ''}`); break; }
+      case 'wound': {
+        const pr = arg.toLowerCase() === 'priest';
+        let list = e.characters.filter(h => h.status !== 'dead' && (pr ? h.isPriest : !h.isPriest));
+        const fit = list.filter(h => h.status === 'fit'); if (fit.length) list = fit;
+        if (!list.length) break; const h = pickOne(list); if (h.status === 'fit') h.status = 'wounded'; L(`${h.name} is wounded`); break; }
+      case 'heal': { const h = e.characters.find(x => x.status === 'wounded' || x.status === 'out'); if (h) { h.status = 'fit'; L(`${h.name} is fit again`); } else L('Nobody needed healing'); break; }
+      case 'xp': {
+        const n = Math.max(1, Math.round(num(rest[0], 1))), list = alive(); if (!list.length) break;
+        const tg = (rest[1] || 'all').toLowerCase() === 'one' ? [pickOne(list)] : list;
+        tg.forEach(r => r.xp += n);
+        L(tg.length === 1 ? `${tg[0].name} +${n} XP${canRankUp(tg[0]) ? ' (can rank up!)' : ''}` : `Every regiment +${n} XP`); break; }
+      case 'flag': if (arg) { setFlag(arg, s, ctx.r); } break;
+      case 'unflag': if (arg) unsetFlag(arg, s); break;
+      case 'threat': { const tr = (rest[0] || '').toLowerCase(); if (tr === 'rival' || tr === 'cult') C.threat[tr] = Math.max(0, (C.threat[tr] || 0) + Math.round(num(rest[1], 1))); break; }
+      case 'clue': L('Clue: ' + clueFor(s, ctx.r, ctx.p)); break;
+      case 'rumour': case 'rumor': L('Rumour: ' + rumourFor(s, ctx.r, ctx.p)); break;
+      case 'battle': {
+        const b = { opp: null, scale: null };
+        for (const tk of rest.map(x => x.toLowerCase())) {
+          if (SCALES[tk]) b.scale = tk; else if (tk === 'skirmish') b.scale = 'mordheim'; else if (tk === 'small') b.scale = 'march';
+          else if (tk === 'rival' || FACTIONS[tk]) b.opp = tk;
+        }
+        out.battle = b; break; }
+      default: L(part);
+    }
+  }
+  return out;
+}
+
+/* ---------- marching ---------- */
+async function marchFlow(s, r, p) {
+  if (s !== C.active || EX(s).status === 'lost') return marchTo(s, r, p, { silent: true });
+  const ch = activeChain(s);
+  if (ch && ch.pinId !== p.id) {
+    if (!await confirmBox({ title: 'Leave the trail?', danger: true, ok: 'March away',
+      text: `<p>The ${esc(exShort(s))} Expedition is on the trail of the <b>${esc(C.shards[ch.shard].name)}</b> (mission ${ch.step + 1} of ${ch.steps}). Marching away abandons the chain. You would have to find the trail again from the start.</p>` })) return;
+    abandonChain(ch, 'marched away');
+  }
+  if (TS().marched) {
+    if (!await confirmBox({ title: 'Already marched', ok: 'Move without an event', text: `<p>The ${esc(exShort(s))} Expedition has already marched this turn. Move it anyway, without a road event? Use this to correct a mistake.</p>` })) return;
+    return marchTo(s, r, p, { silent: true });
+  }
+  marchTo(s, r, p);
+}
+function arrive(s, r, p) {
+  const rv = other(s), q = EX(rv).pos;
+  if (EX(rv).status !== 'lost' && q && q.pinId === p.id) return rivalEncounter(s, r, p);
+  roadEvent(s, r, p);
+}
+function rivalEncounter(s, r, p) {
+  const ts = TS(), rv = other(s);
+  if (!ts.event) { ts.event = { id: '__rival', title: 'The Rival Is Here', resolved: false, regionId: r.id, pinId: p.id }; save(); }
+  openSheet({ title: 'The Rival Is Here', html: `<div class="row" style="margin-top:8px"><span class="evk evk-battle">Rival</span><span class="small muted grow">At ${esc(p.name)}</span></div>
+    <p class="flavour evtext">Campfires on the hill: ${esc(theN(exName(rv), false))} is camped at ${esc(p.name)}, and its pickets have seen your banners.</p>
+    <div id="evChoices"><button class="pick" data-c="fight"><b>Give battle</b><div class="muted">A Full Old World clash between the two expeditions.</div></button>
+    <button class="pick" data-c="slip"><b>Slip past by night</b><div class="muted">Roll a D6: on 3+ you avoid them and face the road as usual. On 1–2 they catch you.</div></button></div><div id="evOut"></div>`,
+    onMount: sh => sh.body.addEventListener('click', e => {
+      const b = e.target.closest('[data-c]'); if (b) {
+        let fight = b.dataset.c === 'fight', html = '';
+        if (!fight) { const r6 = d6(); fight = r6 < 3; html = `<div class="roll">Rolled <b>${r6}</b> (needed 3+)</div><p>${fight ? 'Torches! The rival’s outriders catch you in the open.' : 'You slip past their camp in silence.'}</p>`; }
+        $('#evChoices', sh.body).innerHTML = `<div class="chosen">${esc(b.querySelector('b').textContent)}</div>`;
+        if (fight) {
+          const m = createMission({ side: s, regionId: r.id, pinId: p.id, kind: 'rival', opp: 'rival', scale: 'full' });
+          Object.assign(ts.event, { resolved: true, battle: true, choice: 'Battle', text: 'The two expeditions clash.', lines: [], missionId: m.id });
+          chron(s, 'event', `At ${p.name}, ${exName(s)} ran into ${theN(exName(rv), false)}. Steel was drawn.`);
+          html += `<button class="btn block seal" data-go="battle">To battle!</button>`;
+        } else {
+          ts.event = null; chron(s, 'event', `${exName(s)} slipped past ${theN(exName(rv), false)}’s camp at ${p.name} by night.`);
+          html += `<button class="btn block seal" data-go="road">Onward</button>`;
+        }
+        save(); render(); $('#evOut', sh.body).innerHTML = html; return;
+      }
+      const g = e.target.closest('[data-go]'); if (!g) return;
+      sh.close();
+      if (g.dataset.go === 'battle') missionSheet(missionById(ts.event.missionId)); else roadEvent(s, r, p);
+    }) });
+}
+function eventPool(s, r) {
+  return C.tables.roadEvents.filter(ev => ev && (!ev.where || ev.where === r.id) && (!ev.side || ev.side === s) && reqOk(ev.req, s)
+    && !(ev.once && hasFlag('ev:' + ev.id, s)) && num(ev.weight, 1) > 0);
+}
+function roadEvent(s, r, p) {
+  const ts = TS();
+  if (ts.event && ts.event.id !== '__rival') { const ev = C.tables.roadEvents.find(x => x.id === ts.event.id) || ts.event.quiet; if (ev || ts.event.resolved) return eventSheet(s, ev, r, p); }
+  const ev = wpick(eventPool(s, r)) || EVt('__quiet', 'An Uneventful March', 'camp', '', 1, 'The road is quiet. Nothing troubles the expedition.', [EVc('Onward')]);
+  ts.event = { id: ev.id, title: ev.title, resolved: false, regionId: r.id, pinId: p.id, quiet: ev.id === '__quiet' ? ev : undefined };
+  save(); eventSheet(s, ev, r, p);
+}
+function eventOutcomeHtml(s, o, p) {
+  return `${o.roll != null ? `<div class="roll">Rolled <b>${o.roll}</b> on a D100 (needed ${o.need} or less): ${o.ok ? 'success' : 'failure'}</div>` : ''}
+    ${o.text ? `<p class="flavour">${esc(o.text)}</p>` : ''}
+    ${o.lines && o.lines.length ? `<ul class="fxl">${o.lines.map(l => `<li>${esc(l)}</li>`).join('')}</ul>` : ''}
+    ${o.missionId ? `<button class="btn block seal" data-go="battle">To battle!</button>` : `<div class="btns" style="margin-top:10px"><button class="btn ghost" data-go="later">Later</button><button class="btn seal" data-go="inv">Investigate ${esc(p ? p.name : '')}</button></div>`}`;
+}
+function eventSheet(s, ev, r, p) {
+  const ts = TS(); ev = ev || (ts.event && ts.event.quiet);
+  const done = ts.event && ts.event.resolved;
+  const choices = ev && ev.choices && ev.choices.length ? ev.choices : [EVc('Onward')];
+  const title = ev ? ev.title : (ts.event && ts.event.title) || 'The Road';
+  openSheet({ title, html: `<div class="row" style="margin-top:8px"><span class="evk evk-${ev ? ev.kind : 'camp'}">${esc(EV_KINDS[ev && ev.kind] || 'Event')}</span><span class="small muted grow">On the road to ${esc(p.name)}</span></div>
+      ${ev ? `<p class="flavour evtext">${esc(fill(ev.text, s, r, p))}</p>` : ''}
+      <div id="evChoices">${done ? `<div class="chosen">${esc(ts.event.choice || '')}</div>` : choices.map((c, i) => {
+        const cost = num(c.cost), poor = EX(s).gold < cost, can = reqOk(c.req, s) && !poor;
+        const info = [cost ? `Costs ${cost} gc` : '', num(c.chance) > 0 && num(c.chance) < 100 ? `${num(c.chance)}% chance` : '', poor ? 'not enough gold' : '', !reqOk(c.req, s) ? 'not available' : ''].filter(Boolean).join(' · ');
+        return `<button class="pick" data-c="${i}" ${can ? '' : 'disabled'}><b>${esc(fill(c.label, s, r, p))}</b>${info ? `<div class="muted">${info}</div>` : ''}</button>`; }).join('')}</div>
+      <div id="evOut">${done ? eventOutcomeHtml(s, ts.event, p) : ''}</div>`,
+    onMount: sh => sh.body.addEventListener('click', e => {
+      const b = e.target.closest('[data-c]');
+      if (b && !b.disabled && !(ts.event && ts.event.resolved)) {
+        const c = choices[+b.dataset.c]; const cost = num(c.cost);
+        if (EX(s).gold < cost) return toast('Not enough gold');
+        if (cost) addGold(s, -cost, `${ev ? ev.title : 'Event'}: ${fill(c.label, s, r, p)}`);
+        const ch = num(c.chance); let ok = true, roll = null;
+        if (ch > 0 && ch < 100) { roll = d100(); ok = roll <= ch; }
+        const text = fill(ok ? c.text : (c.failText || 'It does not go your way.'), s, r, p);
+        const res = runFx(s, ok ? c.fx : c.failFx, { title: ev ? ev.title : 'Event', r, p });
+        if (ev && ev.once) setFlag('ev:' + ev.id, s, r);
+        let missionId = null;
+        if (res.battle) missionId = createMission({ side: s, regionId: r.id, pinId: p.id, kind: res.battle.opp === 'rival' ? 'rival' : 'road', opp: res.battle.opp, scale: res.battle.scale }).id;
+        Object.assign(ts.event, { resolved: true, choice: fill(c.label, s, r, p), ok, roll, need: ch, text, lines: res.lines, battle: !!res.battle, missionId });
+        delete ts.event.quiet;
+        chron(s, 'event', `On the road to ${p.name}, ${exName(s)} met with ${ev ? ev.title.replace(/[!.]$/, '') : 'nothing'}, and chose: “${fill(c.label, s, r, p)}”.${text ? ' ' + text : ''}${res.lines.length ? ' (' + res.lines.join('; ') + ')' : ''}`);
+        save(); render();
+        $('#evChoices', sh.body).innerHTML = `<div class="chosen">${esc(fill(c.label, s, r, p))}</div>`;
+        $('#evOut', sh.body).innerHTML = eventOutcomeHtml(s, ts.event, p);
+        return;
+      }
+      const g = e.target.closest('[data-go]'); if (!g) return;
+      sh.close();
+      if (g.dataset.go === 'battle') { const m = missionById(ts.event.missionId); if (m) missionSheet(m); }
+      if (g.dataset.go === 'inv') investigate(s);
+    }) });
+}
+
+/* ---------- investigation ---------- */
+function investigate(s) {
+  const ts = TS(), e = EX(s);
+  if (ts.investigated) return investSheet(s, ts.invest);
+  const r = e.pos && regionById(e.pos.regionId), p = r && pinOf(r, e.pos.pinId);
+  if (!p) return toast('The expedition is not at a named pin');
+  if (!ts.marched || ts.side !== s) return toast('March first: investigation follows a march');
+  if (ts.event && !ts.event.resolved) return toast('Face the road event first');
+  const shIdx = C.shards.findIndex(x => x.status === 'rumoured' && x.regionId === r.id && x.pinId === p.id);
+  let inv;
+  if (shIdx >= 0 && !activeChain(s, shIdx)) {
+    const ch = startChain(s, shIdx, r, p), m = chainMission(ch);
+    inv = { title: 'The Trail Ends Here!', text: `Beneath ${p.name} the searchers find signs that cannot be mistaken: ${theN(C.shards[shIdx].name, false)} is here, and ${FACTIONS[ch.opp] ? 'the ' + FACTIONS[ch.opp].label : 'something'} guard${FACTIONS[ch.opp] ? '' : 's'} it.`,
+      lines: [`A chain of ${plural(ch.steps, 'mission')} begins: ${ch.scales.map(x => SCALES[x].label).join(' → ')}`, 'One mission per turn. Marching away abandons the chain.'], missionId: m.id, shard: true };
+    recordClue(s, r, p, 'here', `${theN(C.shards[shIdx].name, true)} lies at ${p.name}.`, C.shards[shIdx].id);
+    chron(s, 'shard', `${exName(s)} found the resting place of ${theN(C.shards[shIdx].name, false)} at ${p.name}. It will not be taken without a fight.`);
+  } else {
+    const mult = ts.event && ts.event.battle ? num(S().missions.afterBattleMult, 15) / 100 : 1;
+    const dz = 0.6 + 0.2 * (r.danger || 2);
+    const isB = it => /(^|;)\s*battle\b/i.test(it.fx || '');
+    const x = wpick(C.tables.investigate.filter(Boolean), it => num(it.weight, 1) * (isB(it) ? mult * dz : 1)) || { title: 'Nothing', text: 'Nothing of note.', fx: '' };
+    const res = runFx(s, x.fx, { title: x.title, r, p });
+    const m = res.battle ? createMission({ side: s, regionId: r.id, pinId: p.id, kind: res.battle.opp === 'rival' ? 'rival' : 'investigate', opp: res.battle.opp, scale: res.battle.scale }) : null;
+    inv = { title: x.title, text: fill(x.text, s, r, p), lines: res.lines, missionId: m ? m.id : null };
+    chron(s, 'investigate', `${exName(s)} searched ${p.name}: ${x.title}.${res.lines.length ? ' ' + res.lines.join('; ') + '.' : ''}`);
+  }
+  ts.investigated = true; ts.invest = inv; save(); render(); investSheet(s, inv);
+}
+function investSheet(s, inv) {
+  if (!inv) return;
+  openSheet({ title: inv.title, html: `<div class="row" style="margin-top:8px"><span class="evk ${inv.missionId ? 'evk-battle' : 'evk-choice'}">Investigation</span></div>
+    <p class="flavour evtext">${esc(inv.text)}</p>${inv.lines && inv.lines.length ? `<ul class="fxl">${inv.lines.map(l => `<li>${esc(l)}</li>`).join('')}</ul>` : ''}
+    ${inv.missionId ? '<button class="btn block seal" data-go="battle">To battle!</button>' : '<button class="btn block" data-go="ok">Done</button>'}`,
+    onMount: sh => sh.body.addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (!g) return; sh.close(); if (g.dataset.go === 'battle') { const m = missionById(inv.missionId); if (m) missionSheet(m); } }) });
+}
+
+/* ---------- mission generation ---------- */
+function missionPoints(scale, r) {
+  const M = S().missions, [lo, hi] = (M[scale] || [400, 750]).map(x => num(x));
+  const tot = Math.max(1, S().totalShards || 7);
+  const prog = clamp(0.7 * shardsTotalFound() / tot + 0.3 * Math.min(C.turn, 30) / 30, 0, 1);
+  const dz = ((r ? r.danger : 2) - 1) / 4;
+  const step = scale === 'mordheim' ? 25 : 50;
+  return Math.max(step, Math.round((lo + (hi - lo) * clamp(0.6 * prog + 0.4 * dz, 0, 1)) / step) * step);
+}
+function pickFaction(r, p) {
+  const w = { ...((r && r.factions) || {}) };
+  if (p && p.faction && FACTIONS[p.faction]) w[p.faction] = (w[p.faction] || 0) + 4;
+  const x = wpick(Object.entries(w).filter(([k, v]) => FACTIONS[k] && v > 0).map(([k, v]) => ({ k, weight: v })));
+  return x ? x.k : 'bandits';
+}
+function pickScenario(scale, kind, terrain) {
+  const L = (C.tables.scenarios || []).filter(x => x && (x.scales || []).includes(scale));
+  if (!L.length) return { name: 'Pitched Battle', objective: 'Score more victory points than the enemy.', special: '' };
+  return wpick(L, x => { const t = (x.tags || []).map(y => String(y).toLowerCase()); return (t.includes(kind) ? 4 : t.includes('any') ? 1.5 : 0.4) * (terrain && t.includes(terrain) ? 2.5 : 1); });
+}
+function enemyList(fac, pts, scale, extra = 0, fewer = 0) {
+  const pool = ((C.tables.enemies || {})[fac] || []).filter(x => x && x.name);
+  const chars = pool.filter(x => x.kind === 'char'), units = pool.filter(x => x.kind === 'unit'), mons = pool.filter(x => x.kind === 'mon');
+  const lines = [], used = {}; let left = pts;
+  const cap = pts * (scale === 'mordheim' ? 0.55 : scale === 'march' ? 0.3 : 0.25);
+  const aff = chars.filter(c => num(c.pts) <= cap).sort((a, b) => num(b.pts) - num(a.pts));
+  if (aff.length) { const c = aff[Math.random() < 0.6 ? 0 : Math.min(1, aff.length - 1)]; lines.push({ name: c.name, n: 0, pts: Math.round(num(c.pts)), char: true }); left -= num(c.pts); used[c.name] = 1; }
+  if (scale === 'full' && pts >= 1500) { const c2 = chars.filter(c => !used[c.name] && num(c.pts) <= pts * 0.15); if (c2.length) { const c = pickOne(c2); lines.push({ name: c.name, n: 0, pts: Math.round(num(c.pts)), char: true }); left -= num(c.pts); used[c.name] = 1; } }
+  const maxEach = scale === 'full' ? 3 : 2;
+  for (let guard = 0; guard < 24 && left > 0; guard++) {
+    const opts = [...units.filter(u => (used[u.name] || 0) < maxEach && Math.max(1, num(u.min, 1)) * num(u.ppm, 5) <= left),
+      ...mons.filter(x => (used[x.name] || 0) < (scale === 'mordheim' ? 1 : maxEach - 1) && num(x.pts) <= left && (scale !== 'mordheim' || num(x.pts) <= pts * 0.45))];
+    if (!opts.length) break;
+    const x = wpick(opts, o => used[o.name] ? 1 : 3);
+    if (x.kind === 'mon') { lines.push({ name: x.name, n: 0, pts: Math.round(num(x.pts)) }); left -= num(x.pts); }
+    else {
+      const mn = Math.max(1, Math.round(num(x.min, 5))), mx = Math.max(mn, Math.round(num(x.max, 20))), ppm = num(x.ppm, 5);
+      const target = scale === 'mordheim' ? 5 + Math.floor(Math.random() * 6) : mn + Math.random() * (mx - mn) * (scale === 'full' ? 0.9 : 0.6);
+      let n = clamp(Math.min(Math.round(target), Math.floor(left / ppm)), mn, mx);
+      if (n >= 10 && n - n % 5 >= mn) n -= n % 5;
+      lines.push({ name: x.name, n, pts: Math.round(n * ppm) }); left -= n * ppm;
+    }
+    used[x.name] = (used[x.name] || 0) + 1;
+  }
+  if (fewer && lines.filter(l => !l.char).length > 1) { const c = lines.filter(l => !l.char).sort((a, b) => a.pts - b.pts)[0]; c.removed = true; }
+  if (extra) { const x = units.length ? pickOne(units) : mons[0]; if (x) lines.push(x.kind === 'mon' ? { name: x.name, n: 0, pts: Math.round(num(x.pts)), extra: true } : { name: x.name, n: Math.round(num(x.min, 10)), pts: Math.round(num(x.min, 10) * num(x.ppm, 5)), extra: true }); }
+  if (!lines.length) lines.push({ name: `${(FACTIONS[fac] || {}).label || 'Enemy'} force of your choice`, n: 0, pts });
+  return { lines, total: lines.filter(l => !l.removed).reduce((a, l) => a + l.pts, 0) };
+}
+function rivalList(rv, pts) {
+  const e = EX(rv);
+  const lines = [...e.characters.filter(h => h.status !== 'dead').map(h => ({ name: h.name + (h.isPriest ? ' ✠' : '') + (h.status !== 'fit' ? ` (${STATUS[h.status].toLowerCase()})` : ''), n: 0, pts: Math.round(num(h.points)), char: true })),
+    ...e.regiments.filter(r => r.models > 0).map(r => ({ name: r.name, n: r.models, pts: unitPts(r) }))];
+  return { lines, total: armyPts(rv), rival: true };
+}
+function genMission(g) {
+  const r = regionById(g.regionId), p = pinOf(r, g.pinId), rv = other(g.side);
+  let opp = g.opp;
+  if (opp === 'rival' && EX(rv).status === 'lost') opp = null;
+  if (!opp || (opp !== 'rival' && !FACTIONS[opp])) opp = pickFaction(r, p);
+  const scale = SCALES[g.scale] ? g.scale : (opp === 'rival' ? 'march' : Math.random() < 0.3 ? 'mordheim' : 'march');
+  const points = missionPoints(scale, r);
+  const sc = pickScenario(scale, opp === 'rival' ? 'rival' : g.kind, p && p.terrain);
+  const enemy = opp === 'rival' ? rivalList(rv, points) : enemyList(opp, points, scale, g.extra || 0, g.fewer || 0);
+  const where = p ? p.name : r ? (r.short || r.name) : 'the road';
+  const ch = g.chainId && (C.chains || []).find(c => c.id === g.chainId), shName = ch ? C.shards[ch.shard].name : '';
+  return { id: uid('msn'), side: g.side, opp, oppSide: opp === 'rival' ? rv : null, regionId: g.regionId, pinId: g.pinId, kind: g.kind, scale, points,
+    scenario: { name: sc.name, objective: sc.objective || '', special: sc.special || '' }, setup: p ? (TERRAIN[p.terrain] || {}).setup || '' : '',
+    twist: null, enemy, mods: g.mods || [], chainId: g.chainId || null, step: g.step ?? null, of: g.of ?? null,
+    name: ch ? `${sc.name} at ${where} (${shName}, ${g.step + 1} of ${g.of})` : `${sc.name} at ${where}`,
+    status: 'active', result: null, turn: C.turn, created: Date.now(), gen: g };
+}
+function createMission(g) {
+  const m = genMission(g); C.missions.push(m);
+  chron(m.side, 'mission', `${exName(m.side)} must fight: ${m.name}, against ${oppLabel(m)} (${SCALES[m.scale].label}, ${m.points} pts).`);
+  save(); return m;
+}
+
+/* ---------- shard chains ---------- */
+function startChain(s, shIdx, r, p) {
+  const dg = r.danger || 2;
+  const steps = dg <= 2 ? (Math.random() < 0.5 ? 1 : 2) : dg === 3 ? 2 : (Math.random() < 0.6 ? 3 : 2);
+  const scales = steps === 1 ? ['march'] : steps === 2 ? (dg >= 4 ? ['march', 'full'] : ['mordheim', 'march']) : ['mordheim', 'march', 'full'];
+  const ch = { id: uid('chn'), side: s, shard: shIdx, regionId: r.id, pinId: p.id, steps, scales, step: 0, prev: null, results: [], missions: [],
+    opp: pickFaction(r, p), status: 'active', started: C.turn, lastTurn: null };
+  C.chains.push(ch); return ch;
+}
+function chainMission(ch) {
+  const r = regionById(ch.regionId), M = S().missions, final = ch.step === ch.steps - 1;
+  const g = { side: ch.side, regionId: ch.regionId, pinId: ch.pinId, kind: 'shard', scale: ch.scales[ch.step], chainId: ch.id, step: ch.step, of: ch.steps, opp: ch.opp, mods: [] };
+  if (ch.prev === 'loss') { g.mods.push(M.chainLoss); g.extra = 1; }
+  if (ch.prev === 'win') { g.mods.push(M.chainWin); g.fewer = 1; }
+  if (ch.prev === 'draw') g.mods.push(M.chainDraw);
+  const rv = other(ch.side), q = EX(rv).pos;
+  if (final && EX(rv).status !== 'lost' && q && q.regionId === ch.regionId) {
+    g.opp = 'rival'; g.scale = 'full'; g.mods = []; delete g.extra; delete g.fewer;
+    g.mods.push(`Contested! ${theN(exName(rv), true)} is in ${r ? r.short || r.name : 'the region'} and races you for the shard. If they win, they take it.`);
+  }
+  if (final && g.opp !== 'rival') g.mods.push('Final mission of the chain: win to recover the shard. Lose, and the enemy carries it off.');
+  const m = createMission(g); ch.missions.push(m.id); ch.lastTurn = C.turn; return m;
+}
+function abandonChain(ch, why) {
+  ch.status = 'abandoned';
+  C.missions.forEach(m => { if (m.chainId === ch.id && m.status === 'active') m.status = 'abandoned'; });
+  chron(ch.side, 'shard', `${exName(ch.side)} ${why === 'marched away' ? 'left' : 'gave up'} the trail of ${theN(C.shards[ch.shard].name, false)}.`);
+}
+function pressOn(s) {
+  const ch = activeChain(s); if (!ch) return;
+  const e = EX(s);
+  if (!e.pos || e.pos.pinId !== ch.pinId) return toast('Return to the shard’s resting place first');
+  if (C.missions.some(m => m.chainId === ch.id && m.status === 'active')) return missionSheet(C.missions.find(m => m.chainId === ch.id && m.status === 'active'));
+  if (ch.lastTurn === C.turn) return toast('One mission per turn. End the turn and press on next time.');
+  const m = chainMission(ch); save(); render(); missionSheet(m);
+}
+function captureShard(i, s) {
+  const sh = C.shards[i]; sh.status = s;
+  (C.chains || []).forEach(c => { if (c.shard === i && c.status === 'active') c.status = c.side === s ? 'won' : 'void'; });
+}
+function fleeShard(i) {
+  const sh = C.shards[i], r = regionById(sh.regionId);
+  const occupied = new Set(SIDES.map(s => EX(s).pos && EX(s).pos.pinId).filter(Boolean));
+  let R = r;
+  if (!r || Math.random() >= 0.6 || r.pins.length < 3) {
+    const near = C.regions.filter(x => x !== r && x.pins.length && (!x.far || (r && r.far))).sort((a, b) => r ? Math.hypot(a.hot.x - r.hot.x, a.hot.y - r.hot.y) - Math.hypot(b.hot.x - r.hot.x, b.hot.y - r.hot.y) : 0).slice(0, 3);
+    if (near.length) R = pickOne(near);
+  }
+  if (!R || !R.pins.length) return '';
+  const cands = R.pins.filter(p => p.id !== sh.pinId && !occupied.has(p.id));
+  const np = pickOne(cands.length ? cands : R.pins);
+  sh.regionId = R.id; sh.pinId = np.id;
+  (C.chains || []).forEach(c => { if (c.shard === i && c.status === 'active') c.status = 'void'; });
+  return R === r ? ` deeper into ${R.short || R.name}` : ` towards ${R.name}`;
+}
+function advanceChain(m, res) {
+  const ch = (C.chains || []).find(c => c.id === m.chainId); if (!ch || ch.status !== 'active') return '';
+  const sh = C.shards[ch.shard]; ch.results.push(res);
+  if (ch.step < ch.steps - 1) { ch.step++; ch.prev = res; return `The trail of ${theN(sh.name, false)} leads on: mission ${ch.step + 1} of ${ch.steps} awaits next turn.`; }
+  if (res === 'draw') { ch.prev = 'draw'; return `${theN(sh.name, true)} is still contested. The final mission must be fought again.`; }
+  if (res === 'win') { captureShard(ch.shard, ch.side); ch.status = 'won'; return `${exName(ch.side)} recovered ${theN(sh.name, false)}!`; }
+  if (m.opp === 'rival') { ch.status = 'failed'; captureShard(ch.shard, m.oppSide); return `${theN(exName(m.oppSide), true)} seized ${theN(sh.name, false)}!`; }
+  ch.status = 'failed'; const dest = fleeShard(ch.shard);
+  return `The enemy fled with ${theN(sh.name, false)}${dest}. The hunt goes on.`;
+}
+
+/* ---------- mission sheet ---------- */
+function yourForce(m, s = m.side) {
+  const P = m.points;
+  return m.scale === 'mordheim' ? `Up to ${P} pts: one or two heroes (the Priest may go, at his peril) and an escort of 5–15 models from your regiments.`
+    : m.scale === 'march' ? `Up to ${P} pts from the expedition (${armyPts(s)} pts on the roster).`
+    : `Up to ${P} pts: the expedition in full (${armyPts(s)} pts on the roster).`;
+}
+function enemyHtml(m) {
+  const en = m.enemy || { lines: [] };
+  if (en.rival) return `<p class="small" style="margin:4px 0">${esc(exName(m.oppSide))} fields ${esc(yourForce(m, m.oppSide).replace(/^Up to/, 'up to'))}</p>
+    <div class="elist">${en.lines.map(l => `<div class="el"><span class="grow">${l.n ? l.n + ' × ' : ''}${esc(l.name)}</span><span class="muted">${l.pts} pts</span></div>`).join('')}</div>`;
+  return `<div class="elist">${en.lines.map(l => `<div class="el ${l.removed ? 'rm' : ''} ${l.extra ? 'ex' : ''}"><span class="grow">${l.n ? l.n + ' × ' : ''}${esc(l.name)}${l.extra ? ' <b>(extra unit)</b>' : ''}${l.removed ? ' (removed)' : ''}</span><span class="muted">${l.pts} pts</span></div>`).join('')}
+    <div class="el tot"><span class="grow">About</span><b>${en.total} pts</b></div></div><div class="hint">A suggestion from Codex → Opposition lists. Swap units for what you own; stay near the points.</div>`;
+}
+async function renderInset(el, r, p) {
+  if (!el) return;
+  if (!r || !p) { el.remove(); return; }
+  if (!r.map) { el.innerHTML = `<div class="inset-msg">No map image for ${esc(r.short || r.name)} yet</div>`; return; }
+  try {
+    const img = await getImageEl(r.map.key);
+    const cw = el.clientWidth, chh = el.clientHeight, W = img.naturalWidth, H = img.naturalHeight; if (!cw || !W) return;
+    const k = Math.max(3 * cw / W, chh / H), iw = W * k, ih = H * k;
+    const left = clamp(cw / 2 - p.x * iw, cw - iw, 0), top = clamp(chh / 2 - p.y * ih, chh - ih, 0);
+    const dpr = Math.min(2, window.devicePixelRatio || 1), cv = document.createElement('canvas');
+    cv.width = Math.round(cw * dpr); cv.height = Math.round(chh * dpr); cv.className = 'inset-cv';
+    cv.getContext('2d').drawImage(img, -left / k, -top / k, cw / k, chh / k, 0, 0, cv.width, cv.height);
+    el.replaceChildren(cv);
+    el.insertAdjacentHTML('beforeend', `<div class="pin" style="left:${left + p.x * iw}px;top:${top + p.y * ih}px;background:${facColor(p.faction)}">${terrIcon(p.terrain)}</div><div class="inset-lab">${esc(p.name)} · tap to open the map</div>`);
+  } catch (e) { el.innerHTML = '<div class="inset-msg">The map image could not be loaded</div>'; }
+}
+function openPinOnMap(r, p) {
+  UI.mapViews['r:' + r.id] = { cx: p.x, cy: p.y, z: 3 };
+  setTimeout(() => openRegion(r.id), 300);
+}
+function recordHtml(m) {
+  const rec = m.record; if (!rec) return '';
+  return Object.entries(rec.sides || {}).map(([s, x]) => `<div class="card edge side-${s}" style="margin:8px 0"><div class="title">${esc(exName(s))}: ${RES_WORD[x.res] || ''}</div>
+    <ul class="fxl">${(x.lines || []).map(l => `<li>${esc(l)}</li>`).join('')}</ul></div>`).join('') + (rec.chain ? `<p class="flavour">${esc(rec.chain)}</p>` : '');
+}
+function missionSheet(m) {
+  if (!m) return;
+  const r = regionById(m.regionId), p = pinOf(r, m.pinId), sc = SCALES[m.scale] || SCALES.march, active = m.status === 'active';
+  const ch = m.chainId && (C.chains || []).find(c => c.id === m.chainId);
+  openSheet({ title: active ? 'Mission' : m.status === 'done' ? 'Battle record' : 'Abandoned mission',
+    html: `<div class="mhead"><div class="title" style="font-size:1.15rem">${esc(m.name)}</div>
+        <div class="row wrap" style="gap:6px;margin-top:6px"><span class="chip scale-${m.scale}"><b>${sc.label}</b></span><span class="chip"><b>${m.points} pts</b></span>
+          <span class="chip" style="border-color:${oppColor(m)}"><i class="fdot" style="background:${oppColor(m)}"></i>${esc(oppLabel(m))}</span>
+          <span class="chip">${shieldSvg(m.side)}${esc(exShort(m.side))}</span></div>
+        <div class="small muted" style="margin-top:4px">${esc(sc.sub)} · Turn ${m.turn}${p ? ' · ' + esc(p.name) : ''}${r ? ', ' + esc(r.short || r.name) : ''}${ch ? ` · <b>${esc(C.shards[ch.shard].name)}</b>, mission ${m.step + 1} of ${m.of}` : ''}</div></div>
+      ${p ? `<div class="inset" data-a="map"><div class="inset-msg">Unrolling the map…</div></div>` : ''}
+      ${m.mods.length ? `<div class="note-box warnbox">${m.mods.map(x => `<div>• ${esc(x)}</div>`).join('')}</div>` : ''}
+      <h3 class="sc mh">Scenario: ${esc(m.scenario.name)}</h3><p style="margin-top:2px">${esc(m.scenario.objective)}</p>
+      ${m.scenario.special ? `<p class="small"><b>Special rule:</b> ${esc(m.scenario.special)}</p>` : ''}
+      <h3 class="sc mh">Table setup${p ? ' · ' + esc((TERRAIN[p.terrain] || {}).label || '') : ''}</h3><p style="margin-top:2px">${esc(m.setup || 'Set up terrain as you like.')}</p>
+      <h3 class="sc mh">Your force</h3><p style="margin-top:2px">${esc(yourForce(m))}</p>
+      <h3 class="sc mh">The opposition</h3>${enemyHtml(m)}
+      <h3 class="sc mh">Battlefield twist</h3>
+      <div id="twistBox">${m.twist ? `<div class="note-box"><b>${esc(m.twist.name)}.</b> ${esc(m.twist.effect)}</div>${active ? '<button class="linkbtn" data-a="twist">Roll again</button>' : ''}` : active ? '<button class="btn block" data-a="twist">Roll the twist before deployment</button>' : '<p class="small muted">None rolled.</p>'}</div>
+      ${m.status === 'done' ? `<h3 class="sc mh">Result</h3>${recordHtml(m)}` : ''}
+      ${active ? `<div class="btns" style="margin-top:14px"><button class="btn ghost" data-a="reroll">Re-roll mission</button><button class="btn danger" data-a="abandon">Abandon</button></div>` : ''}`,
+    footer: active ? `<button class="btn ghost" data-r="0">Close</button><button class="btn seal" data-r="rec">Record the result</button>` : `<button class="btn" data-r="0">Close</button>`,
+    onMount: sh => {
+      renderInset($('.inset', sh.body), r, p);
+      sh.foot.addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (!b) return; sh.close(); if (b.dataset.r === 'rec') afterBattle(m); });
+      sh.body.addEventListener('click', async e => {
+        const b = e.target.closest('[data-a]'); if (!b) return; const a = b.dataset.a;
+        if (a === 'map' && r && p) { sh.close(); openPinOnMap(r, p); }
+        if (a === 'twist') {
+          const t = wpick(C.tables.twists.filter(Boolean)); if (!t) return toast('The twist table is empty');
+          m.twist = { name: t.name, effect: t.effect }; save();
+          $('#twistBox', sh.body).innerHTML = `<div class="note-box"><b>${esc(t.name)}.</b> ${esc(t.effect)}</div><button class="linkbtn" data-a="twist">Roll again</button>`;
+        }
+        if (a === 'reroll') {
+          if (!await confirmBox({ title: 'Re-roll the mission?', text: '<p>Generate a new opponent, scenario and opposition list for this battle. Use it if the mission doesn’t suit your models or table.</p>', ok: 'Re-roll' })) return;
+          const n = genMission(m.gen); Object.assign(m, { ...n, id: m.id, created: m.created, turn: m.turn }); save(); sh.close(); render(); missionSheet(m);
+        }
+        if (a === 'abandon') {
+          if (!await confirmBox({ title: 'Abandon this mission?', danger: true, ok: 'Abandon', text: `<p>The battle is not fought and nothing is recorded.${ch ? ' This also abandons the shard chain.' : ''}</p>` })) return;
+          m.status = 'abandoned'; if (ch && ch.status === 'active') abandonChain(ch, 'abandoned');
+          chron(m.side, 'mission', `${exName(m.side)} turned away from ${m.name}.`); save(); sh.close(); render();
+        }
+      });
+    } });
+}
+
+/* ---------- after the battle ---------- */
+function rollInjury() { const v = d6() * 10 + d6(); const t = C.tables.injuries; const i = t.findIndex(x => injMatch(x.roll, v)); return { v, i }; }
+function injMatch(roll, v) {
+  const s = String(roll || '').trim(), m = s.match(/^(\d+)\s*[-–]\s*(\d+)$/);
+  if (m) return v >= +m[1] && v <= +m[2];
+  return s.split(/[,\s]+/).some(x => x && +x === v);
+}
+function injuryRolls() {
+  const out = [rollInjury()], t = C.tables.injuries, first = t[out[0].i];
+  if (first && first.special === 'multi') {
+    for (let n = 0; out.length < 3 && n < 40; n++) {
+      const r = rollInjury(), x = t[r.i];
+      if (!x || x.special === 'multi' || x.status === 'dead' || /captur/i.test(x.name)) continue;
+      out.push(r);
+    }
+  }
+  return out;
+}
+function afterBattle(m) {
+  const sides = m.oppSide ? [m.side, m.oppSide] : [m.side];
+  const P = S().patron, M = S().missions;
+  const d = { res: 'win', form: null, loot: {}, searched: {}, inj: {} };
+  sides.forEach(s => { d.loot[s] = []; });
+  const resFor = s => s === m.side ? d.res : flipRes(d.res);
+  let sh;
+  const formVal = (k, def) => d.form && k in d.form ? d.form[k] : def;
+  function drawForm() {
+    sh.body.innerHTML = `<p class="small muted" style="margin-top:8px">${esc(m.name)} · ${SCALES[m.scale].label} · ${m.points} pts</p>
+      <form class="form" onsubmit="return false">
+      <div class="f"><label class="l">Result for ${esc(exName(m.side))}</label>${segHtml('res', d.res, [['win', 'Victory'], ['draw', 'Draw'], ['loss', 'Defeat']])}</div>
+      ${sides.map(s => { const e = EX(s); const regs = e.regiments.filter(r => r.models > 0), heroes = e.characters.filter(h => h.status !== 'dead');
+        return `<div class="card edge side-${s} ab-side"><h3 class="sc">${esc(exName(s))} · <span data-resl="${s}">${RES_WORD[resFor(s)]}</span></h3>
+          <div class="small muted" style="margin-top:6px">Regiments: tick those that fought, then count the fallen.</div>
+          ${regs.map(r => `<div class="ab-reg"><label class="toggle"><input type="checkbox" name="f_${r.id}" ${formVal('f_' + r.id, m.scale !== 'mordheim') ? 'checked' : ''}><span class="grow"><b>${esc(r.name)}</b> <span class="small muted">${r.models}/${r.maxModels}</span></span></label>
+            <div class="row small"><span class="grow muted">Fallen</span>${stepperHtml('l_' + r.id, formVal('l_' + r.id, 0), 0, r.models)}</div></div>`).join('') || '<div class="empty">No regiments.</div>'}
+          <div class="small muted" style="margin-top:10px">Heroes</div>
+          ${heroes.map(h => `<div class="ab-hero"><div class="row between"><b>${h.isPriest ? '<span class="priest-mark">✠</span> ' : ''}${esc(h.name)}</b><span class="st st-${h.status}">${STATUS[h.status]}</span></div>
+            ${segHtml('h_' + h.id, formVal('h_' + h.id, h.status === 'out' ? 'no' : 'ok'), [['no', 'Stayed back'], ['ok', 'Fought'], ['down', 'Taken out']])}</div>`).join('') || '<div class="empty">No heroes.</div>'}
+          ${fieldHtml({ key: 'obj_' + s, type: 'toggle', label: `Objective achieved (+${M.xpObjective} XP to those who fought)`, value: formVal('obj_' + s, false) })}
+          ${fieldHtml({ key: 'gold_' + s, label: `Gold from ${e.patron}`, type: 'number', value: formVal('gold_' + s, P[resFor(s)]) })}
+          <div class="f"><label class="l">Loot</label><div data-lootlist="${s}"></div>
+            <div class="row" style="margin-top:6px"><button type="button" class="btn sm" data-loot="${s}" ${d.searched[s] ? 'disabled' : ''}>Search the field</button><input data-lootc="${s}" placeholder="Other loot…" style="flex:1;min-width:0"><button type="button" class="btn sm" data-lootadd="${s}">Add</button></div>
+            <div class="hint">Search chance: ${M.loot.win}% after a victory, ${M.loot.draw}% after a draw, ${M.loot.loss}% after a defeat.</div></div></div>`; }).join('')}
+      </form>`;
+    sides.forEach(drawLoot);
+  }
+  function drawLoot(s) {
+    const el = $(`[data-lootlist="${s}"]`, sh.body); if (!el) return;
+    el.innerHTML = d.loot[s].map((x, i) => `<span class="chip">${num(x.gold) ? '✦ ' + esc(x.name) + ' (+' + num(x.gold) + ' gc)' : '◆ ' + esc(x.name)}<button type="button" class="x" data-lootrm="${s}" data-i="${i}">✕</button></span>`).join('') || '<span class="small muted">Nothing yet</span>';
+  }
+  function compute() {
+    const f = d.form, out = {};
+    for (const s of sides) {
+      const e = EX(s), res = resFor(s), o = out[s] = { res, regs: [], heroes: [], gold: Math.round(num(f['gold_' + s])), loot: d.loot[s], obj: !!f['obj_' + s] };
+      for (const r of e.regiments.filter(r => r.models > 0)) {
+        if (!f['f_' + r.id]) continue;
+        const lost = clamp(Math.round(num(f['l_' + r.id])), 0, r.models), left = r.models - lost;
+        const xp = left > 0 ? num(M.xpBattle) + (res === 'win' ? num(M.xpWin) : 0) + (o.obj ? num(M.xpObjective) : 0) : 0;
+        o.regs.push({ r, lost, left, xp });
+      }
+      for (const h of e.characters.filter(h => h.status !== 'dead')) {
+        const st = f['h_' + h.id]; if (st === 'no' || !st) continue;
+        if (st === 'down') { const key = h.id; if (!d.inj[key]) d.inj[key] = injuryRolls(); o.heroes.push({ h, down: true, rolls: d.inj[key] }); }
+        else o.heroes.push({ h, down: false, xp: num(M.heroXp) + (o.obj ? num(M.xpObjective) : 0) });
+      }
+    }
+    return out;
+  }
+  const injOpts = (sel, extra) => (extra ? '<option value="-1">(none)</option>' : '') + C.tables.injuries.map((x, i) => `<option value="${i}" ${i === sel ? 'selected' : ''}>${esc(x.roll)} · ${esc(x.name)}</option>`).join('');
+  function drawSummary() {
+    const out = compute();
+    let chainTxt = '';
+    if (m.chainId) {
+      const ch = (C.chains || []).find(c => c.id === m.chainId);
+      if (ch) chainTxt = ch.step < ch.steps - 1 ? `The chain continues: mission ${ch.step + 2} of ${ch.steps} next turn${d.res === 'loss' ? ', with an extra enemy unit' : d.res === 'win' ? ', with the enemy one unit down' : ''}.`
+        : d.res === 'win' ? `Victory recovers ${theN(C.shards[ch.shard].name, false)}!` : d.res === 'draw' ? 'A draw: the final mission must be fought again.' : m.opp === 'rival' ? `Defeat: ${theN(exName(m.oppSide), false)} takes ${theN(C.shards[ch.shard].name, false)}.` : `Defeat: the enemy flees with ${theN(C.shards[ch.shard].name, false)}.`;
+    }
+    sh.body.innerHTML = `<p class="small muted" style="margin-top:8px">Check the results, change any injury if you rolled your own dice, then seal the record.</p>
+      ${sides.map(s => { const o = out[s]; return `<div class="card edge side-${s}"><h3 class="sc">${esc(exName(s))} · ${RES_WORD[o.res]}</h3>
+        ${o.regs.length ? `<div class="small muted" style="margin-top:6px">Regiments</div>${o.regs.map(x => `<div class="listed small"><span class="grow">${esc(x.r.name)}</span><span>${x.lost ? `−${x.lost} → ${x.left}/${x.r.maxModels}` : 'no losses'}${x.left <= 0 ? ' <b style="color:var(--bad)">destroyed</b>' : ''}</span><span class="pos" style="min-width:52px;text-align:right">${x.xp ? '+' + x.xp + ' XP' : ''}</span></div>`).join('')}` : '<p class="small muted">No regiments fought.</p>'}
+        ${o.heroes.length ? `<div class="small muted" style="margin-top:8px">Heroes</div>${o.heroes.map(x => x.down ? `<div class="ab-inj"><div class="row between"><b>${x.h.isPriest ? '✠ ' : ''}${esc(x.h.name)}</b><span class="small muted">taken out · rolled ${x.rolls.map(y => y.v).join(', ')}</span></div>
+            ${x.rolls.map((y, k) => `<select data-inj="${x.h.id}" data-k="${k}">${injOpts(y.i, k > 0)}</select>`).join('')}
+            <div class="small" data-injfx="${x.h.id}"></div></div>` : `<div class="listed small"><span class="grow">${esc(x.h.name)}</span><span class="pos">+${x.xp} XP</span></div>`).join('')}` : ''}
+        <div class="listed small"><span class="grow">Gold from ${esc(EX(s).patron)}</span><b class="${o.gold >= 0 ? 'pos' : 'neg'}">${o.gold >= 0 ? '+' : ''}${o.gold} gc</b></div>
+        ${o.loot.length ? `<div class="listed small"><span class="grow">Loot</span><span>${o.loot.map(x => esc(x.name)).join(', ')}</span></div>` : ''}</div>`; }).join('')}
+      ${chainTxt ? `<div class="note-box"><b>The shard.</b> ${esc(chainTxt)}</div>` : ''}`;
+    $$('[data-injfx]', sh.body).forEach(el => injFx(el.dataset.injfx));
+  }
+  function injFx(hid) {
+    const el = $(`[data-injfx="${hid}"]`, sh.body); if (!el) return;
+    const list = d.inj[hid].map(y => C.tables.injuries[y.i]).filter(Boolean);
+    const [h] = findChar(hid);
+    const dead = list.some(x => x.status === 'dead');
+    el.innerHTML = list.map(x => `<div>${esc(x.name)}: <span class="muted">${esc(x.effect)}</span></div>`).join('') + (dead && h && h.isPriest ? '<div class="warnbox note-box"><b>The Priest is slain.</b> Sealing this record ends the campaign for this expedition.</div>' : '');
+  }
+  function apply() {
+    const out = compute(), lines = {}, chronBits = [];
+    for (const s of sides) {
+      const e = EX(s), o = out[s], L = lines[s] = [];
+      let fallen = 0;
+      for (const x of o.regs) {
+        x.r.models = x.left; x.r.xp += x.xp; fallen += x.lost;
+        L.push(`${x.r.name}: ${x.lost ? `lost ${x.lost}` : 'no losses'}${x.left <= 0 ? ', destroyed' : ''}${x.xp ? `, +${x.xp} XP` : ''}${canRankUp(x.r) ? ' (can rank up!)' : ''}`);
+      }
+      const downs = [];
+      for (const x of o.heroes) {
+        if (!x.down) { x.h.xp += x.xp; L.push(`${x.h.name}: +${x.xp} XP`); continue; }
+        const res = x.rolls.map(y => C.tables.injuries[y.i]).filter(Boolean);
+        let status = 'fit'; const rank = { fit: 0, wounded: 1, out: 2, dead: 3 }; const names = [];
+        for (const it of res) {
+          if (it.special === 'multi') { names.push(it.name); continue; }
+          if (rank[it.status || 'wounded'] > rank[status]) status = it.status || 'wounded';
+          if (it.keep && !x.h.injuries.includes(it.name)) x.h.injuries.push(it.name);
+          if (num(it.xp)) x.h.xp += num(it.xp);
+          if (it.special === 'robbed') { const rl = e.relics.find(r => r.assignedTo === x.h.id); if (rl) { e.relics = e.relics.filter(r => r !== rl); names.push(`${it.name} (lost ${rl.name})`); continue; } }
+          names.push(it.name);
+        }
+        if (res.some(it => it.special === 'multi') && status === 'fit') status = 'wounded';
+        x.h.status = status;
+        if (status === 'dead') { e.relics.forEach(r => { if (r.assignedTo === x.h.id) r.assignedTo = null; }); }
+        L.push(`${x.h.name}: ${names.join(', ') || 'injured'}${status === 'dead' ? ' (slain)' : status === 'out' ? ' (out next game)' : status === 'wounded' ? ' (wounded)' : ''}`);
+        downs.push({ h: x.h, names, status });
+        if (status === 'dead' && x.h.isPriest) {
+          e.status = 'lost';
+          chron(s, 'death', `${x.h.name} has fallen. Without its Priest, ${e.name} breaks apart, and the race for the Runefang is lost to them.`);
+        } else if (status === 'dead') chron(s, 'death', `${x.h.name} (${x.h.role}) has fallen.`);
+      }
+      if (o.gold) { addGold(s, o.gold, `Patron payment (${RES_WORD[o.res].toLowerCase()}): ${m.name}`); L.push(`${o.gold >= 0 ? '+' : ''}${o.gold} gc from ${e.patron}`); }
+      for (const x of o.loot) {
+        if (num(x.gold)) { addGold(s, num(x.gold), `Loot: ${x.name}`); L.push(`Loot: ${x.name} (+${num(x.gold)} gc)`); }
+        else { makeRelic(s, x); L.push(`Relic: ${x.name}`); }
+      }
+      e.record = e.record || { win: 0, draw: 0, loss: 0 }; e.record[o.res] = (e.record[o.res] || 0) + 1;
+      const bit = [`${exName(s)} ${o.res === 'win' ? 'won the day' : o.res === 'draw' ? 'fought to a bloody draw' : 'was beaten'}`];
+      if (fallen) bit.push(`${fallen} of its soldiers fell`);
+      const dn = downs.filter(x => x.status !== 'dead'); if (dn.length) bit.push(`${dn.map(x => x.h.name).join(' and ')} ${dn.length > 1 ? 'were' : 'was'} carried from the field`);
+      if (o.loot.length) bit.push(`it took ${o.loot.map(x => x.name).join(', ')}`);
+      chronBits.push(bit.join('; '));
+    }
+    m.status = 'done'; m.result = d.res;
+    const p = pinOf(regionById(m.regionId), m.pinId);
+    const chainTxt = m.chainId ? advanceChain(m, d.res) : '';
+    m.record = { at: Date.now(), sides: Object.fromEntries(sides.map(s => [s, { res: out[s].res, lines: lines[s] }])), chain: chainTxt };
+    chron(m.side, 'battle', `At ${p ? p.name : 'the field'}, ${exName(m.side)} met ${oppLabel(m)} in “${m.scenario.name}” (${SCALES[m.scale].label}, ${m.points} pts). ${chronBits.join('. ')}.${chainTxt ? ' ' + chainTxt : ''}`);
+    save(); render();
+    const rk = sides.flatMap(s => EX(s).regiments.filter(canRankUp)).length;
+    alertBox(RES_WORD[d.res], `<p>${esc(m.name)} is sealed in the chronicle.</p>${chainTxt ? `<div class="note-box"><b>${esc(chainTxt)}</b></div>` : ''}${rk ? `<p>${plural(rk, 'regiment')} can rank up. Look for the ★ seal in the Roster.</p>` : ''}${sides.some(s => EX(s).status === 'lost') ? '<p><b>An expedition has lost its Priest. See the Campaign screen.</b></p>' : ''}`);
+  }
+  sh = openSheet({ title: 'After the Battle', html: '',
+    footer: `<button class="btn ghost" data-r="back">Cancel</button><button class="btn seal" data-r="next">Next: injuries & XP</button>`,
+    onMount: s0 => {
+      sh = s0; drawForm();
+      sh.body.addEventListener('input', e => {
+        if (e.target.name === 'res') { d.res = e.target.value; sides.forEach(s => { const l = $(`[data-resl="${s}"]`, sh.body); if (l) l.textContent = RES_WORD[resFor(s)]; const g = $(`[name="gold_${s}"]`, sh.body); if (g) g.value = P[resFor(s)]; }); }
+      });
+      sh.body.addEventListener('change', e => {
+        const sel = e.target.closest('select[data-inj]'); if (!sel) return;
+        const hid = sel.dataset.inj, k = +sel.dataset.k, v = +sel.value;
+        if (v < 0) d.inj[hid].splice(k, 1); else d.inj[hid][k] = { v: d.inj[hid][k] ? d.inj[hid][k].v : '—', i: v };
+        if (v < 0) drawSummary(); else injFx(hid);
+      });
+      sh.body.addEventListener('click', e => {
+        const lb = e.target.closest('[data-loot]');
+        if (lb) {
+          const s = lb.dataset.loot, ch = num(M.loot[resFor(s)]); d.searched[s] = true; lb.disabled = true;
+          const roll = d100();
+          if (roll <= ch) { const x = wpick(lootPool()); if (x) { d.loot[s].push({ name: x.name, effect: x.effect, gold: num(x.gold) }); toast(`Found: ${x.name}`); } }
+          else toast(`Rolled ${roll}: nothing of worth`);
+          return drawLoot(s);
+        }
+        const la = e.target.closest('[data-lootadd]');
+        if (la) { const s = la.dataset.lootadd, inp = $(`[data-lootc="${s}"]`, sh.body), v = inp.value.trim(); if (!v) return; const x = C.tables.loot.find(l => l.name.toLowerCase() === v.toLowerCase()) || { name: v, effect: '', gold: 0 }; d.loot[s].push({ name: x.name, effect: x.effect, gold: num(x.gold) }); inp.value = ''; return drawLoot(s); }
+        const lr = e.target.closest('[data-lootrm]');
+        if (lr) { d.loot[lr.dataset.lootrm].splice(+lr.dataset.i, 1); drawLoot(lr.dataset.lootrm); }
+      });
+      sh.foot.addEventListener('click', async e => {
+        const b = e.target.closest('[data-r]'); if (!b) return;
+        const step = sh.step || 1;
+        if (b.dataset.r === 'back') { if (step === 1) return sh.close(); sh.step = 1; drawForm(); sh.foot.innerHTML = `<button class="btn ghost" data-r="back">Cancel</button><button class="btn seal" data-r="next">Next: injuries & XP</button>`; return; }
+        if (step === 1) {
+          d.form = readInputs($('.form', sh.body)); d.res = d.form.res || d.res;
+          const live = new Set(Object.entries(d.form).filter(([k, v]) => k.startsWith('h_') && v === 'down').map(([k]) => k.slice(2)));
+          Object.keys(d.inj).forEach(k => { if (!live.has(k)) delete d.inj[k]; });
+          sh.step = 2; drawSummary(); sh.body.scrollTop = 0;
+          sh.foot.innerHTML = `<button class="btn ghost" data-r="back">← Back</button><button class="btn seal" data-r="seal">Seal the record</button>`;
+          return;
+        }
+        const out = compute();
+        const priestDies = sides.some(s => out[s].heroes.some(x => x.down && x.h.isPriest && x.rolls.some(y => (C.tables.injuries[y.i] || {}).status === 'dead')));
+        if (priestDies) {
+          if (!await confirmBox({ title: 'The Priest falls?', danger: true, ok: 'Yes, he is slain', text: '<p>The injury roll kills an expedition’s Priest. That expedition loses the campaign.</p>' })) return;
+          if (!await confirmBox({ title: 'Truly?', danger: true, ok: 'Confirm the death', text: '<p>Confirm once more. You can still go back and change the injury.</p>' })) return;
+        }
+        sh.close('done'); apply();
+      });
+    } });
+}
+
+/* ---------- campaign screen: the turn card ---------- */
+function turnCardHtml() {
+  const a = C.active, e = EX(a), ts = TS(), l = locOf(a);
+  const ch = activeChain(a), atChain = ch && e.pos && e.pos.pinId === ch.pinId;
+  const chPending = ch && C.missions.find(m => m.chainId === ch.id && m.status === 'active');
+  const roadM = ts.event && ts.event.missionId && missionById(ts.event.missionId);
+  const pinName = l && l.pin ? l.pin.name : '';
+  const row = (n, done, body) => `<div class="stp ${done ? 'done' : ''}"><span class="num">${done ? '✓' : n}</span><div class="grow">${body}</div></div>`;
+  let h = `<div class="card turn-card side-${a}"><div style="padding-left:6px">
+      <h3 class="sc">The road calls</h3><div class="title">${esc(exName(a))} marches this turn</div>
+      <div class="small muted">${esc(EX(other(a)).player)} commands the opposition.</div></div>`;
+  if (e.status === 'lost') return h + `<p class="small" style="padding-left:6px">This expedition has fallen. Pass the turn.</p><div class="btns" style="margin-top:10px"><button class="btn" data-act="passTurn">End turn · pass to ${esc(exShort(other(a)))}</button></div></div>`;
+  if (ch) {
+    const sh = C.shards[ch.shard], pp = pinOf(regionById(ch.regionId), ch.pinId);
+    h += `<div class="chainbox"><div class="row"><span class="mini">${shardSvg('rumoured')}</span><div class="grow"><b>On the trail of ${esc(theN(sh.name, false))}</b>
+      <div class="small muted">Mission ${ch.step + 1} of ${ch.steps} · ${ch.scales.map((x, i) => i < ch.step ? '✓' : SCALES[x].label).join(' → ')}</div></div></div>
+      ${chPending ? `<button class="btn block seal" data-act="viewMission" data-id="${chPending.id}">${esc(chPending.scenario.name)}: view mission</button>`
+        : !atChain ? `<p class="small" style="margin:6px 0 0">Return to ${esc(pp ? pp.name : 'the site')} to continue.</p>`
+        : ch.lastTurn === C.turn ? '<p class="small" style="margin:6px 0 0">One mission per turn. Press on next turn.</p>'
+        : `<button class="btn block seal" data-act="pressOn">Press on: mission ${ch.step + 1} of ${ch.steps}</button><div class="small muted center" style="margin-top:4px">Or march elsewhere (abandons the chain).</div>`}</div>`;
+  }
+  h += `<div class="steps">`;
+  h += row(1, ts.marched, ts.marched ? `Marched to <b>${esc(pinName)}</b>` : `<div class="row between"><span>March to a pin on the map</span><button class="btn sm seal" data-act="openMap">Open the map</button></div>`);
+  const ev = ts.event;
+  h += row(2, ev && ev.resolved, !ts.marched ? '<span class="muted">Road event: rolled when you march</span>'
+    : !ev ? `<div class="row between"><span>Road event</span><button class="btn sm" data-act="tsEvent">Face the road</button></div>`
+    : !ev.resolved ? `<div class="row between"><span>${esc(ev.title)}</span><button class="btn sm seal" data-act="tsEvent">Resolve</button></div>`
+    : `<div class="row between"><span>${esc(ev.title)}${ev.choice ? ` <span class="small muted">· ${esc(ev.choice)}</span>` : ''}</span><button class="btn sm ghost" data-act="tsEvent">View</button></div>`);
+  const canInv = ts.marched && ev && ev.resolved && l && l.pin && !ts.investigated && !(atChain);
+  h += row(3, ts.investigated, ts.investigated ? `<div class="row between"><span>Investigated: ${esc(ts.invest ? ts.invest.title : '')}</span><button class="btn sm ghost" data-act="tsInvestigate">View</button></div>`
+    : canInv ? `<div class="row between"><span>Investigate ${esc(pinName)}${roadM && roadM.status === 'active' ? '<div class="small muted">after the road battle</div>' : ''}</span><button class="btn sm seal" data-act="tsInvestigate">Investigate</button></div>`
+    : `<span class="muted">Investigate the pin you reach${atChain ? ' (you are already on the shard’s trail)' : ''}</span>`);
+  h += `</div><div class="btns" style="margin-top:10px"><button class="btn" data-act="passTurn">End turn · pass to ${esc(exShort(other(a)))}</button></div></div>`;
+  const pend = pendingMissions();
+  if (pend.length) {
+    h += `<div class="section-h"><h2 class="bl">Battles to fight</h2><span class="small muted">${pend.length}</span></div>`;
+    h += pend.map(m => `<div class="card edge side-${m.side} tap" data-act="viewMission" data-id="${m.id}"><div class="row between"><div class="grow"><div class="title" style="font-size:1rem">${esc(m.name)}</div>
+      <div class="small muted">${esc(exShort(m.side))} vs ${esc(oppLabel(m))} · ${SCALES[m.scale].label} · ${m.points} pts</div></div>
+      <button class="btn sm seal" data-act="recordMission" data-id="${m.id}">Record</button></div></div>`).join('');
+  }
+  return h;
+}
+
+/* ---------- clues lists for map sheets ---------- */
+function cluesHtml(r, pinId) {
+  const rows = SIDES.flatMap(s => EX(s).clues.filter(c => c.regionId === r.id && (!pinId || c.pinId === pinId)).map(c => ({ ...c, s }))).sort((a, b) => b.turn - a.turn).slice(0, 12);
+  if (!rows.length) return '';
+  return `<h3 class="sc" style="margin-top:14px">Clues gathered${pinId ? ' here' : ''}</h3>${rows.map(c => { const p = pinOf(r, c.pinId);
+    return `<div class="clue h-${c.heat}"><span class="heat">${HEAT_LABEL[c.heat] || ''}</span><div class="grow small">${esc(c.text)}<div class="muted">${esc(exShort(c.s))} · T${c.turn}${p && !pinId ? ' · at ' + esc(p.name) : ''}</div></div></div>`; }).join('')}`;
+}
+
+/* =====================================================================
+   PHASE 3 CODEX EDITORS
+   ===================================================================== */
+function tableEditor({ title, intro = '', get, summary, edit, blank }) {
+  openSheet({ title, html: '', onMount: sh => {
+    const draw = () => { const L = get(); sh.body.innerHTML = `${intro}${L.map((x, i) => `<button class="pick" data-i="${i}">${summary(x)}</button>`).join('') || '<div class="empty">Empty.</div>'}<button class="btn block seal" data-i="new" style="margin-top:8px">+ Add entry</button>`; };
+    draw();
+    sh.body.addEventListener('click', async ev => {
+      const b = ev.target.closest('button[data-i]'); if (!b) return;
+      const L = get(), isNew = b.dataset.i === 'new', idx = +b.dataset.i;
+      const out = await edit(clone(isNew ? blank() : L[idx]), isNew);
+      if (!out) return;
+      if (out === 'delete') L.splice(idx, 1); else if (isNew) L.push(out); else L[idx] = out;
+      save(); draw();
+    });
+  }, onClose: () => render() });
+}
+const delField = isNew => isNew ? [] : [{ key: 'remove', type: 'toggle', label: 'Delete this entry', value: false }];
+const regionOpts = () => [['', 'Anywhere (general table)'], ...C.regions.map(r => [r.id, r.name])];
+function roadEventsSheet() {
+  tableEditor({ title: 'Road events', get: () => C.tables.roadEvents,
+    intro: `<p class="small muted">Rolled on every march: the general events plus those of the region marched into. Higher weight = more likely. Tap to edit.</p>`,
+    summary: x => `<div class="row between"><b>${esc(x.title)}</b><span class="evk evk-${x.kind}">${esc(EV_KINDS[x.kind] || x.kind)}</span></div><div class="muted">${x.where ? esc((regionById(x.where) || { name: x.where }).name) : 'Anywhere'} · weight ${x.weight}${x.req ? ' · needs ' + esc(x.req) : ''}${x.once ? ' · once' : ''} · ${plural((x.choices || []).length, 'choice')}</div>`,
+    blank: () => EVt(uid('ev'), 'New event', 'choice', '', 2, '', [EVc('Onward')]), edit: editRoadEvent });
+}
+function editRoadEvent(x, isNew) {
+  return new Promise(res => {
+    const d = x; d.choices = d.choices || [];
+    openSheet({ title: isNew ? 'New road event' : 'Road event',
+      footer: `<button class="btn ghost" data-r="0">Cancel</button>${isNew ? '' : '<button class="btn danger" data-r="del">Delete</button>'}<button class="btn seal" data-r="1">Save</button>`,
+      onClose: v => res(v || null),
+      onMount: sh => {
+        const sync = () => {
+          const v = readInputs($('.form', sh.body));
+          Object.assign(d, { title: v.title, kind: v.kind, where: v.where, weight: Math.max(0, Math.round(num(v.weight))), side: v.side, req: v.req.trim(), once: !!v.once, text: v.text });
+          d.choices.forEach((c, i) => Object.assign(c, { label: v[`c${i}_label`], cost: Math.max(0, Math.round(num(v[`c${i}_cost`]))), chance: clamp(Math.round(num(v[`c${i}_chance`])), 0, 100),
+            req: v[`c${i}_req`].trim(), text: v[`c${i}_text`], fx: v[`c${i}_fx`], failText: v[`c${i}_failText`], failFx: v[`c${i}_failFx`] }));
+        };
+        const draw = () => { sh.body.innerHTML = `<form class="form" onsubmit="return false">
+          ${fieldHtml({ key: 'title', label: 'Title', value: d.title })}
+          <div class="two">${fieldHtml({ key: 'kind', label: 'Kind', type: 'select', value: d.kind, options: Object.entries(EV_KINDS) })}${fieldHtml({ key: 'weight', label: 'Weight', type: 'stepper', value: d.weight, min: 0, max: 20 })}</div>
+          ${fieldHtml({ key: 'where', label: 'Where', type: 'select', value: d.where || '', options: regionOpts() })}
+          <div class="two">${fieldHtml({ key: 'side', label: 'Only for', type: 'select', value: d.side || '', options: [['', 'Either expedition'], ['sig', exShort('sig')], ['ulr', exShort('ulr')]] })}${fieldHtml({ key: 'req', label: 'Requires', value: d.req || '', placeholder: 'e.g. helped_kelham' })}</div>
+          ${fieldHtml({ key: 'once', type: 'toggle', label: 'Happens only once per expedition', value: d.once })}
+          ${fieldHtml({ key: 'text', label: 'Text', type: 'textarea', value: d.text, hint: 'You can write {pin}, {region}, {ex}, {rival}, {god}, {priest} and {captain}.' })}
+          ${FX_HELP}
+          ${d.choices.map((c, i) => `<div class="card choice-ed"><div class="row between"><b class="sc">Choice ${i + 1}</b><button type="button" class="btn sm danger" data-rm="${i}">Remove</button></div>
+            ${fieldHtml({ key: `c${i}_label`, label: 'Label', value: c.label })}
+            <div class="two">${fieldHtml({ key: `c${i}_cost`, label: 'Cost (gc)', type: 'number', value: c.cost || 0 })}${fieldHtml({ key: `c${i}_chance`, label: 'Chance % (0 = certain)', type: 'number', value: c.chance || 0 })}</div>
+            ${fieldHtml({ key: `c${i}_req`, label: 'Requires', value: c.req || '' })}
+            ${fieldHtml({ key: `c${i}_text`, label: 'Outcome text', type: 'textarea', value: c.text })}
+            ${fieldHtml({ key: `c${i}_fx`, label: 'Effects', value: c.fx, placeholder: 'e.g. gold 30; flag helped' })}
+            ${fieldHtml({ key: `c${i}_failText`, label: 'If the roll fails: text', type: 'textarea', value: c.failText })}
+            ${fieldHtml({ key: `c${i}_failFx`, label: 'If the roll fails: effects', value: c.failFx })}</div>`).join('')}
+          <button type="button" class="btn block" data-add="1">+ Add a choice</button></form>`; };
+        draw();
+        sh.body.addEventListener('click', e => {
+          const rm = e.target.closest('[data-rm]'), ad = e.target.closest('[data-add]');
+          if (rm) { sync(); d.choices.splice(+rm.dataset.rm, 1); draw(); }
+          if (ad) { sync(); d.choices.push(EVc('New choice')); draw(); }
+        });
+        sh.foot.addEventListener('click', async e => {
+          const b = e.target.closest('[data-r]'); if (!b) return;
+          if (b.dataset.r === '0') return sh.close();
+          if (b.dataset.r === 'del') { if (await confirmBox({ title: 'Delete this event?', danger: true, ok: 'Delete', text: `<p>${esc(d.title)}</p>` })) sh.close('delete'); return; }
+          sync(); if (!d.title.trim()) return toast('Give it a title');
+          if (!d.choices.length) d.choices.push(EVc('Onward'));
+          sh.close(d);
+        });
+      } });
+  });
+}
+function investigateSheet() {
+  tableEditor({ title: 'Investigation results', get: () => C.tables.investigate,
+    intro: `<p class="small muted">Rolled when an expedition investigates a pin. Entries whose effects start a battle are much rarer if the road event was already a battle (see Missions & scales). The shard’s true resting place always starts its mission chain instead.</p>${FX_HELP}`,
+    summary: x => `<div class="row between"><b>${esc(x.title)}</b><span class="small">w ${x.weight}</span></div><div class="muted">${esc(x.fx || 'no effect')}</div>`,
+    blank: () => ({ id: uid('inv'), title: '', weight: 2, text: '', fx: '' }),
+    edit: async (x, isNew) => { const v = await formSheet({ title: isNew ? 'New result' : x.title, fields: [
+      { key: 'title', label: 'Title', value: x.title }, { key: 'weight', label: 'Weight', type: 'stepper', value: x.weight, min: 0, max: 20 },
+      { key: 'text', label: 'Text', type: 'textarea', value: x.text }, { key: 'fx', label: 'Effects', value: x.fx, placeholder: 'e.g. clue; gold 20' }, ...delField(isNew)] });
+      if (!v) return null; if (v.remove) return 'delete'; if (!v.title.trim()) return null;
+      return { ...x, title: v.title.trim(), weight: Math.max(0, Math.round(v.weight)), text: v.text, fx: v.fx.trim() }; } });
+}
+function twistsSheet() {
+  tableEditor({ title: 'Battlefield twists', get: () => C.tables.twists, intro: '<p class="small muted">Rolled from the mission screen before deployment.</p>',
+    summary: x => `<div class="row between"><b>${esc(x.name)}</b><span class="small">w ${x.weight}</span></div><div class="muted">${esc(x.effect)}</div>`,
+    blank: () => ({ id: uid('tw'), name: '', effect: '', weight: 1 }),
+    edit: async (x, isNew) => { const v = await formSheet({ title: isNew ? 'New twist' : x.name, fields: [
+      { key: 'name', label: 'Name', value: x.name }, { key: 'effect', label: 'Effect', type: 'textarea', value: x.effect }, { key: 'weight', label: 'Weight', type: 'stepper', value: x.weight, min: 0, max: 20 }, ...delField(isNew)] });
+      if (!v) return null; if (v.remove) return 'delete'; if (!v.name.trim()) return null; return { ...x, name: v.name.trim(), effect: v.effect, weight: Math.max(0, Math.round(v.weight)) }; } });
+}
+function lootSheet() {
+  tableEditor({ title: 'Loot table', get: () => C.tables.loot, intro: '<p class="small muted">Rolled when searching the battlefield, and by the “relic” and “loot” effects. Gold above 0 makes it a purse instead of a relic. Weight 0 = only given by name in an event.</p>',
+    summary: x => `<div class="row between"><b>${num(x.gold) ? '✦' : '◆'} ${esc(x.name)}</b><span class="small">${num(x.weight) ? 'w ' + x.weight : 'event only'}</span></div><div class="muted">${num(x.gold) ? '+' + x.gold + ' gc' : esc(x.effect)}</div>`,
+    blank: () => ({ id: uid('lt'), name: '', effect: '', gold: 0, weight: 1 }),
+    edit: async (x, isNew) => { const v = await formSheet({ title: isNew ? 'New loot' : x.name, fields: [
+      { key: 'name', label: 'Name', value: x.name }, { key: 'effect', label: 'Effect (relics)', type: 'textarea', value: x.effect },
+      { key: 'gold', label: 'Gold (purses)', type: 'number', value: x.gold || 0 }, { key: 'weight', label: 'Weight', type: 'stepper', value: x.weight, min: 0, max: 20 }, ...delField(isNew)] });
+      if (!v) return null; if (v.remove) return 'delete'; if (!v.name.trim()) return null;
+      return { ...x, name: v.name.trim(), effect: v.effect, gold: Math.max(0, Math.round(v.gold)), weight: Math.max(0, Math.round(v.weight)) }; } });
+}
+function scenariosSheet() {
+  tableEditor({ title: 'Scenarios', get: () => C.tables.scenarios,
+    intro: '<p class="small muted">Missions pick a scenario of the right scale. Tags make a scenario likelier: <b>road</b>, <b>investigate</b>, <b>shard</b>, <b>rival</b>, <b>any</b>, or a terrain (forest, river, fortress…).</p>',
+    summary: x => `<b>${esc(x.name)}</b><div class="muted">${(x.scales || []).map(s => (SCALES[s] || {}).label || s).join(', ')} · ${esc((x.tags || []).join(', '))}</div>`,
+    blank: () => SC(uid('sc'), '', ['march'], ['any'], '', ''),
+    edit: async (x, isNew) => { const v = await formSheet({ title: isNew ? 'New scenario' : x.name, fields: [
+      { key: 'name', label: 'Name', value: x.name },
+      ...Object.entries(SCALES).map(([k, s]) => ({ key: 's_' + k, type: 'toggle', label: s.label, value: (x.scales || []).includes(k) })),
+      { key: 'tags', label: 'Tags', value: (x.tags || []).join(', '), placeholder: 'road, forest' },
+      { key: 'objective', label: 'Objective', type: 'textarea', value: x.objective }, { key: 'special', label: 'Special rule', type: 'textarea', value: x.special }, ...delField(isNew)] });
+      if (!v) return null; if (v.remove) return 'delete'; if (!v.name.trim()) return null;
+      const scales = Object.keys(SCALES).filter(k => v['s_' + k]);
+      return { ...x, name: v.name.trim(), scales: scales.length ? scales : ['march'], tags: v.tags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean), objective: v.objective, special: v.special }; } });
+}
+function enemiesSheet() {
+  openSheet({ title: 'Opposition lists', html: `<p class="small muted">The models each opposing faction can field. Missions suggest a rough list from these, sized to the points. Points are approximate: edit them to match your army books.</p>
+    ${Object.entries(FACTIONS).map(([k, f]) => `<button class="pick" data-f="${k}"><div class="row"><i class="fdot" style="background:${f.color}"></i><b class="grow">${esc(f.label)}</b><span class="small">${(C.tables.enemies[k] || []).length} entries</span></div></button>`).join('')}`,
+    onMount: sh => sh.body.addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; sh.close(); enemyFaction(b.dataset.f); }) });
+}
+function enemyFaction(k) {
+  const KIND = { char: 'Character', unit: 'Unit', mon: 'Monster / war machine' };
+  tableEditor({ title: FACTIONS[k].label, get: () => C.tables.enemies[k] = C.tables.enemies[k] || [],
+    intro: '<p class="small muted">Characters and monsters have a fixed cost. Units cost points per model, between a minimum and maximum size.</p>',
+    summary: x => `<div class="row between"><b>${esc(x.name)}</b><span class="small">${x.kind === 'unit' ? `${x.ppm} pts × ${x.min}–${x.max}` : x.pts + ' pts'}</span></div><div class="muted">${KIND[x.kind] || x.kind}</div>`,
+    blank: () => ({ name: '', kind: 'unit', ppm: 6, min: 10, max: 20, pts: 0 }),
+    edit: async (x, isNew) => { const v = await formSheet({ title: isNew ? 'New entry' : x.name, fields: [
+      { key: 'name', label: 'Name', value: x.name }, { key: 'kind', label: 'Kind', type: 'select', value: x.kind, options: Object.entries(KIND) },
+      { key: 'pts', label: 'Points (characters & monsters)', type: 'number', value: x.pts || 0 },
+      { key: 'ppm', label: 'Points per model (units)', type: 'number', value: x.ppm || 0 },
+      { key: 'min', label: 'Minimum models', type: 'number', value: x.min || 0 }, { key: 'max', label: 'Maximum models', type: 'number', value: x.max || 0 }, ...delField(isNew)] });
+      if (!v) return null; if (v.remove) return 'delete'; if (!v.name.trim()) return null;
+      return v.kind === 'unit' ? { name: v.name.trim(), kind: 'unit', ppm: Math.max(0, num(v.ppm)), min: Math.max(1, Math.round(Math.min(v.min, v.max) || 1)), max: Math.max(1, Math.round(Math.max(v.min, v.max) || 1)) }
+        : { name: v.name.trim(), kind: v.kind, pts: Math.max(0, Math.round(v.pts)) }; } });
+}
+function injurySheet3() {
+  const ST = [['fit', 'Fit'], ['wounded', 'Wounded'], ['out', 'Out next game'], ['dead', 'Dead']];
+  tableEditor({ title: 'Injury table', get: () => C.tables.injuries,
+    intro: '<p class="small muted">D66: roll two dice, tens then units. Rolled for each hero taken out in battle; you can change the result before sealing the record.</p>',
+    summary: x => `<b>${esc(x.roll)}</b> · ${esc(x.name)}<div class="muted">${esc(x.effect)} <i>(${(ST.find(s => s[0] === x.status) || ['', 'Wounded'])[1]}${x.keep ? ', lasting' : ''}${num(x.xp) ? ', +' + x.xp + ' XP' : ''})</i></div>`,
+    blank: () => ({ roll: '', name: '', effect: '', status: 'wounded', keep: true, xp: 0, special: '' }),
+    edit: async (x, isNew) => { const v = await formSheet({ title: isNew ? 'New injury' : x.name, fields: [
+      { key: 'roll', label: 'D66 roll (e.g. 22 or 41-55)', value: x.roll }, { key: 'name', label: 'Name', value: x.name }, { key: 'effect', label: 'Effect', type: 'textarea', value: x.effect },
+      { key: 'status', label: 'Hero’s status afterwards', type: 'select', value: x.status || 'wounded', options: ST },
+      { key: 'keep', type: 'toggle', label: 'Lasting: add it to the hero’s injuries', value: x.keep },
+      { key: 'xp', label: 'XP gained', type: 'number', value: x.xp || 0 },
+      { key: 'special', label: 'Special', type: 'select', value: x.special || '', options: [['', 'None'], ['multi', 'Roll twice more (Multiple Injuries)'], ['robbed', 'Lose a carried relic']] }, ...delField(isNew)] });
+      if (!v) return null; if (v.remove) return 'delete'; if (!v.name.trim()) return null;
+      return { roll: v.roll.trim(), name: v.name.trim(), effect: v.effect.trim(), status: v.status, keep: !!v.keep, xp: Math.round(num(v.xp)), special: v.special }; } });
+}
+async function setMissionsSheet() {
+  const M = S().missions;
+  const v = await formSheet({ title: 'Missions & scales', intro: '<p class="small muted">Points grow within each range as shards are recovered, as turns pass, and with the region’s danger.</p>', fields: [
+    { type: 'html', key: 'h1', html: '<h3 class="sc">Points ranges</h3>' },
+    { key: 'mo', type: 'html', html: `<div class="two">${fieldHtml({ key: 'mo0', label: 'Mordheim from', type: 'number', value: M.mordheim[0] })}${fieldHtml({ key: 'mo1', label: 'to', type: 'number', value: M.mordheim[1] })}</div>` },
+    { key: 'ma', type: 'html', html: `<div class="two">${fieldHtml({ key: 'ma0', label: 'Battle March from', type: 'number', value: M.march[0] })}${fieldHtml({ key: 'ma1', label: 'to', type: 'number', value: M.march[1] })}</div>` },
+    { key: 'fu', type: 'html', html: `<div class="two">${fieldHtml({ key: 'fu0', label: 'Full Old World from', type: 'number', value: M.full[0] })}${fieldHtml({ key: 'fu1', label: 'to', type: 'number', value: M.full[1] })}</div>` },
+    { type: 'html', key: 'h2', html: '<h3 class="sc">Experience per battle</h3>' },
+    { key: 'xx', type: 'html', html: `<div class="two">${fieldHtml({ key: 'xpBattle', label: 'Regiment survived', type: 'stepper', value: M.xpBattle, min: 0, max: 5 })}${fieldHtml({ key: 'xpWin', label: 'Victory bonus', type: 'stepper', value: M.xpWin, min: 0, max: 5 })}</div>
+      <div class="two">${fieldHtml({ key: 'xpObjective', label: 'Objective bonus', type: 'stepper', value: M.xpObjective, min: 0, max: 5 })}${fieldHtml({ key: 'heroXp', label: 'Hero fought', type: 'stepper', value: M.heroXp, min: 0, max: 5 })}</div>` },
+    { type: 'html', key: 'h3', html: '<h3 class="sc">Chances</h3>' },
+    { key: 'lo', type: 'html', html: `<div class="two">${fieldHtml({ key: 'lw', label: 'Loot % after victory', type: 'number', value: M.loot.win })}${fieldHtml({ key: 'ld', label: 'after a draw', type: 'number', value: M.loot.draw })}</div>${fieldHtml({ key: 'll', label: 'Loot % after defeat', type: 'number', value: M.loot.loss })}` },
+    { key: 'afterBattleMult', label: 'Battle odds when investigating after a road battle (%)', type: 'number', value: M.afterBattleMult, hint: '100 = as usual, 15 = about one-seventh as likely.' },
+    { type: 'html', key: 'h4', html: '<h3 class="sc">Shard chains: what the last result does</h3>' },
+    { key: 'chainWin', label: 'After a victory (the enemy also loses its cheapest unit)', type: 'textarea', value: M.chainWin },
+    { key: 'chainDraw', label: 'After a draw', type: 'textarea', value: M.chainDraw },
+    { key: 'chainLoss', label: 'After a defeat (the enemy also gains a unit)', type: 'textarea', value: M.chainLoss },
+  ] });
+  if (!v) return;
+  const rng = (a, b) => { const x = Math.max(25, Math.round(num(a))), y = Math.max(25, Math.round(num(b))); return [Math.min(x, y), Math.max(x, y)]; };
+  Object.assign(M, { mordheim: rng(v.mo0, v.mo1), march: rng(v.ma0, v.ma1), full: rng(v.fu0, v.fu1),
+    xpBattle: Math.round(v.xpBattle), xpWin: Math.round(v.xpWin), xpObjective: Math.round(v.xpObjective), heroXp: Math.round(v.heroXp),
+    loot: { win: clamp(Math.round(v.lw), 0, 100), draw: clamp(Math.round(v.ld), 0, 100), loss: clamp(Math.round(v.ll), 0, 100) },
+    afterBattleMult: clamp(Math.round(v.afterBattleMult), 0, 100), chainWin: v.chainWin.trim(), chainDraw: v.chainDraw.trim(), chainLoss: v.chainLoss.trim() });
+  save(); toast('Saved');
+}
+function missionLogSheet() {
+  const L = [...C.missions].reverse();
+  openSheet({ title: 'Mission log', html: `<p class="small muted">Every mission, newest first. Sealed battles put a wax seal on their pin.</p>
+    ${L.map(m => `<button class="pick" data-id="${m.id}"><div class="row between"><b>${esc(m.name)}</b><span class="small">T${m.turn}</span></div>
+      <div class="muted">${esc(exShort(m.side))} vs ${esc(oppLabel(m))} · ${SCALES[m.scale].label} · ${m.status === 'done' ? RES_WORD[m.result] : m.status === 'active' ? '<b>to be fought</b>' : 'abandoned'}</div></button>`).join('') || '<div class="empty">No missions yet. March, and the road will provide.</div>'}`,
+    onMount: sh => sh.body.addEventListener('click', e => { const b = e.target.closest('[data-id]'); if (!b) return; sh.close(); missionSheet(missionById(b.dataset.id)); }) });
+}
+
+Object.assign(ACT, {
+  tsEvent: () => {
+    const s = C.active, ts = TS(), e = EX(s); const r = e.pos && regionById(e.pos.regionId), p = r && pinOf(r, e.pos.pinId);
+    if (!ts.marched || !r || !p) return toast('March first');
+    if (ts.event && ts.event.id === '__rival' && !ts.event.resolved) return rivalEncounter(s, r, p);
+    if (ts.event && ts.event.id === '__rival') { const m = missionById(ts.event.missionId); return m ? missionSheet(m) : null; }
+    roadEvent(s, r, p);
+  },
+  tsInvestigate: () => investigate(C.active),
+  pressOn: () => pressOn(C.active),
+  viewMission: el => missionSheet(missionById(el.dataset.id)),
+  recordMission: el => { const m = missionById(el.dataset.id); if (m) afterBattle(m); },
+  missionLog: missionLogSheet, setMissions: setMissionsSheet, setRoadEvents: roadEventsSheet, setInvestigate: investigateSheet,
+  setTwists: twistsSheet, setLoot: lootSheet, setScenarios: scenariosSheet, setEnemies: enemiesSheet, setInjuries: injurySheet3,
+});
+
 
 const setTopH = () => { try { document.documentElement.style.setProperty('--toph', $('#top').offsetHeight + 'px'); } catch (e) {} };
 window.addEventListener('resize', setTopH);
