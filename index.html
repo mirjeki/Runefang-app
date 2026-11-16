@@ -324,6 +324,46 @@ h3.mh{margin-top:14px}
 .clue.h-here .heat{background:#b3302a}.clue.h-hot .heat{background:#c2571e}.clue.h-warm .heat{background:#b8902e}.clue.h-cool .heat{background:#5f7f8f}.clue.h-cold .heat{background:#4a5a6a}.clue.h-rumour .heat{background:#6b4a1f}
 .choice-ed{background:#f3e6c4}
 
+/* ---------- phase 4: threat, camp, revelation, forge, story chronicle ---------- */
+.trk{padding:8px 0;border-bottom:1px dashed var(--line)}
+.trk:last-child{border-bottom:0}
+.tbar{display:grid;grid-template-columns:repeat(var(--n,12),minmax(0,1fr));gap:3px;margin:8px 0 4px}
+.tbar i{height:16px;border-radius:3px;background:#e2d1a6;border:1px solid #c2a874;position:relative}
+.tbar i.on{background:var(--tc);border-color:rgba(0,0,0,.35)}
+.tbar i.th::after{content:'';position:absolute;left:50%;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e0b44a,#8a6416);box-shadow:0 0 0 1.5px #fbefd0,0 1px 2px rgba(0,0,0,.5)}
+.tbar i.th.fired::after{background:#2a1b0e;box-shadow:0 0 0 1px rgba(255,240,200,.55)}
+.awaitbox{border:2px solid var(--seal);background:#fbecd0}
+.awaitbox .listed .evk{flex:none}
+.forge{background:linear-gradient(135deg,#f6e3b0,var(--card) 60%);border-color:var(--gold)}
+.waxseal{width:96px;height:96px;margin:8px auto;border-radius:50%;position:relative;background:radial-gradient(circle at 35% 30%,#c63a30,#7b1714 60%,#4f0d0b);color:#ffe9b8;font-size:2.8rem;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.45),inset 0 0 0 6px rgba(255,220,180,.12)}
+.waxseal.broken{animation:sealcrack .9s ease-out both}
+.waxseal.broken::after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 46%,#2a0806 47%,#2a0806 50%,transparent 51%),linear-gradient(60deg,transparent 54%,#2a0806 55%,#2a0806 57%,transparent 58%);border-radius:50%;opacity:.85}
+@keyframes sealcrack{0%{transform:scale(1.15) rotate(-8deg);filter:brightness(1.6)}40%{transform:scale(.94) rotate(4deg)}100%{transform:none}}
+.reveal-card{border:3px double var(--seal)}
+.omen{display:flex;gap:8px;align-items:flex-start;padding:9px 0;border-bottom:1px dashed var(--line)}
+.omen:last-child{border-bottom:0}
+.otag{flex:none;font-family:'FellSC',serif;font-size:.8rem;border-radius:999px;padding:2px 8px;color:#fff;background:#6b4a1f;margin-top:2px}
+.otag.true{background:var(--ok)}.otag.false{background:var(--dead)}
+.banner-won{background:linear-gradient(#5a1a14,#3f120e);color:#f8e8c0;border:3px double #d6ad2b;border-radius:12px;padding:16px;margin:12px 0;text-align:center}
+.banner-won .bl{font-size:1.9rem;color:#f2d067;line-height:1.1}
+.story{margin-top:8px}
+.chapter>details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:2px 14px 8px;margin:12px 0;box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 2px 6px rgba(70,40,10,.12)}
+.chapter>details>summary{display:block;list-style:none;padding:10px 0 6px;min-height:48px}
+.chapter>details>summary::-webkit-details-marker{display:none}
+.chapter>details>summary::after{content:'▾';float:right;margin-top:-1.9em;color:var(--muted);font-size:1.1rem}
+.chapter>details:not([open])>summary::after{content:'▸'}
+.chap-n{display:block;font-family:'FellSC',serif;font-size:.82rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.chap-t{display:block;font-family:'Unifraktur',Georgia,serif;font-size:1.6rem;color:var(--seal);line-height:1.15}
+.chap-s{display:block;font-family:Georgia,serif;font-style:italic;color:var(--ink2);font-size:.95rem}
+.chap-body{border-top:1px solid var(--line);padding-top:4px}
+.story p.para{margin:.75em 0;line-height:1.6;padding-left:10px;border-left:3px solid transparent}
+.story p.para.s-sig{border-left-color:var(--sig)}
+.story p.para.s-ulr{border-left-color:var(--ulr)}
+.story p.para.first::first-letter{font-family:'Unifraktur',serif;font-size:2.1em;color:var(--seal);float:left;line-height:.85;margin:4px 3px 0 0}
+.story p.opening{font-style:italic;color:var(--ink2)}
+.story p.great{font-weight:700}
+.story p.margin{font-size:.85rem;color:var(--muted);font-style:italic;margin:-.35em 0 .6em 13px}
+
 @media (max-width:370px){.two{grid-template-columns:1fr}}
 </style>
 </head>
@@ -345,8 +385,8 @@ h3.mh{margin-top:14px}
    RUNEFANG — Old World campaign companion
    Phase 1: data model, storage, export/import, rosters, gold
    ===================================================================== */
-const APP_VERSION = '3.0.1 · phase 3';
-const SCHEMA = 3;
+const APP_VERSION = '4.0.0 · phase 4';
+const SCHEMA = 4;
 const FORMAT = 'runefang-campaign';
 
 /* ---------- tiny helpers ---------- */
@@ -375,6 +415,8 @@ const DEFAULT_SETTINGS = {
   rankNames: ['Raw Recruits', 'Blooded', 'Veterans', 'Elite'],
   totalShards: 7,
   revelationShards: 5,
+  threat: { roll: 4, lean: 67, cultTwistAt: 6, cultTwistChance: 40 },
+  finale: { regionId: 'worlds_edge', pinId: '', points: 2000, alliesPerCult: 50, cultNpcPerCult: 30 },
   missions: {
     mordheim: [150, 400], march: [400, 750], full: [1000, 2000],
     xpBattle: 1, xpWin: 1, xpObjective: 1, heroXp: 1,
@@ -1010,6 +1052,7 @@ function newCampaign(opts = {}) {
     text: 'The Reikland Runefang lies shattered, and Karl Franz bleeds from a daemon’s wound. Two expeditions set out to recover the scattered shards: the Sigmarite Expedition marching from Stirland, and the Ulrican Expedition from Middenland under the White Wolf’s banner. Each priest swears his vision shows the way.' });
   seedPhase2(c);
   seedPhase3(c);
+  seedPhase4(c);
   return c;
 }
 
@@ -1038,6 +1081,7 @@ function migrate(c) {
   }
   seedPhase2(c);   // schema 1 → 2: regions, pins, shard sites, expedition positions
   seedPhase3(c);   // schema 2 → 3: road events, investigation, twists, loot, scenarios, opposition lists
+  seedPhase4(c);   // schema 3 → 4: camp events, threat track, omens, cult twists, Revelation & finale state
   return c;
 }
 
@@ -1119,8 +1163,10 @@ const EX = s => C.ex[s];
 const exName = s => EX(s).name;
 const exShort = s => EX(s).short || (s === 'sig' ? 'Sigmarite' : 'Ulrican');
 
-function chron(side, kind, text) {
-  C.chronicle.push({ id: uid('ch'), ts: Date.now(), turn: C.turn, side, kind, text });
+function chron(side, kind, text, meta) {
+  const c = { id: uid('ch'), ts: Date.now(), turn: C.turn, side, kind, text };
+  if (meta) { c.notes = (meta.notes || []).filter(Boolean).slice(); if (meta.tag) c.tag = meta.tag; }
+  C.chronicle.push(c);
 }
 function addGold(side, amount, reason) {
   const e = EX(side); amount = Math.round(amount);
@@ -1282,7 +1328,7 @@ const ICON = {
   more: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>',
 };
 const TABS = [['home', 'Campaign'], ['map', 'Map'], ['roster', 'Roster'], ['camp', 'Camp'], ['more', 'Codex']];
-const tabOf = v => ({ chron: 'more', region: 'map' })[v] || v;
+const tabOf = v => ({ chron: 'more', region: 'map', reveal: 'more' })[v] || v;
 function shieldSvg(s) {
   const [a, b] = s === 'sig' ? ['#3e6130', '#d6ad2b'] : ['#2b4f7a', '#e3e9f1'];
   return `<svg class="shield" viewBox="0 0 22 26"><path d="M1 1h20v10c0 7-5 11.5-10 14C6 22.5 1 18 1 11z" fill="${b}" stroke="#2a1b0e" stroke-width="1.4"/><path d="M11 1h10v10c0 7-5 11.5-10 14z" fill="${a}"/><path d="M1 1h20v10c0 7-5 11.5-10 14C6 22.5 1 18 1 11z" fill="none" stroke="#2a1b0e" stroke-width="1.4"/></svg>`;
@@ -1309,7 +1355,7 @@ function render() {
   if (!C) return;
   renderTop(); renderTabs();
   const v = $('#view');
-  const fn = { home: viewHome, map: viewMap, region: viewRegion, roster: viewRoster, camp: viewCamp, chron: viewChron, more: viewMore }[UI.view] || viewHome;
+  const fn = { home: viewHome, map: viewMap, region: viewRegion, roster: viewRoster, camp: viewCamp, chron: viewChron, more: viewMore, reveal: viewReveal }[UI.view] || viewHome;
   if (MV) { MV.destroy(); MV = null; }
   setTopH();
   v.innerHTML = fn();
@@ -1341,7 +1387,7 @@ function viewHome() {
       <button class="btn ghost" style="color:#f3e1b4;border-color:#f3e1b4" data-act="undoLost" data-side="${s}">Undo (it was a mistake)</button></div>`;
   }
 
-  h += turnCardHtml();
+  h += bannerHtml() + awaitHtml() + turnCardHtml() + p4HomeHtml();
 
   for (const s of SIDES) {
     const e = EX(s), p = priestOf(s);
@@ -1359,7 +1405,7 @@ function viewHome() {
   h += `<div class="section-h"><h2 class="bl">The Shards</h2><span class="small muted">${found}/${C.shards.length} recovered</span></div>
     <div class="card"><div class="shards">${C.shards.map((x, i) => `<button class="shard" data-act="shard" data-i="${i}" aria-label="${esc(x.name)}">${shardSvg(x.status)}</button>`).join('')}</div>
     <div class="legend"><span><i style="border:1.5px dashed #7a6040"></i>Rumoured</span><span><i style="background:var(--sig)"></i>${esc(exShort('sig'))}</span><span><i style="background:var(--ulr)"></i>${esc(exShort('ulr'))}</span><span><i style="background:#4a4038"></i>Lost</span></div>
-    <p class="small flavour" style="margin-top:10px">${found >= S().revelationShards ? 'The truth is ready to be told. Seek the Revelation in the Codex.' : found >= 3 ? 'Whispers grow louder. One priest’s dreams smell of brimstone…' : found >= 1 ? 'The first shard hums in its reliquary. Something watches.' : 'Two priests, two visions. One of them is lying, and does not know it.'}</p></div>`;
+    <p class="small flavour" style="margin-top:10px">${C.reveal ? 'The seal is broken. The daemon’s lie is known, and the Forge of Alaric awaits.' : found >= S().revelationShards ? 'The truth is ready to be told. Break the seal.' : found >= 3 ? 'Whispers grow louder. One priest’s dreams smell of brimstone…' : found >= 1 ? 'The first shard hums in its reliquary. Something watches.' : 'Two priests, two visions. One of them is lying, and does not know it.'}</p>${p4ShardBtn()}</div>`;
 
   const since = C.lastExport ? Math.floor((Date.now() - C.lastExport) / 864e5) : null;
   if (!C.lastExport || C.updated - C.lastExport > 60000) {
@@ -1426,7 +1472,7 @@ function viewCamp() {
   const needRepl = e.regiments.filter(r => r.models < r.maxModels);
   const needHeal = e.characters.filter(h => h.status === 'wounded' || h.status === 'out');
   const led = UI.ledgerAll ? e.ledger : e.ledger.slice(0, 6);
-  let h = `${sideSeg()}
+  let h = `${sideSeg()}${campCardHtml(s)}
     <div class="card edge side-${s} center" style="margin-top:12px"><h3 class="sc">War chest of the ${esc(exShort(s))} Expedition</h3>
       <div class="huge ${e.gold < 0 ? 'neg' : ''}" style="margin:6px 0">${e.gold} <span style="font-size:1.1rem">gc</span></div>
       <div class="btns"><button class="btn sm" data-act="gold" data-amt="-50">−50</button><button class="btn sm" data-act="gold" data-amt="-10">−10</button>
@@ -1464,7 +1510,7 @@ function viewCamp() {
 }
 
 /* ---------- CHRONICLE ---------- */
-function viewChron() {
+function viewChronP3() {
   const list = [...C.chronicle].reverse();
   let h = `<div class="row between" style="margin-top:4px"><h1 class="bl">Chronicle</h1><button class="btn sm" data-act="chronAdd">+ Entry</button></div>
     <button class="linkbtn" data-act="goCodex">← Back to the Codex</button>
@@ -1504,6 +1550,7 @@ function viewMore() {
       <button class="btn block" data-act="setTwists">Battlefield twists (${C.tables.twists.length})</button>
       <button class="btn block" data-act="setLoot">Loot table (${C.tables.loot.length})</button>
     </div></div>
+    ${p4CodexHtml()}
     <div class="section-h"><h2 class="bl">Backup & sharing</h2></div>
     <div class="card"><p class="small muted" style="margin-top:0">One file holds the entire campaign: rosters, chronicle, regions, pins and your map images. Send it to the other phone and import it there.</p>
       <div class="btns"><button class="btn seal" data-act="export">Export file</button>${navigator.share ? '<button class="btn" data-act="share">Share…</button>' : ''}</div>
@@ -1987,13 +2034,13 @@ async function newCampaignFlow() {
     for (const r of nc.regions) r.pins.forEach(p => { delete p.visited; });
     for (const sd of SIDES) { const e = nc.ex[sd]; e.pos = null; e.trail = []; e.gold = Math.max(0, Math.round(num(nc.settings.startingGold, 200))); if (e.ledger) e.ledger = []; }
     nc.shards.forEach(x => { x.regionId = null; x.pinId = undefined; });
-    seedPhase2(nc); seedPhase3(nc);
+    seedPhase2(nc); seedPhase3(nc); seedPhase4(nc);
     try { for (const k of await DB.keys('images')) keepImages[k] = await DB.get('images', k); } catch (e) { console.warn(e); }
   }
   await replaceCampaign(nc, keepImages);
   UI.side = 'sig'; go('home'); toast('A new campaign begins');
 }
-function chronicleText() {
+function chronicleTextP3() {
   let out = `${C.name}\nA campaign chronicle — exported ${new Date().toLocaleString()}\n${'='.repeat(40)}\n`;
   let t = null;
   for (const c of C.chronicle) {
@@ -2826,7 +2873,7 @@ function setFlag(key, s, r) {
 function unsetFlag(key, s) { const f = C.flags[key]; if (!f || !f.sides) return; delete f.sides[s]; if (!Object.keys(f.sides).length) delete C.flags[key]; }
 const hasFlag = (key, s) => { const f = C.flags[key]; if (!f) return false; if (f === true || !f.sides) return true; return s ? !!f.sides[s] : Object.keys(f.sides).length > 0; };
 // "key" = this expedition set it · "!key" = it didn't · "any:key" = either expedition · "gold>=50"
-function reqOk(req, s) {
+function reqOkP3(req, s) {
   return String(req || '').split(/[,;]+/).map(x => x.trim()).filter(Boolean).every(tok => {
     const neg = tok.startsWith('!'); let k = tok.replace(/^!/, '').trim(), v;
     if (/^gold\s*>=\s*\d+$/i.test(k)) v = EX(s).gold >= num(k.split('=')[1]);
@@ -2838,7 +2885,7 @@ function reqOk(req, s) {
 function fill(t, s, r, p) {
   const pr = priestOf(s), cap = EX(s).characters.find(h => !h.isPriest && h.status !== 'dead');
   const map = { pin: p ? p.name : 'the road', region: r ? (r.short || r.name) : 'the wilds', ex: exName(s), rival: theN(exName(other(s)), false),
-    god: s === 'sig' ? 'Sigmar' : 'Ulric', priest: pr ? pr.name : 'the Priest', captain: cap ? cap.name : 'the Captain' };
+    god: s === 'sig' ? 'Sigmar' : 'Ulric', priest: pr ? pr.name : 'the Priest', captain: cap ? cap.name : 'the Captain', patron: EX(s).patron || 'the patron' };
   return String(t || '').replace(/\{(\w+)\}/g, (m0, k) => map[k] ?? m0);
 }
 
@@ -2899,9 +2946,10 @@ const FX_HELP = `<details class="note-box" style="margin:8px 0"><summary>Effect 
   <b>gold 30</b> / <b>gold -20</b> · <b>relic</b> (random from the loot table) or <b>relic Sword of Striking</b> · <b>loot</b> (roll the loot table) · <b>lose-relic</b><br>
   <b>unit Spearmen 10 as Hired Swords</b> (a muster-roll unit, models, optional name) · <b>lose 2</b> (models from a random regiment)<br>
   <b>wound</b> (a hero) · <b>wound priest</b> · <b>heal</b> · <b>xp 1 one</b> / <b>xp 1 all</b><br>
-  <b>flag name</b> · <b>unflag name</b> · <b>threat rival 1</b> / <b>threat cult 1</b> · <b>clue</b> · <b>rumour</b><br>
+  <b>flag name</b> · <b>unflag name</b> · <b>threat rival 1</b> / <b>threat cult 1</b> (or −1) · <b>clue</b> · <b>rumour</b><br>
+  <b>omen</b> (a sign about one of the priests) · <b>rob 20</b> (steal up to 20 gc) · <b>snatch</b> (court agents move a shard elsewhere)<br>
   <b>battle</b> + opponent (<i>region</i>, <i>rival</i>, ${Object.keys(FACTIONS).join(', ')}) + scale (<i>mordheim</i>, <i>march</i>, <i>full</i>)<br>
-  Requirements: <b>helped_kelham</b> (this expedition set it), <b>!name</b> (it didn’t), <b>any:name</b> (either did), <b>gold&gt;=50</b>.</div></details>`;
+  Requirements: <b>helped_kelham</b> (this expedition set it), <b>!name</b> (it didn’t), <b>any:name</b> (either did), <b>a|b</b> (one or the other), <b>gold&gt;=50</b>, <b>cult&gt;=6</b>, <b>rival&gt;=3</b>, <b>turn&gt;=10</b>, <b>shards&gt;=3</b> (found in total), <b>held&gt;=2</b> (this expedition holds), <b>revealed</b>.</div></details>`;
 
 function makeRelic(s, entry) {
   const e = EX(s); const rl = { id: uid('rel'), name: entry.name, effect: entry.effect || '', assignedTo: null, found: C.turn };
@@ -2945,7 +2993,10 @@ function runFx(s, str, ctx = {}) {
         L(tg.length === 1 ? `${tg[0].name} +${n} XP${canRankUp(tg[0]) ? ' (can rank up!)' : ''}` : `Every regiment +${n} XP`); break; }
       case 'flag': if (arg) { setFlag(arg, s, ctx.r); } break;
       case 'unflag': if (arg) unsetFlag(arg, s); break;
-      case 'threat': { const tr = (rest[0] || '').toLowerCase(); if (tr === 'rival' || tr === 'cult') C.threat[tr] = Math.max(0, (C.threat[tr] || 0) + Math.round(num(rest[1], 1))); break; }
+      case 'threat': { const tr = (rest[0] || '').toLowerCase(), n = Math.round(num(rest[1], 1)); if ((tr === 'rival' || tr === 'cult') && n) { addThreat(tr, n, ctx.title || 'Event', s); L(`${TRACKS[tr].label} ${n > 0 ? '+' : '−'}${Math.abs(n)}`); } break; }
+      case 'omen': { const t = omenFor(s, ctx); if (t) L('Omen: ' + t); break; }
+      case 'rob': { const n = Math.max(0, Math.round(num(rest[0], 20))), k = Math.min(n, Math.max(0, e.gold)); if (k) { addGold(s, -k, ctx.title || 'Stolen'); L(`−${k} gc stolen`); } else L('Nothing left to steal'); break; }
+      case 'snatch': L(snatchShard(s)); break;
       case 'clue': L('Clue: ' + clueFor(s, ctx.r, ctx.p)); break;
       case 'rumour': case 'rumor': L('Rumour: ' + rumourFor(s, ctx.r, ctx.p)); break;
       case 'battle': {
@@ -3016,7 +3067,7 @@ function eventPool(s, r) {
 function roadEvent(s, r, p) {
   const ts = TS();
   if (ts.event && ts.event.id !== '__rival') { const ev = C.tables.roadEvents.find(x => x.id === ts.event.id) || ts.event.quiet; if (ev || ts.event.resolved) return eventSheet(s, ev, r, p); }
-  const ev = wpick(eventPool(s, r)) || EVt('__quiet', 'An Uneventful March', 'camp', '', 1, 'The road is quiet. Nothing troubles the expedition.', [EVc('Onward')]);
+  const ev = wpick(eventPool(s, r), x => num(x.weight, 1) * leanW(x, s)) || EVt('__quiet', 'An Uneventful March', 'camp', '', 1, 'The road is quiet. Nothing troubles the expedition.', [EVc('Onward')]);
   ts.event = { id: ev.id, title: ev.title, resolved: false, regionId: r.id, pinId: p.id, quiet: ev.id === '__quiet' ? ev : undefined };
   save(); eventSheet(s, ev, r, p);
 }
@@ -3053,7 +3104,7 @@ function eventSheet(s, ev, r, p) {
         if (res.battle) missionId = createMission({ side: s, regionId: r.id, pinId: p.id, kind: res.battle.opp === 'rival' ? 'rival' : 'road', opp: res.battle.opp, scale: res.battle.scale }).id;
         Object.assign(ts.event, { resolved: true, choice: fill(c.label, s, r, p), ok, roll, need: ch, text, lines: res.lines, battle: !!res.battle, missionId });
         delete ts.event.quiet;
-        chron(s, 'event', `On the road to ${p.name}, ${exName(s)} met with ${ev ? ev.title.replace(/[!.]$/, '') : 'nothing'}, and chose: “${fill(c.label, s, r, p)}”.${text ? ' ' + text : ''}${res.lines.length ? ' (' + res.lines.join('; ') + ')' : ''}`);
+        chron(s, 'event', `On the road to ${p.name}, ${exName(s)} met with ${ev ? ev.title.replace(/[!.]$/, '') : 'nothing'}, and chose “${fill(c.label, s, r, p)}”.${text ? ' ' + text : ''}`, { notes: res.lines, tag: ev ? ev.title : '' });
         save(); render();
         $('#evChoices', sh.body).innerHTML = `<div class="chosen">${esc(fill(c.label, s, r, p))}</div>`;
         $('#evOut', sh.body).innerHTML = eventOutcomeHtml(s, ts.event, p);
@@ -3086,11 +3137,11 @@ function investigate(s) {
     const mult = ts.event && ts.event.battle ? num(S().missions.afterBattleMult, 15) / 100 : 1;
     const dz = 0.6 + 0.2 * (r.danger || 2);
     const isB = it => /(^|;)\s*battle\b/i.test(it.fx || '');
-    const x = wpick(C.tables.investigate.filter(Boolean), it => num(it.weight, 1) * (isB(it) ? mult * dz : 1)) || { title: 'Nothing', text: 'Nothing of note.', fx: '' };
+    const x = wpick(C.tables.investigate.filter(Boolean), it => num(it.weight, 1) * (isB(it) ? mult * dz : 1) * leanW(it, s)) || { title: 'Nothing', text: 'Nothing of note.', fx: '' };
     const res = runFx(s, x.fx, { title: x.title, r, p });
     const m = res.battle ? createMission({ side: s, regionId: r.id, pinId: p.id, kind: res.battle.opp === 'rival' ? 'rival' : 'investigate', opp: res.battle.opp, scale: res.battle.scale }) : null;
     inv = { title: x.title, text: fill(x.text, s, r, p), lines: res.lines, missionId: m ? m.id : null };
-    chron(s, 'investigate', `${exName(s)} searched ${p.name}: ${x.title}.${res.lines.length ? ' ' + res.lines.join('; ') + '.' : ''}`);
+    chron(s, 'investigate', `${exName(s)} searched ${p.name}. ${x.title}: ${fill(x.text, s, r, p)}`, { notes: res.lines });
   }
   ts.investigated = true; ts.invest = inv; save(); render(); investSheet(s, inv);
 }
@@ -3163,8 +3214,8 @@ function genMission(g) {
   if (opp === 'rival' && EX(rv).status === 'lost') opp = null;
   if (!opp || (opp !== 'rival' && !FACTIONS[opp])) opp = pickFaction(r, p);
   const scale = SCALES[g.scale] ? g.scale : (opp === 'rival' ? 'march' : Math.random() < 0.3 ? 'mordheim' : 'march');
-  const points = missionPoints(scale, r);
-  const sc = pickScenario(scale, opp === 'rival' ? 'rival' : g.kind, p && p.terrain);
+  const points = g.points ? Math.round(num(g.points)) : missionPoints(scale, r);
+  const sc = g.scenario || pickScenario(scale, opp === 'rival' ? 'rival' : g.kind, p && p.terrain);
   const enemy = opp === 'rival' ? rivalList(rv, points) : enemyList(opp, points, scale, g.extra || 0, g.fewer || 0);
   const where = p ? p.name : r ? (r.short || r.name) : 'the road';
   const ch = g.chainId && (C.chains || []).find(c => c.id === g.chainId), shName = ch ? C.shards[ch.shard].name : '';
@@ -3314,7 +3365,7 @@ function missionSheet(m) {
         const b = e.target.closest('[data-a]'); if (!b) return; const a = b.dataset.a;
         if (a === 'map' && r && p) { sh.close(); openPinOnMap(r, p); }
         if (a === 'twist') {
-          const t = wpick(C.tables.twists.filter(Boolean)); if (!t) return toast('The twist table is empty');
+          const t = rollTwist(); if (!t) return toast('The twist table is empty');
           m.twist = { name: t.name, effect: t.effect }; save();
           $('#twistBox', sh.body).innerHTML = `<div class="note-box"><b>${esc(t.name)}.</b> ${esc(t.effect)}</div><button class="linkbtn" data-a="twist">Roll again</button>`;
         }
@@ -3416,7 +3467,7 @@ function afterBattle(m) {
             <div class="small" data-injfx="${x.h.id}"></div></div>` : `<div class="listed small"><span class="grow">${esc(x.h.name)}</span><span class="pos">+${x.xp} XP</span></div>`).join('')}` : ''}
         <div class="listed small"><span class="grow">Gold from ${esc(EX(s).patron)}</span><b class="${o.gold >= 0 ? 'pos' : 'neg'}">${o.gold >= 0 ? '+' : ''}${o.gold} gc</b></div>
         ${o.loot.length ? `<div class="listed small"><span class="grow">Loot</span><span>${o.loot.map(x => esc(x.name)).join(', ')}</span></div>` : ''}</div>`; }).join('')}
-      ${chainTxt ? `<div class="note-box"><b>The shard.</b> ${esc(chainTxt)}</div>` : ''}`;
+      ${chainTxt ? `<div class="note-box"><b>The shard.</b> ${esc(chainTxt)}</div>` : ''}${p4Preview(m, d.res) ? `<div class="note-box"><b>${esc(m.scenario.name)}.</b> ${esc(p4Preview(m, d.res))}</div>` : ''}`;
     $$('[data-injfx]', sh.body).forEach(el => injFx(el.dataset.injfx));
   }
   function injFx(hid) {
@@ -3472,9 +3523,9 @@ function afterBattle(m) {
     }
     m.status = 'done'; m.result = d.res;
     const p = pinOf(regionById(m.regionId), m.pinId);
-    const chainTxt = m.chainId ? advanceChain(m, d.res) : '';
+    const chainTxt = [m.chainId ? advanceChain(m, d.res) : '', p4AfterBattle(m, d.res)].filter(Boolean).join(' ');
     m.record = { at: Date.now(), sides: Object.fromEntries(sides.map(s => [s, { res: out[s].res, lines: lines[s] }])), chain: chainTxt };
-    chron(m.side, 'battle', `At ${p ? p.name : 'the field'}, ${exName(m.side)} met ${oppLabel(m)} in “${m.scenario.name}” (${SCALES[m.scale].label}, ${m.points} pts). ${chronBits.join('. ')}.${chainTxt ? ' ' + chainTxt : ''}`);
+    chron(m.side, 'battle', `At ${p ? p.name : 'the field'}, ${exName(m.side)} met ${oppLabel(m)} in “${m.scenario.name}” (${SCALES[m.scale].label}, ${m.points} pts). ${chronBits.join('. ')}.${chainTxt ? ' ' + chainTxt : ''}`, { tag: p ? 'Battle at ' + p.name : '' });
     save(); render();
     const rk = sides.flatMap(s => EX(s).regiments.filter(canRankUp)).length;
     alertBox(RES_WORD[d.res], `<p>${esc(m.name)} is sealed in the chronicle.</p>${chainTxt ? `<div class="note-box"><b>${esc(chainTxt)}</b></div>` : ''}${rk ? `<p>${plural(rk, 'regiment')} can rank up. Look for the ★ seal in the Roster.</p>` : ''}${sides.some(s => EX(s).status === 'lost') ? '<p><b>An expedition has lost its Priest. See the Campaign screen.</b></p>' : ''}`);
@@ -3605,26 +3656,32 @@ function roadEventsSheet() {
     summary: x => `<div class="row between"><b>${esc(x.title)}</b><span class="evk evk-${x.kind}">${esc(EV_KINDS[x.kind] || x.kind)}</span></div><div class="muted">${x.where ? esc((regionById(x.where) || { name: x.where }).name) : 'Anywhere'} · weight ${x.weight}${x.req ? ' · needs ' + esc(x.req) : ''}${x.once ? ' · once' : ''} · ${plural((x.choices || []).length, 'choice')}</div>`,
     blank: () => EVt(uid('ev'), 'New event', 'choice', '', 2, '', [EVc('Onward')]), edit: editRoadEvent });
 }
-function editRoadEvent(x, isNew) {
+function editRoadEvent(x, isNew, opts = {}) {
   return new Promise(res => {
     const d = x; d.choices = d.choices || [];
-    openSheet({ title: isNew ? 'New road event' : 'Road event',
+    openSheet({ title: opts.title ? opts.title(isNew) : isNew ? 'New road event' : 'Road event',
       footer: `<button class="btn ghost" data-r="0">Cancel</button>${isNew ? '' : '<button class="btn danger" data-r="del">Delete</button>'}<button class="btn seal" data-r="1">Save</button>`,
       onClose: v => res(v || null),
       onMount: sh => {
         const sync = () => {
           const v = readInputs($('.form', sh.body));
-          Object.assign(d, { title: v.title, kind: v.kind, where: v.where, weight: Math.max(0, Math.round(num(v.weight))), side: v.side, req: v.req.trim(), once: !!v.once, text: v.text });
+          Object.assign(d, { title: v.title, kind: v.kind, text: v.text });
+          if ('where' in v) d.where = v.where; if ('weight' in v) d.weight = Math.max(0, Math.round(num(v.weight))); if ('side' in v) d.side = v.side;
+          if ('req' in v) d.req = String(v.req).trim(); if ('once' in v) d.once = !!v.once; if ('lean' in v) d.lean = !!v.lean;
+          if (opts.read) opts.read(v, d);
           d.choices.forEach((c, i) => Object.assign(c, { label: v[`c${i}_label`], cost: Math.max(0, Math.round(num(v[`c${i}_cost`]))), chance: clamp(Math.round(num(v[`c${i}_chance`])), 0, 100),
             req: v[`c${i}_req`].trim(), text: v[`c${i}_text`], fx: v[`c${i}_fx`], failText: v[`c${i}_failText`], failFx: v[`c${i}_failFx`] }));
         };
         const draw = () => { sh.body.innerHTML = `<form class="form" onsubmit="return false">
           ${fieldHtml({ key: 'title', label: 'Title', value: d.title })}
+          ${opts.threat ? fieldHtml({ key: 'kind', label: 'Kind', type: 'select', value: d.kind, options: Object.entries(EV_KINDS) }) + opts.fields(d) : `
           <div class="two">${fieldHtml({ key: 'kind', label: 'Kind', type: 'select', value: d.kind, options: Object.entries(EV_KINDS) })}${fieldHtml({ key: 'weight', label: 'Weight', type: 'stepper', value: d.weight, min: 0, max: 20 })}</div>
           ${fieldHtml({ key: 'where', label: 'Where', type: 'select', value: d.where || '', options: regionOpts() })}
           <div class="two">${fieldHtml({ key: 'side', label: 'Only for', type: 'select', value: d.side || '', options: [['', 'Either expedition'], ['sig', exShort('sig')], ['ulr', exShort('ulr')]] })}${fieldHtml({ key: 'req', label: 'Requires', value: d.req || '', placeholder: 'e.g. helped_kelham' })}</div>
           ${fieldHtml({ key: 'once', type: 'toggle', label: 'Happens only once per expedition', value: d.once })}
-          ${fieldHtml({ key: 'text', label: 'Text', type: 'textarea', value: d.text, hint: 'You can write {pin}, {region}, {ex}, {rival}, {god}, {priest} and {captain}.' })}
+          ${fieldHtml({ key: 'lean', type: 'toggle', label: 'Daemon-touched: twice as likely for the deceived priest’s expedition', value: d.lean })}
+          ${opts.fields ? opts.fields(d) : ''}`}
+          ${fieldHtml({ key: 'text', label: 'Text', type: 'textarea', value: d.text, hint: 'You can write {pin}, {region}, {ex}, {rival}, {god}, {priest}, {captain} and {patron}.' })}
           ${FX_HELP}
           ${d.choices.map((c, i) => `<div class="card choice-ed"><div class="row between"><b class="sc">Choice ${i + 1}</b><button type="button" class="btn sm danger" data-rm="${i}">Remove</button></div>
             ${fieldHtml({ key: `c${i}_label`, label: 'Label', value: c.label })}
@@ -3655,13 +3712,14 @@ function editRoadEvent(x, isNew) {
 function investigateSheet() {
   tableEditor({ title: 'Investigation results', get: () => C.tables.investigate,
     intro: `<p class="small muted">Rolled when an expedition investigates a pin. Entries whose effects start a battle are much rarer if the road event was already a battle (see Missions & scales). The shard’s true resting place always starts its mission chain instead.</p>${FX_HELP}`,
-    summary: x => `<div class="row between"><b>${esc(x.title)}</b><span class="small">w ${x.weight}</span></div><div class="muted">${esc(x.fx || 'no effect')}</div>`,
+    summary: x => `<div class="row between"><b>${x.lean ? '☠ ' : ''}${esc(x.title)}</b><span class="small">w ${x.weight}</span></div><div class="muted">${esc(x.fx || 'no effect')}</div>`,
     blank: () => ({ id: uid('inv'), title: '', weight: 2, text: '', fx: '' }),
     edit: async (x, isNew) => { const v = await formSheet({ title: isNew ? 'New result' : x.title, fields: [
       { key: 'title', label: 'Title', value: x.title }, { key: 'weight', label: 'Weight', type: 'stepper', value: x.weight, min: 0, max: 20 },
-      { key: 'text', label: 'Text', type: 'textarea', value: x.text }, { key: 'fx', label: 'Effects', value: x.fx, placeholder: 'e.g. clue; gold 20' }, ...delField(isNew)] });
+      { key: 'text', label: 'Text', type: 'textarea', value: x.text }, { key: 'fx', label: 'Effects', value: x.fx, placeholder: 'e.g. clue; gold 20' },
+      { key: 'lean', type: 'toggle', label: 'Daemon-touched: twice as likely for the deceived priest’s expedition', value: x.lean }, ...delField(isNew)] });
       if (!v) return null; if (v.remove) return 'delete'; if (!v.title.trim()) return null;
-      return { ...x, title: v.title.trim(), weight: Math.max(0, Math.round(v.weight)), text: v.text, fx: v.fx.trim() }; } });
+      return { ...x, title: v.title.trim(), weight: Math.max(0, Math.round(v.weight)), text: v.text, fx: v.fx.trim(), lean: !!v.lean }; } });
 }
 function twistsSheet() {
   tableEditor({ title: 'Battlefield twists', get: () => C.tables.twists, intro: '<p class="small muted">Rolled from the mission screen before deployment.</p>',
@@ -3778,6 +3836,904 @@ Object.assign(ACT, {
   recordMission: el => { const m = missionById(el.dataset.id); if (m) afterBattle(m); },
   missionLog: missionLogSheet, setMissions: setMissionsSheet, setRoadEvents: roadEventsSheet, setInvestigate: investigateSheet,
   setTwists: twistsSheet, setLoot: lootSheet, setScenarios: scenariosSheet, setEnemies: enemiesSheet, setInjuries: injurySheet3,
+});
+
+
+/* =====================================================================
+   PHASE 4: camp events, the threat track, omens and the Revelation,
+   flag payoffs, the runesmith and the Forge of Alaric, the story Chronicle.
+   Everything below is data in C.tables and editable in the Codex.
+   ===================================================================== */
+const TRACKS = {
+  rival: { label: 'Court agents', sub: 'Spies and hired blades of the Emperor and the Graf, acting on their own. They strike at whoever leads the race.', color: '#2b4f7a' },
+  cult: { label: 'The daemon’s cult', sub: 'The cult of the daemon that shattered the blade. It grows bolder as the shards are gathered.', color: '#8e1b1b' },
+};
+const TARGETS = { leader: 'The expedition leading in shards', trailer: 'The expedition trailing in shards', marched: 'The expedition that just marched', next: 'The expedition about to march', random: 'Either expedition, at random', both: 'Both expeditions' };
+const SYM = { sig: 'comet', ulr: 'wolf' };
+
+const CV = (id, title, kind, where, weight, text, choices, o = {}) => EVt('c-' + id, title, kind, where, weight, text, choices, o);
+const DEFAULT_CAMP_EVENTS = [
+  /* ---- general camp life ---- */
+  CV('drill', 'Drill Until Dark', 'camp', '', 3, '{captain} drills the regiments until the light fails.', [
+    EVc('Drill them hard', 'xp 1 one', 'Blisters and curses, but they wheel like veterans now.'),
+    EVc('Let them rest', 'heal', 'A night by the fire does more good than any drill.')]),
+  CV('sermon', 'A Sermon by Torchlight', 'camp', '', 2, '{priest} preaches by torchlight on the glory of {god}.', [
+    EVc('Hear the sermon', 'xp 1 all', 'The men march taller in the morning.')]),
+  CV('followers', 'Camp Followers', 'choice', '', 2, 'Pedlars, cooks and laundresses trail the column. They bring comfort, and more mouths to feed.', [
+    EVc('Feed and keep them', 'heal', 'Hot food and mended boots. The wounded mend faster too.', { cost: 15 }),
+    EVc('Send them away', 'lose 1', 'They go, and one young soldier goes with them.')]),
+  CV('thief', 'A Thief in the Camp', 'choice', '', 2, 'Coins are missing from the war chest, and the lock is unbroken.', [
+    EVc('Search every pack', '', 'The crowns turn up in a drummer’s boot. He will not steal again.', { chance: 60, failText: 'Nothing is found, and the men resent the search.', failFx: 'rob 20' }),
+    EVc('Let it go', 'rob 15', 'Some battles are not worth fighting.')]),
+  CV('wolves', 'Wolves at Night', 'choice', '', 2, 'Wolves circle the camp all night, howling just beyond the firelight.', [
+    EVc('Double the pickets', '', 'Nobody sleeps, but nobody is taken.'),
+    EVc('Hunt them down', 'xp 1 one', 'Pelts for cloaks, and a story for the fire.', { chance: 60, failText: 'The hunters come back one short.', failFx: 'lose 1' })]),
+  CV('patron-letter', 'A Letter from the Patron', 'camp', '', 2, 'A rider brings a sealed letter from {patron}.', [
+    EVc('Break the seal', 'gold 25', 'Coin, and an order to make haste.')]),
+  CV('fever', 'Camp Fever', 'choice', '', 2, 'A fever creeps through the tents. Men shiver under their blankets.', [
+    EVc('Pay for a physician', '', 'Caught early, and burned out with vinegar and prayer.', { cost: 25 }),
+    EVc('Pray and wait', '', 'The fever breaks on the third day.', { chance: 50, failText: 'The fever takes its toll.', failFx: 'lose 3' })]),
+  CV('veteran', 'The Old Soldier’s Tale', 'camp', '', 2, 'An old sergeant tells the recruits how he survived Hel Fenn.', [
+    EVc('Listen well', 'xp 1 one', 'Half of it is lies. The useful half is not.')]),
+  CV('smith', 'The Travelling Smith', 'purchase', '', 2, 'A smith with a portable forge offers to mend armour, or to make something finer.', [
+    EVc('Commission a blade', 'relic Sword of Striking', 'Folded steel, and a fair price for once.', { cost: 45 }),
+    EVc('Just mend the mail', 'heal', 'Riveted and oiled.', { cost: 10 }),
+    EVc('No, thank you', '', '')]),
+  CV('storm', 'The Storm', 'camp', '', 2, 'A storm flattens half the tents in the night.', [
+    EVc('Ride it out', '', 'Wet, cold, but whole.', { chance: 70, failText: 'A falling tree crushes a tent.', failFx: 'lose 1' })]),
+  CV('quartermaster', 'The Quartermaster’s Books', 'choice', '', 2, 'The quartermaster’s accounts do not add up.', [
+    EVc('Have him flogged', 'gold 20', 'The missing crowns reappear with remarkable speed.'),
+    EVc('Trust him', 'gold 30', 'Clever man: he has been buying cheap and selling dear.', { chance: 50, failText: 'He is gone by morning, with the strongbox.', failFx: 'rob 30' })]),
+  CV('cards', 'Cards in the Officers’ Tent', 'gamble', '', 2, 'The officers play cards late into the night, for high stakes.', [
+    EVc('Stake 25 gc (1 in 2 to win 60)', 'gold 60', 'A royal flush of crowns!', { cost: 25, chance: 50, failText: 'The quartermaster cleans you out.' }),
+    EVc('Watch, and keep your purse', '', '')]),
+  CV('feast', 'A Village Feast', 'purchase', '', 2, 'A grateful village offers a feast, for a modest contribution.', [
+    EVc('Pay for the feast', 'heal; xp 1 one', 'Roast pork and dark ale. Nobody marches well tomorrow.', { cost: 20 }),
+    EVc('March on hungry', '', '')]),
+  CV('outriders', 'The Outriders Return', 'camp', '', 2, 'Your outriders ride in after dark with news from the road ahead.', [
+    EVc('Hear their report', 'rumour', '')]),
+  CV('stranger', 'A Stranger at the Fire', 'choice', '', 2, 'A hooded stranger asks to share your fire, and asks a great many questions about {priest}.', [
+    EVc('Let him stay', 'omen; threat cult 1', 'He is gone at dawn. The fire burned green while he sat by it.'),
+    EVc('Seize him', 'omen; threat cult -1', 'A cultist! Under the lash he talks, and what he says chills the blood.', { chance: 50, failText: 'He had a knife, and he knew how to use it.', failFx: 'wound' }),
+    EVc('Drive him off', '', 'He goes without a word.')]),
+  CV('nightmare', 'Night Terrors', 'camp', '', 1, '{priest} wakes screaming, clutching at a sword that is not there.', [
+    EVc('Say nothing to the men', 'flag troubling_dream', 'The sentries talk anyway.'),
+    EVc('Call it a vision of victory', 'xp 1 all; threat cult 1', 'The men cheer. {priest} does not.')], { lean: true }),
+  CV('night-deserters', 'Caught at the Horse Lines', 'choice', '', 2, 'Three soldiers are caught slipping away with the horses.', [
+    EVc('Flog them, and keep them', '', 'They will not try again.'),
+    EVc('Make an example', 'xp 1 all', 'Grim work. Nobody else will try it.'),
+    EVc('Let them go', 'lose 3', 'Better gone than sullen.')]),
+  CV('cult-sigils', 'Sigils on the Tent Poles', 'choice', '', 3, 'Eight-pointed stars have been scratched into the tent poles overnight. Someone in this camp serves the cult.', [
+    EVc('Find the traitor', 'threat cult -2; omen', 'A cook, with a brand on his chest. He dies cursing a priest’s name.', { chance: 40, failText: 'The hunt finds nothing, and the stars keep appearing.', failFx: 'threat cult 1' }),
+    EVc('Burn the poles', '', 'New poles, new tents, the same uneasy sleep.')], { req: 'cult>=4' }),
+
+  /* ---- payoffs of earlier choices ---- */
+  CV('wh-return', 'The Order Returns', 'choice', '', 6, 'The Witch Hunter you drove off is back, with a dozen zealots of the Silver Hammer. He has come to put {priest} to the question.', [
+    EVc('Submit to the trial', 'unflag witch_hunter_angered; omen', 'Fire, iron and scripture. He finds nothing, or says so, and leaves watching the other camp.', { chance: 50, failText: 'The trial by ordeal leaves its mark.', failFx: 'wound priest; unflag witch_hunter_angered' }),
+    EVc('Fight them', 'battle bandits mordheim; unflag witch_hunter_angered', 'Use Bandit models as the zealots, with a Bandit Chief as the Witch Hunter.'),
+    EVc('Buy his silence', 'unflag witch_hunter_angered; threat cult 1', 'The coin goes into his coat. His eyes stay on {priest}.', { cost: 50 })], { req: 'witch_hunter_angered', once: true }),
+  CV('wh-letter', 'A Letter from the Witch Hunter', 'choice', '', 5, 'The Witch Hunter who questioned you writes from the road: his inquiries now point elsewhere, and he asks for anything you know.', [
+    EVc('Tell him what you have seen', 'omen; threat rival 1', 'He writes back a single line, and it is not comforting.'),
+    EVc('Burn the letter', '', 'Some questions are better left unasked.')], { req: 'witch_hunter_satisfied', once: true }),
+  CV('wh-bribed', 'The Price Goes Up', 'choice', '', 5, 'The Witch Hunter you paid is back. He has remembered something, and the remembering is expensive.', [
+    EVc('Pay him again', '', 'He counts it twice.', { cost: 40 }),
+    EVc('Refuse', 'flag witch_hunter_angered; threat rival 1', 'He leaves, promising to return with the Order.')], { req: 'witch_hunter_bribed', once: true }),
+  CV('dragon-debt', 'The Dragon’s Debt', 'choice', '', 6, 'The Cathayan envoy returns. The Dragon wants what was promised: the resting place of a shard.', [
+    EVc('Honour the promise', 'gold 60; threat rival 2', 'The envoy bows and pays handsomely. Somewhere, the court’s spies are listening too.'),
+    EVc('Break your word', 'battle cathay march; unflag cathay_promise', 'The Dragon remembers its debtors.')], { req: 'cathay_promise', once: true }),
+  CV('silk-steel', 'Silk and Steel', 'choice', '', 5, 'Crane gunners in Cathayan silk shadow the column. The mandarin you snubbed has a long memory.', [
+    EVc('Turn and fight', 'battle cathay mordheim; unflag cathay_snubbed', ''),
+    EVc('Send him gifts and apologies', 'unflag cathay_snubbed', 'The gunners melt away.', { cost: 40 })], { req: 'cathay_snubbed', once: true }),
+  CV('dream-returns', 'The Dream Returns', 'choice', '', 6, 'The dream of the burning sword comes again to {priest}, clearer now. There is a voice in it.', [
+    EVc('Confess it to the men', 'omen; xp 1 all', 'The men respect honesty. Mostly.'),
+    EVc('Keep silent', 'threat cult 1; flag kept_silent', 'The voice is pleased.')], { req: 'troubling_dream', once: true }),
+  CV('captain-thirst', 'The Captain’s Thirst', 'choice', '', 4, '{captain} no longer eats with the men. The sentries say someone walks the camp at night, and does not breathe.', [
+    EVc('Keep watch', '', 'A quiet night. This time.', { chance: 50, failText: 'Two sentries are found at dawn, white as chalk.', failFx: 'lose 2; threat cult 1' }),
+    EVc('Seek a cure', 'unflag captain_bitten; heal', 'A Priest of Morr burns the taint out with silver and prayer.', { cost: 50 })], { req: 'captain_bitten' }),
+  CV('dwarf-runner', 'A Dwarf Runner', 'choice', '', 6, 'A dwarf runner with a braided beard finds your camp. The runesmith of Alaric’s line has heard of the shattered blade, and will hear your plea at his forge, if you come with proper respect.', [
+    EVc('Send a gift ahead', 'flag runesmith_known; flag runesmith_gift', 'Good ale and better gold. The runner nods, almost approvingly.', { cost: 30 }),
+    EVc('Thank him', 'flag runesmith_known', 'He grunts and is gone before dawn.')], { req: 'runesmith_rumour|heard_of_runesmith', once: true }),
+  CV('farmers-thanks', 'The Farmers Remember', 'camp', '', 6, 'The farmers you saved from the raiders catch up with the column, with cheese, ale and their sons.', [
+    EVc('Welcome them', 'heal; unit Free Company Militia 8 as Farmers’ Sons', 'Pitchforks and courage.')], { req: 'helped_farmers', once: true }),
+  CV('burned-road', 'The Burned Road', 'battle', '', 5, 'The raiders who burned that farmstead have grown bold, and they have followed you.', [
+    EVc('Turn and fight', 'battle bandits march', '')], { req: 'ignored_farmers', once: true }),
+  CV('wyrd-thanks', 'The Silver Hammer’s Thanks', 'camp', '', 5, 'The Order of the Silver Hammer sends thanks for the wyrdstone you seized, and coin to go with it.', [
+    EVc('Accept', 'gold 50; unflag witch_hunter_angered', 'The Order will speak well of you.')], { req: 'seized_wyrdstone', once: true }),
+  CV('wyrd-gang', 'The Scavenger’s Revenge', 'battle', '', 4, 'The scavenger you robbed has sold your name to a Mordheim gang.', [
+    EVc('Fight them off', 'battle bandits mordheim', '')], { req: 'seized_wyrdstone', once: true }),
+  CV('deserter-past', 'The Deserter’s Warrant', 'choice', '', 5, 'An officer of the deserter’s old regiment rides in with a warrant for his arrest.', [
+    EVc('Hand him over', 'gold 20', 'The bounty is paid. The man does not look back.'),
+    EVc('Protect him', 'xp 1 one; threat rival 1', 'He swears himself to your banner for life. The officer swears too.')], { req: 'took_deserter', once: true }),
+  CV('refugees-thanks', 'Word of Mercy', 'camp', '', 5, 'The refugees you escorted reached safety, and word of your mercy runs ahead of you.', [
+    EVc('Onward', 'gold 30; xp 1 one', 'A temple sends alms for the expedition.')], { req: 'escorted_refugees', once: true }),
+  CV('refugees-bones', 'Bones by the Road', 'camp', '', 4, 'You pass the bones of the column you would not protect. Crows have been at them, and something else.', [
+    EVc('March on', 'threat cult 1', 'Nobody speaks for a long while.')], { req: 'abandoned_refugees', once: true }),
+  CV('beast-debt', 'A Debt Repaid', 'camp', '', 5, 'The gor you set free comes back at night, and leaves a gift at the edge of camp: a trail, freshly marked.', [
+    EVc('Follow it', 'clue; rumour', '')], { req: 'freed_beastman', once: true }),
+  CV('herd-revenge', 'The Herd’s Revenge', 'battle', '', 5, 'The beasts have not forgotten the herdstone you toppled. Horns echo all around the camp.', [
+    EVc('To arms!', 'battle beasts march', '')], { req: 'toppled_herdstone', once: true }),
+  CV('lights-return', 'The Lights Return', 'choice', '', 4, 'The pale lights are back, and the scout you lost is walking among them.', [
+    EVc('Call to him', 'xp 1 one', 'He stumbles into the firelight, alive and starving.', { chance: 30, failText: 'Two more follow him into the dark.', failFx: 'lose 2' }),
+    EVc('Look away', '', 'By morning the lights are gone.')], { req: 'followed_lights', once: true }),
+  CV('comet-pilgrims', 'Pilgrims of the Comet', 'camp', '', 4, 'Pilgrims who saw the twin-tailed comet have followed the column for days. Now they ask to march with {priest}.', [
+    EVc('Take them in', 'unit Flagellants 5 as Comet Pilgrims', 'Whips and psalms.'),
+    EVc('Send them home', '', '')], { req: 'saw_comet', once: true }),
+  CV('plague-fame', 'The Healer’s Fame', 'choice', '', 4, 'Word of {priest}’s healing at the plague village has spread. The sick come from miles around.', [
+    EVc('Bless them all', 'xp 1 all', 'The men are proud to march behind such a priest.', { chance: 70, failText: 'Not every sickness is a fever.', failFx: 'lose 2' }),
+    EVc('Turn them away', '', '')], { req: 'blessed_plague', once: true }),
+  CV('robber-tribute', 'The Robber-Prince’s Letter', 'camp', '', 4, 'The robber-prince you paid writes to say his “realm” is at your disposal, for a fee.', [
+    EVc('Hire his cutthroats', 'unit Free Company Militia 10 as Robber-Prince’s Cutthroats', 'Unwashed, but eager.', { cost: 45 }),
+    EVc('Decline', '', '')], { req: 'paid_robber_prince', once: true }),
+  CV('toll-revenge', 'The Toll-keeper’s Friends', 'battle', '', 4, 'The cudgel-men you scattered at the bridge have found friends with crossbows.', [
+    EVc('Fight', 'battle bandits mordheim', '')], { req: 'bullied_toll', once: true }),
+  CV('kelham-pyres', 'Kelham’s Thanks', 'camp', '', 4, 'A priest of Morr from Kelham catches up with the column: the graves are quiet, and he has brought a relic of thanks.', [
+    EVc('Accept the gift', 'relic', '')], { req: 'helped_kelham', once: true }),
+
+  /* ---- regional ---- */
+  CV('grave-wind', 'The Grave-wind', 'choice', 'sylvania', 4, 'A grave-cold wind blows through the camp, and shapes walk past the pickets without a sound.', [
+    EVc('Hold the line', 'battle undead mordheim', ''),
+    EVc('Light every torch', '', 'The shapes keep to the dark.', { cost: 15 })]),
+  CV('dwarf-traders', 'Dwarf Traders', 'purchase', 'worlds_edge', 4, 'Dwarf traders share your fire, and their ale.', [
+    EVc('Buy a barrel', 'heal; xp 1 one', 'It is very strong.', { cost: 20 }),
+    EVc('Ask about the runesmith', 'flag runesmith_known', '“Alaric’s line? Aye. Bring gifts.”')]),
+  CV('white-wolf', 'The White Wolf', 'camp', 'middenheim', 3, 'A great white wolf watches the camp from the treeline all night.', [
+    EVc('Take it as a sign', 'xp 1 all', 'The Ulricans howl. The others are not sure what to do.')]),
+  CV('moot-pickpockets', 'Light Fingers', 'camp', 'stirland', 3, 'Halfling children wander through the camp, and so do a great many small objects.', [
+    EVc('Laugh it off', 'rob 10', '')]),
+  CV('wyrd-glow', 'Green Light in the Ruins', 'choice', 'ostermark', 3, 'A green glow pulses in the ruins beyond the camp.', [
+    EVc('Send men to look', 'relic Wyrdstone Shard; threat cult 1', 'They come back with a warm green stone, and headaches.', { chance: 50, failText: 'They do not all come back.', failFx: 'lose 2' }),
+    EVc('Stay well away', '', '')]),
+  CV('jade-tea', 'The Tea House', 'purchase', 'cathay', 3, 'A Cathayan tea house welcomes weary travellers. The owner hears everything.', [
+    EVc('Buy tea, and news', 'rumour; heal', '', { cost: 15 }),
+    EVc('Move on', '', '')]),
+];
+
+const THv = (id, track, at, target, title, kind, text, choices, o = {}) => ({ ...EVt(id, title, kind, '', 1, text, choices), track, at, target, reset: '', ...o });
+const DEFAULT_THREAT_EVENTS = [
+  THv('agents-3', 'rival', 3, 'leader', 'Spies in the Baggage', 'choice', 'A clerk with ink-stained fingers was seen leaving {priest}’s tent at dawn. Someone at court wants to know how close {ex} is to the shards, and has paid well to find out.', [
+    EVc('Hunt the spy down', 'xp 1 one', 'Your huntsmen run him to ground in a ditch. His letters bear a court seal, but whose court?', { chance: 60, failText: 'The spy is gone, and so is part of the war chest.', failFx: 'rob 30' }),
+    EVc('Feed him false reports', 'threat rival -1', 'Let them chase shadows.', { chance: 50, failText: 'The spy was not fooled. The court learns your road.', failFx: 'rob 20' })]),
+  THv('agents-6', 'rival', 6, 'leader', 'Hired Blades', 'battle', 'Masked men come over the palisade at midnight. Their purses are full of Altdorf gold, or Middenheim silver. They have come for {priest}.', [
+    EVc('Defend the Priest!', 'battle bandits mordheim', 'The assassins are Bandits: Cutthroats and a Chief. The Priest must survive.')]),
+  THv('agents-9', 'rival', 9, 'leader', 'A Writ from Court', 'choice', 'A herald arrives with a writ: the expedition must send its finest relic home “for safe keeping”. The seal is genuine. The intent is not.', [
+    EVc('Obey the writ', 'lose-relic', 'The relic goes home in an iron box.'),
+    EVc('Pay the herald to lose it', '', 'The writ is lost at a river crossing.', { cost: 60 }),
+    EVc('Burn the writ', 'threat rival 2; xp 1 all', 'The men cheer. The court will not forget.')]),
+  THv('agents-12', 'rival', 12, 'leader', 'The Snatch', 'choice', 'The court’s agents have bought every guide and bribed every innkeeper on your road, and a band of sellswords has moved what you were chasing.', [
+    EVc('Curse them, and march on', 'snatch', 'Somewhere ahead, a shard has changed hands and changed places.')], { reset: 0 }),
+  THv('cult-3', 'cult', 3, 'random', 'Signs in the Sky', 'camp', 'The stars wheel wrong for a night. Dogs howl. In both camps, men wake from the same dream of a burning sword.', [
+    EVc('Read the signs', 'omen', '')]),
+  THv('cult-6', 'cult', 6, 'leader', 'Cult Raid', 'battle', 'Robed figures branded with eight-pointed stars burst from the dark, chanting the daemon’s name. They want the shards, and they want {priest} alive.', [
+    EVc('Stand fast!', 'battle chaos march', ''),
+    EVc('Fall back to the wagons', 'battle beasts mordheim', 'You give ground and fight among the wagons. Beastmen run with the cultists.')]),
+  THv('cult-9', 'cult', 9, 'random', 'Tainted Ground', 'camp', 'Wells turn bitter. Corn rots in the field. Where the cult walks the land sickens, and the soldiers whisper that one of the priests has brought this on them.', [
+    EVc('Pray for deliverance', 'omen; flag tainted_ground', 'Prayers rise. Something listens.'),
+    EVc('Burn the rot', 'lose 2; flag tainted_ground', 'Fires everywhere. Not everyone gets clear.')]),
+  THv('cult-12', 'cult', 12, 'leader', 'The Herald of the Daemon', 'battle', 'The sky splits. A herald of the daemon that wounded Karl Franz steps through with its chosen, and it calls {priest} by name.', [
+    EVc('Face the Herald', 'battle chaos full; omen', 'Use an Exalted Champion or a Chaos Spawn as the Herald.')], { reset: 6 }),
+];
+
+// {who} the priest the omen points at · {whoex} his expedition · {god} his god · {sym} comet or wolf · {other} the other priest
+const DEFAULT_OMENS = [
+  { id: 'crow', kind: 'point', weight: 3, text: 'A crow perches on {who}’s tent pole every dusk, and will not be driven off.' },
+  { id: 'dogs', kind: 'point', weight: 3, text: 'The camp dogs will not go near {who}. They whine and slink away.' },
+  { id: 'prayer', kind: 'point', weight: 2, text: '{who} was heard praying in the night. Nobody could name the god.' },
+  { id: 'cultist', kind: 'point', weight: 2, text: 'A captured cultist laughed when he saw the banner of {whoex}, and died laughing.' },
+  { id: 'water', kind: 'point', weight: 2, text: 'The holy water in {who}’s censer turned black overnight.' },
+  { id: 'child', kind: 'point', weight: 2, text: 'A child in the last village pointed at {who} and screamed.' },
+  { id: 'too-well', kind: 'point', weight: 2, text: '{who}’s vision named a hiding place before any scout had seen it. Too soon? Or too well?' },
+  { id: 'bones', kind: 'point', weight: 2, text: 'A hedge-witch reads the bones and mutters: “The {sym} dream has a second dreamer in it.”' },
+  { id: 'brimstone', kind: 'point', weight: 2, text: 'A smell of brimstone lingers where {who} slept.' },
+  { id: 'letter', kind: 'point', weight: 1, text: 'A burned letter in a cultist’s satchel: “…the priest of the {sym} sees only what we let him see…”' },
+  { id: 'shadow', kind: 'point', weight: 1, text: 'By firelight, {who}’s shadow moved a moment late.' },
+  { id: 'cold-relic', kind: 'point', weight: 1, text: 'An old relic of {god} grew cold in {who}’s hands.' },
+  { id: 'same-dream', kind: 'neutral', weight: 2, text: 'Both priests woke from the same dream of a burning sword. Each says the other cried out in his sleep.' },
+  { id: 'seer', kind: 'neutral', weight: 1, text: 'A blind seer at a crossroads says only: “One of them is lying, and does not know it.”' },
+  { id: 'morrslieb', kind: 'neutral', weight: 1, text: 'Morrslieb rose full and green. In both camps, every soldier dreamed of laughter.' },
+];
+
+const DEFAULT_CULT_TWISTS = [
+  { id: 'bleeding-sky', name: 'The Sky Bleeds', effect: 'Red rain falls. Each unit takes a Leadership test at the start of its first turn: if it fails, it may not march that turn.', weight: 2 },
+  { id: 'whispers', name: 'Whispers in the Ranks', effect: 'At the start of each turn, roll a D6 for each Priest: on a 1 they may not pray this turn.', weight: 2 },
+  { id: 'spawn', name: 'Something Crawls Out', effect: 'At the start of turn 2 a Chaos Spawn appears in the table centre. It moves towards and attacks the nearest unit of either side.', weight: 1 },
+  { id: 'cultists', name: 'Cultists in the Crowd', effect: 'At the end of turn 3, 10 cultists (Chaos Marauders) appear on the table edge nearest the side holding more shards, and attack that side.', weight: 1 },
+  { id: 'eclipse', name: 'Black Eclipse', effect: 'Turns 2 and 3 are fought in darkness: nothing may shoot beyond 12".', weight: 1 },
+];
+
+const PENANCE_SC = { name: 'The Penance', objective: 'Destroy the cult’s shrine (a marker in the enemy half) with the Priest, or slay the cult’s leader. Win to cleanse the expedition.', special: 'The Priest must take part. While within 6" of the shrine he may re-roll failed prayers.' };
+const SMITH_SC = [
+  { name: 'The Hidden Road', objective: 'Get at least two heroes off the far table edge, where the hidden road to the hold begins, by the end of turn 6.', special: 'Night Goblin sentries lie hidden: place 5 markers and reveal each one when a model comes within 6". Roll a D6: on a 4+ it hides a unit of 10 Night Goblins.' },
+  { name: 'The Hold Besieged', objective: 'Break the greenskin siege: slay the enemy general, or hold the gate (a marker on your table edge) at the end of the game.', special: 'At the start of turn 3 the hold sallies: 10 Dwarf Warriors arrive from your table edge, under your control.' },
+];
+const FORGE_SC = { name: 'The Forge of Alaric', objective: 'Hold the anvil (a marker in the table centre) at the end of turn 6, or slay the enemy Priest. The victor carries the shards to the runesmith, and the Runefang is reforged.', special: 'The runesmith stands at the anvil (a Dwarf Runesmith model or a token) and cannot be harmed. A Priest within 6" of the anvil adds +1 to his prayers.' };
+const FORGE_SC_CULT = { name: 'The Forge of Alaric', objective: 'Hold the anvil (a marker in the table centre) at the end of turn 6 against the daemon’s host. Win, and the Runefang is reforged.', special: 'The other player commands the daemon’s host. The runesmith stands at the anvil and cannot be harmed.' };
+
+
+/* Idempotent: adds the phase 4 tables and fields, never touches rosters, regions, pins or existing tables. */
+function seedPhase4(c) {
+  const t = c.tables = c.tables || {};
+  if (!Array.isArray(t.campEvents)) t.campEvents = clone(DEFAULT_CAMP_EVENTS);
+  if (!Array.isArray(t.threatEvents)) t.threatEvents = clone(DEFAULT_THREAT_EVENTS);
+  if (!Array.isArray(t.omens)) t.omens = clone(DEFAULT_OMENS);
+  if (!Array.isArray(t.cultTwists)) t.cultTwists = clone(DEFAULT_CULT_TWISTS);
+  // "A Troubling Dream" becomes daemon-touched (likelier for the deceived priest). Adds a field only.
+  const dream = (t.investigate || []).find(x => x && x.id === 'dream');
+  if (dream && dream.lean === undefined) dream.lean = true;
+  const th = c.threat = c.threat && typeof c.threat === 'object' ? c.threat : {};
+  th.rival = Math.max(0, Math.round(num(th.rival))); th.cult = Math.max(0, Math.round(num(th.cult)));
+  for (const k of ['fired', 'log', 'pending', 'done']) th[k] = Array.isArray(th[k]) ? th[k] : [];
+  c.omens = Array.isArray(c.omens) ? c.omens : [];
+  c.camp = c.camp && typeof c.camp === 'object' ? c.camp : {};
+  if (c.reveal === undefined) c.reveal = null;
+  const f = c.finale = c.finale && typeof c.finale === 'object' ? c.finale : {};
+  f.quest = f.quest && typeof f.quest === 'object' ? f.quest : {};
+  if (f.smith === undefined) f.smith = null; if (f.winner === undefined) f.winner = null;
+  c.schema = Math.max(c.schema || 1, 4);
+  return c;
+}
+
+/* ---------- the daemon's secret: read only to weight omens, and in the reveal ---------- */
+function deceivedNow() { try { const x = C && C.seal ? unsealSecret(C.seal, sealKey(C)) : null; return x && SIDES.includes(x.t) ? x.t : null; } catch (e) { return null; } }
+const leanW = (it, s) => it && it.lean ? (s === deceivedNow() ? 2 : 1) : 1;
+const godOf = s => s === 'sig' ? 'Sigmar' : 'Ulric';
+const revealReady = () => shardsTotalFound() >= num(S().revelationShards, 5);
+
+function omenFor(s, ctx = {}) {
+  const t = wpick((C.tables.omens || []).filter(x => x && x.text && num(x.weight, 1) > 0));
+  if (!t) return '';
+  let about = null;
+  if (t.kind !== 'neutral') {
+    const d = deceivedNow(), lean = clamp(num(S().threat.lean, 67), 0, 100);
+    about = d ? (Math.random() * 100 < lean ? d : other(d)) : pickOne(SIDES);
+  }
+  const pr = about && priestOf(about), op = about && priestOf(other(about));
+  const map = { who: pr ? pr.name : 'the Priest', whoex: about ? theN(exName(about), false) : 'an expedition', god: about ? godOf(about) : 'the gods', sym: about ? SYM[about] : 'burning sword', other: op ? op.name : 'the other priest' };
+  const text = String(t.text).replace(/\{(\w+)\}/g, (m0, k) => map[k] ?? m0);
+  C.omens.push({ id: uid('om'), turn: C.turn, side: s || null, about, text, regionId: ctx.r ? ctx.r.id : null, pinId: ctx.p ? ctx.p.id : null });
+  if (C.omens.length > 300) C.omens.splice(0, C.omens.length - 300);
+  return text;
+}
+
+/* ---------- threat track ---------- */
+const threatEntry = id => (C.tables.threatEvents || []).find(x => x && x.id === id) || null;
+const trackMax = tr => Math.max(12, ...(C.tables.threatEvents || []).filter(x => x && x.track === tr).map(x => num(x.at)));
+function addThreat(tr, n, why, s) {
+  const T = C.threat; if (!TRACKS[tr] || !n) return;
+  const before = T[tr] || 0; T[tr] = clamp(before + n, 0, 99);
+  if (T[tr] === before) return;
+  T.log.push({ turn: C.turn, track: tr, from: before, to: T[tr], why: why || '', side: s || null });
+  if (T.log.length > 300) T.log.splice(0, T.log.length - 300);
+  if (T[tr] < before) T.fired = T.fired.filter(k => { if (!k.startsWith(tr + ':')) return true; const e = threatEntry(k.slice(tr.length + 1)); return !e || num(e.at) <= T[tr]; });
+}
+const liveSides = () => SIDES.filter(s => EX(s).status !== 'lost');
+function leaderSide(trailing) {
+  const L = liveSides(); if (L.length < 2) return L[0] || null;
+  const sc = s => shardsHeld(s) * 100 + ((EX(s).record || {}).win || 0);
+  if (sc('sig') === sc('ulr')) return pickOne(L);
+  const lead = sc('sig') > sc('ulr') ? 'sig' : 'ulr';
+  return trailing ? other(lead) : lead;
+}
+function threatTargets(t, ctx = {}) {
+  const L = liveSides(); if (!L.length) return [];
+  if (t === 'both') return L;
+  let s = t === 'leader' ? leaderSide() : t === 'trailer' ? leaderSide(true) : t === 'marched' ? ctx.marched : t === 'next' ? ctx.next : pickOne(L);
+  if (!s || !L.includes(s)) s = pickOne(L);
+  return [s];
+}
+function checkThresholds(ctx = {}) {
+  const T = C.threat, out = [];
+  for (const tr of Object.keys(TRACKS)) {
+    const list = (C.tables.threatEvents || []).filter(x => x && x.track === tr && num(x.at) > 0).sort((a, b) => num(a.at) - num(b.at));
+    for (const e of list) {
+      const key = tr + ':' + e.id;
+      if ((T[tr] || 0) < num(e.at) || T.fired.includes(key)) continue;
+      T.fired.push(key);
+      const who = threatTargets(e.target, ctx);
+      for (const s of who) { const rec = { id: uid('thr'), eid: e.id, track: tr, side: s, turn: C.turn, title: e.title, resolved: false }; T.pending.push(rec); out.push(rec); }
+      if (who.length) chron(null, 'threat', `${tr === 'cult' ? 'The daemon’s cult grew bolder' : 'The court’s agents moved in the shadows'}, and turned on ${who.map(s => theN(exName(s), false)).join(' and ')}: ${e.title}.`, { tag: e.title });
+      if (e.reset !== '' && e.reset != null && isFinite(+e.reset)) {
+        const rv = Math.max(0, Math.round(+e.reset)), from = T[tr];
+        T[tr] = rv; T.log.push({ turn: C.turn, track: tr, from, to: rv, why: `${e.title}: the track falls back` });
+        T.fired = T.fired.filter(k => { if (!k.startsWith(tr + ':')) return true; const x = threatEntry(k.slice(tr.length + 1)); return x && num(x.at) <= rv; });
+        break;
+      }
+    }
+  }
+  return out;
+}
+function worldMoves(ctx) {
+  const rolls = [];
+  if (ctx.roundEnd) for (const tr of Object.keys(TRACKS)) {
+    const r = d6(), need = clamp(Math.round(num(S().threat.roll, 4)), 1, 7), up = r >= need;
+    rolls.push({ tr, r, need, up, to: (C.threat[tr] || 0) + (up ? 1 : 0) });
+    if (up) addThreat(tr, 1, `The world moves (rolled ${r})`);
+  }
+  return { rolls, fired: checkThresholds(ctx) };
+}
+function snatchShard(s) {
+  const ch = activeChain(s);
+  let i = ch ? ch.shard : -1;
+  if (i < 0) {
+    const cands = C.shards.map((x, k) => [x, k]).filter(([x]) => x.status === 'rumoured' && x.regionId);
+    if (!cands.length) return 'The agents find nothing left to steal.';
+    i = pickOne(cands)[1];
+  }
+  const sh = C.shards[i];
+  if (ch) C.missions.forEach(m => { if (m.chainId === ch.id && m.status === 'active') m.status = 'abandoned'; });
+  const dest = fleeShard(i);
+  return `${theN(sh.name, true)} has been moved${dest || ' elsewhere'}. Its trail must be found again.`;
+}
+function rollTwist() {
+  const T = S().threat, ct = (C.tables.cultTwists || []).filter(x => x && num(x.weight, 1) > 0);
+  const ch = num(T.cultTwistChance, 40) + (hasFlag('tainted_ground') ? 20 : 0);
+  if (ct.length && (C.threat.cult || 0) >= num(T.cultTwistAt, 6) && d100() <= ch) { const t = wpick(ct); if (t) return { name: t.name, effect: 'The daemon’s cult is at work. ' + t.effect }; }
+  return wpick(C.tables.twists.filter(Boolean));
+}
+
+/* ---------- requirements, extended: "a|b", "cult>=6", "turn>=10", "shards>=3", "held>=2", "revealed" ---------- */
+function reqAtom(k, s) {
+  const m = k.match(/^(gold|cult|rival|turn|shards|held)\s*(>=|<=|>|<|=)\s*(-?\d+)$/i);
+  if (m) {
+    const v = { gold: EX(s).gold, cult: C.threat.cult || 0, rival: C.threat.rival || 0, turn: C.turn, shards: shardsTotalFound(), held: shardsHeld(s) }[m[1].toLowerCase()], n = +m[3];
+    return { '>=': v >= n, '<=': v <= n, '>': v > n, '<': v < n, '=': v === n }[m[2]];
+  }
+  if (/^revealed$/i.test(k)) return !!C.reveal;
+  if (/^any:/i.test(k)) return hasFlag(k.slice(4).trim());
+  return hasFlag(k, s);
+}
+function reqOk(req, s) {
+  return String(req || '').split(/[,;]+/).map(x => x.trim()).filter(Boolean).every(tok => {
+    const neg = tok.startsWith('!');
+    const v = tok.replace(/^!/, '').split('|').map(x => x.trim()).filter(Boolean).some(k => reqAtom(k, s));
+    return neg ? !v : v;
+  });
+}
+
+/* ---------- a generic event sheet (camp and threat events) ---------- */
+function p4EventSheet({ s, ev, rec, r, p, badge, where, inFlow, kind }) {
+  return new Promise(resolve => {
+    const choices = ev && ev.choices && ev.choices.length ? ev.choices : [EVc('Onward')];
+    const outHtml = () => `${rec.roll != null ? `<div class="roll">Rolled <b>${rec.roll}</b> on a D100 (needed ${rec.need} or less): ${rec.ok ? 'success' : 'failure'}</div>` : ''}
+      ${rec.text ? `<p class="flavour">${esc(rec.text)}</p>` : ''}
+      ${rec.lines && rec.lines.length ? `<ul class="fxl">${rec.lines.map(l => `<li>${esc(l)}</li>`).join('')}</ul>` : ''}
+      ${rec.missionId && !inFlow ? '<button class="btn block seal" data-go="battle">To battle!</button>'
+        : rec.missionId ? '<div class="note-box warnbox">A battle awaits. It is listed under <b>Battles to fight</b> on the Campaign screen.</div><button class="btn block seal" data-go="ok">Continue</button>'
+        : `<button class="btn block" data-go="ok">${inFlow ? 'Continue' : 'Done'}</button>`}`;
+    openSheet({ title: ev ? ev.title : rec.title || 'Event', html: `<div class="row" style="margin-top:8px">${badge}<span class="small muted grow">${esc(where || '')}</span></div>
+      <div class="row small" style="margin-top:6px">${shieldSvg(s)}<b class="grow">${esc(exName(s))}</b></div>
+      ${ev ? `<p class="flavour evtext">${esc(fill(ev.text, s, r, p))}</p>` : ''}
+      <div id="evChoices">${rec.resolved ? `<div class="chosen">${esc(rec.choice || '')}</div>` : choices.map((c, i) => {
+        const cost = num(c.cost), poor = EX(s).gold < cost, ok = reqOk(c.req, s), can = ok && !poor;
+        const info = [cost ? `Costs ${cost} gc` : '', num(c.chance) > 0 && num(c.chance) < 100 ? `${num(c.chance)}% chance` : '', poor ? 'not enough gold' : '', !ok ? 'not available' : ''].filter(Boolean).join(' · ');
+        return `<button class="pick" data-c="${i}" ${can ? '' : 'disabled'}><b>${esc(fill(c.label, s, r, p))}</b>${info ? `<div class="muted">${info}</div>` : ''}</button>`; }).join('')}</div>
+      <div id="evOut">${rec.resolved ? outHtml() : ''}</div>`,
+      onClose: () => resolve(!!rec.resolved),
+      onMount: sh => sh.body.addEventListener('click', e => {
+        const b = e.target.closest('[data-c]');
+        if (b && !b.disabled && !rec.resolved) {
+          const c = choices[+b.dataset.c], cost = num(c.cost);
+          if (EX(s).gold < cost) return toast('Not enough gold');
+          const label = fill(c.label, s, r, p), title = ev ? ev.title : rec.title || 'Event';
+          if (cost) addGold(s, -cost, `${title}: ${label}`);
+          const ch = num(c.chance); let ok = true, roll = null;
+          if (ch > 0 && ch < 100) { roll = d100(); ok = roll <= ch; }
+          const text = fill(ok ? c.text : (c.failText || 'It does not go your way.'), s, r, p);
+          const res = runFx(s, ok ? c.fx : c.failFx, { title, r, p });
+          if (ev && ev.once) setFlag('ev:' + ev.id, s, r);
+          let missionId = null;
+          if (res.battle) missionId = createMission({ side: s, regionId: r ? r.id : null, pinId: p ? p.id : null, kind: res.battle.opp === 'rival' ? 'rival' : 'road', opp: res.battle.opp, scale: res.battle.scale }).id;
+          Object.assign(rec, { resolved: true, choice: label, ok, roll, need: ch, text, lines: res.lines, battle: !!res.battle, missionId });
+          const at = p ? p.name : r ? (r.short || r.name) : 'the road';
+          const lead = kind === 'camp' ? `That night, in camp at ${at}: ${title.replace(/[!.]$/, '')}.` : `${title.replace(/[!.]$/, '')}.`;
+          chron(s, kind, `${lead} ${exName(s)} chose “${label}”.${text ? ' ' + text : ''}`, { notes: res.lines, tag: title });
+          if (kind === 'threat') { const T = C.threat; T.pending = T.pending.filter(x => x !== rec && x.id !== rec.id); T.done.unshift(rec); if (T.done.length > 60) T.done.length = 60; }
+          save(); render();
+          $('#evChoices', sh.body).innerHTML = `<div class="chosen">${esc(label)}</div>`;
+          $('#evOut', sh.body).innerHTML = outHtml();
+          return;
+        }
+        const g = e.target.closest('[data-go]'); if (!g) return;
+        sh.close();
+        if (g.dataset.go === 'battle') { const m = missionById(rec.missionId); if (m) setTimeout(() => missionSheet(m), 30); }
+      }) });
+  });
+}
+
+/* ---------- camp events ---------- */
+const QUIET_CAMP = EVt('__quiet', 'A Quiet Night', 'camp', '', 1, 'The fires burn low. Nothing stirs but the sentries.', [EVc('Sleep')]);
+function campPool(s, r) {
+  return (C.tables.campEvents || []).filter(ev => ev && (!ev.where || (r && ev.where === r.id)) && (!ev.side || ev.side === s) && reqOk(ev.req, s)
+    && !(ev.once && hasFlag('ev:' + ev.id, s)) && num(ev.weight, 1) > 0);
+}
+function rollCamp(s) {
+  const e = EX(s), r = e.pos && regionById(e.pos.regionId), p = r && pinOf(r, e.pos.pinId);
+  const ev = wpick(campPool(s, r), x => num(x.weight, 1) * leanW(x, s));
+  return C.camp[s] = { turn: C.turn, side: s, id: ev ? ev.id : '__quiet', title: ev ? ev.title : QUIET_CAMP.title, regionId: r ? r.id : null, pinId: p ? p.id : null, resolved: false };
+}
+const campEventOf = rec => !rec ? null : rec.id === '__quiet' ? QUIET_CAMP : (C.tables.campEvents || []).find(x => x && x.id === rec.id) || { ...QUIET_CAMP, title: rec.title, text: '' };
+function campSheet(s, inFlow) {
+  const rec = C.camp[s]; if (!rec) return Promise.resolve(false);
+  const r = regionById(rec.regionId), p = pinOf(r, rec.pinId);
+  return p4EventSheet({ s, ev: campEventOf(rec), rec, r, p, inFlow, kind: 'camp', badge: '<span class="evk evk-camp">Camp</span>', where: `${p ? 'Camped at ' + p.name : 'In camp'} · turn ${rec.turn}` });
+}
+function threatSheet(rec, inFlow) {
+  const s = rec.side, e = EX(s), r = e.pos && regionById(e.pos.regionId), p = r && pinOf(r, e.pos.pinId), tr = TRACKS[rec.track] || TRACKS.cult;
+  const ev = threatEntry(rec.eid) || EVt(rec.eid, rec.title, 'camp', '', 1, '', [EVc('Onward')]);
+  return p4EventSheet({ s, ev, rec, r, p, inFlow, kind: 'threat', badge: `<span class="evk" style="background:${tr.color}">${esc(tr.label)}</span>`, where: `Turn ${rec.turn}` });
+}
+function campCardHtml(s) {
+  const rec = C.camp[s];
+  if (!rec) return `<div class="card edge side-${s}" style="margin-top:12px"><h3 class="sc">Tonight’s camp</h3><p class="small muted" style="margin:4px 0 0">A camp event is rolled when the ${esc(exShort(s))} Expedition ends its turn.</p></div>`;
+  const p = pinOf(regionById(rec.regionId), rec.pinId);
+  return `<div class="card edge side-${s}" style="margin-top:12px"><div class="row between"><div class="grow"><h3 class="sc">${rec.resolved ? 'Last camp' : 'Tonight’s camp'}</h3>
+    <div class="title">${esc(rec.title)}</div><div class="small muted">Turn ${rec.turn}${p ? ' · ' + esc(p.name) : ''}${rec.resolved && rec.choice ? ' · ' + esc(rec.choice) : ''}</div></div>
+    <button class="btn sm ${rec.resolved ? 'ghost' : 'seal'}" data-act="campOpen" data-side="${s}">${rec.resolved ? 'View' : 'Resolve'}</button></div></div>`;
+}
+
+/* ---------- the turn ends: camp, then the world moves ---------- */
+function worldSheet(wm) {
+  return new Promise(res => {
+    const rows = wm.rolls.map(x => `<div class="listed"><span class="grow"><b>${esc(TRACKS[x.tr].label)}</b><div class="small muted">Rolled ${x.r} (needed ${x.need}+)</div></span><b class="${x.up ? 'neg' : 'muted'}">${x.up ? '+1 → ' + (C.threat[x.tr] ?? x.to) : 'no change'}</b></div>`).join('');
+    const fired = wm.fired.map(x => `<div class="listed"><span class="evk" style="background:${TRACKS[x.track].color}">${esc(TRACKS[x.track].label)}</span><span class="grow"><b>${esc(x.title)}</b><div class="small muted">against ${esc(exName(x.side))}</div></span></div>`).join('');
+    openSheet({ title: 'The World Moves', html: `<p class="flavour" style="margin-top:10px">${wm.rolls.length ? 'A full round has passed. Far from your campfires, others make their moves.' : 'Your deeds have not gone unnoticed.'}</p>
+      ${rows ? `<div class="card">${rows}</div>` : ''}${threatTracksHtml()}
+      ${fired ? `<h3 class="sc mh">A threshold is crossed</h3><div class="card">${fired}</div><p class="small muted">Resolve ${wm.fired.length > 1 ? 'each event' : 'the event'} next.</p>` : ''}`,
+      footer: `<button class="btn seal" data-r="1">${fired ? 'Face it' : 'Continue'}</button>`,
+      onMount: sh => sh.foot.addEventListener('click', () => sh.close()), onClose: () => res() });
+  });
+}
+async function endTurnFlow() {
+  const s = C.active, n = other(s), ts = TS();
+  const warn = [ts.event && !ts.event.resolved ? 'The road event has not been resolved.' : '', pendingMissions().some(m => m.side === s || m.oppSide === s) ? 'A battle is still waiting for its result (you can record it later).' : ''].filter(Boolean);
+  const camp = C.camp[s], needCamp = EX(s).status !== 'lost' && !(camp && camp.turn === C.turn);
+  if (!await confirmBox({ title: 'End the turn?', text: `<p>${esc(exName(s))} makes camp${needCamp ? ', and a camp event is rolled' : ''}. Then turn ${C.turn + 1} begins and <b>${esc(exName(n))}</b> marches.</p>${warn.length ? `<div class="note-box warnbox">${warn.map(esc).join('<br>')}</div>` : ''}`, ok: 'Make camp' })) return;
+  if (needCamp) { rollCamp(s); save(); render(); await campSheet(s, true); }
+  const roundEnd = C.turn % 2 === 0;
+  C.turn += 1; C.active = n; UI.side = n;
+  chron(n, 'turn', `Turn ${C.turn}: ${exName(n)} breaks camp and takes the road.`);
+  const wm = worldMoves({ roundEnd, marched: s, next: n });
+  save(); render();
+  if (wm.rolls.length || wm.fired.length) await worldSheet(wm);
+  for (const rec of wm.fired) await threatSheet(rec, true);
+  save(); render();
+  toast(`Turn ${C.turn}: ${exShort(n)} marches`);
+}
+
+/* ---------- campaign screen cards ---------- */
+function threatTracksHtml() {
+  return `<div class="card">${Object.entries(TRACKS).map(([k, t]) => {
+    const v = C.threat[k] || 0, mx = trackMax(k), ths = (C.tables.threatEvents || []).filter(x => x && x.track === k && num(x.at) > 0);
+    const next = ths.filter(x => !C.threat.fired.includes(k + ':' + x.id)).sort((a, b) => num(a.at) - num(b.at))[0];
+    return `<div class="trk"><div class="row between"><b class="sc">${esc(t.label)}</b><b>${v} <span class="small muted">/ ${mx}</span></b></div>
+      <div class="tbar" style="--n:${mx};--tc:${t.color}">${Array.from({ length: mx }, (_, i) => { const th = ths.find(x => num(x.at) === i + 1);
+        return `<i class="${i < v ? 'on' : ''} ${th ? 'th' : ''} ${th && C.threat.fired.includes(k + ':' + th.id) ? 'fired' : ''}"></i>`; }).join('')}</div>
+      <div class="small muted">${next ? `Next at ${num(next.at)}: ${esc(next.title)}` : 'Nothing more waits on this track.'}</div></div>`; }).join('')}</div>`;
+}
+function awaitHtml() {
+  const items = [];
+  for (const s of SIDES) { const r = C.camp[s]; if (r && !r.resolved) items.push(`<div class="listed"><span class="evk evk-camp">Camp</span><span class="grow"><b>${esc(r.title)}</b><div class="small muted">${esc(exName(s))} · turn ${r.turn}</div></span><button class="btn sm seal" data-act="campOpen" data-side="${s}">Resolve</button></div>`); }
+  for (const x of C.threat.pending) items.push(`<div class="listed"><span class="evk" style="background:${(TRACKS[x.track] || TRACKS.cult).color}">${esc((TRACKS[x.track] || TRACKS.cult).label)}</span><span class="grow"><b>${esc(x.title)}</b><div class="small muted">${esc(exName(x.side))} · turn ${x.turn}</div></span><button class="btn sm seal" data-act="threatOpen" data-id="${x.id}">Resolve</button></div>`);
+  return items.length ? `<div class="card awaitbox"><h3 class="sc">Awaiting resolution</h3>${items.join('')}</div>` : '';
+}
+function bannerHtml() {
+  const w = C.finale && C.finale.winner; if (!w) return '';
+  return `<div class="banner-won side-${w}"><div class="bl">The Runefang Is Reforged</div>
+    <p>${esc(exName(w))} held the anvil at the Forge of Alaric and wins the campaign.</p>
+    <button class="btn ghost sm" style="color:#f3e1b4;border-color:#f3e1b4" data-act="undoWin">Undo (it was a mistake)</button></div>`;
+}
+function p4HomeHtml() {
+  let h = '';
+  if (C.reveal) h += forgeCardHtml(true);
+  h += `<div class="section-h"><h2 class="bl">The World Moves</h2><button class="btn sm" data-act="threatInfo">Details</button></div>${threatTracksHtml()}`;
+  return h;
+}
+function p4ShardBtn() {
+  if (C.reveal) return `<button class="btn block" data-act="goReveal" style="margin-top:8px">The Revelation</button>`;
+  return revealReady() ? `<button class="btn block seal" data-act="goReveal" style="margin-top:8px">Break the seal: the Revelation</button>` : '';
+}
+function threatInfoSheet() {
+  openSheet({ title: 'The World Moves', html: '', onMount: sh => {
+    const draw = () => {
+      const log = [...C.threat.log].reverse().slice(0, 14);
+      sh.body.innerHTML = `<p class="small muted" style="margin-top:8px">Two powers the players don’t control. At the end of every full round (after both expeditions have marched), each track rises by 1 on a D6 roll of ${num(S().threat.roll, 4)}+. Events push them too. When a track reaches a marked step, its event strikes.</p>
+        ${threatTracksHtml()}
+        ${Object.entries(TRACKS).map(([k, t]) => `<h3 class="sc mh">${esc(t.label)}</h3><p class="small muted" style="margin:2px 0">${esc(t.sub)}</p>
+          ${(C.tables.threatEvents || []).filter(x => x && x.track === k).sort((a, b) => num(a.at) - num(b.at)).map(x => `<div class="listed small"><b style="min-width:28px">${num(x.at)}</b><span class="grow">${esc(x.title)}<div class="muted">${esc(TARGETS[x.target] || x.target)}${x.reset !== '' && x.reset != null ? ` · then falls to ${x.reset}` : ''}</div></span>${C.threat.fired.includes(k + ':' + x.id) ? '<span class="chip">struck</span>' : ''}</div>`).join('')}
+          <div class="row" style="margin-top:6px"><span class="grow small muted">Gamesmaster’s hand</span><button class="btn sm" data-adj="${k}" data-d="-1">−1</button><button class="btn sm" data-adj="${k}" data-d="1">+1</button></div>`).join('')}
+        <h3 class="sc mh">Recent movements</h3>${log.length ? log.map(l => `<div class="listed small"><span class="muted" style="min-width:36px">T${l.turn}</span><span class="grow">${esc(TRACKS[l.track] ? TRACKS[l.track].label : l.track)}: ${l.from} → ${l.to}<div class="muted">${esc(l.why)}</div></span></div>`).join('') : '<div class="empty">Nothing has moved yet.</div>'}`;
+    };
+    draw();
+    sh.body.addEventListener('click', async e => {
+      const b = e.target.closest('[data-adj]'); if (!b) return;
+      addThreat(b.dataset.adj, +b.dataset.d, 'Adjusted by hand');
+      const fired = checkThresholds({ marched: other(C.active), next: C.active });
+      save(); draw(); render();
+      if (fired.length) { sh.close(); for (const rec of fired) await threatSheet(rec, true); }
+    });
+  } });
+}
+
+/* ---------- the Revelation ---------- */
+function omensHtml(revealed) {
+  const L = [...C.omens].reverse();
+  const t = C.reveal && C.reveal.t;
+  return `<div class="section-h"><h2 class="bl">Signs & Portents</h2><span class="small muted">${L.length}</span></div>
+    <div class="card">${L.length ? L.map(o => {
+      const tag = !revealed ? '' : !o.about ? '<span class="otag">Riddle</span>' : o.about === t ? '<span class="otag true">Told true</span>' : '<span class="otag false">False sign</span>';
+      const p = pinOf(regionById(o.regionId), o.pinId);
+      return `<div class="omen">${tag}<div class="grow"><div class="flavour">${esc(o.text)}</div><div class="small muted">Turn ${o.turn}${o.side ? ' · seen by ' + esc(theN(exName(o.side), false)) : ''}${p ? ' · ' + esc(p.name) : ''}</div></div></div>`; }).join('')
+      : '<div class="empty">No signs yet. Watch for omens on the road and in camp.</div>'}
+    ${!revealed ? '<p class="small muted">Not every sign tells the truth. Some point the wrong way on purpose.</p>' : ''}</div>`;
+}
+function viewReveal() {
+  const R = C.reveal, found = shardsTotalFound(), need = num(S().revelationShards, 5);
+  let h = `<h1 class="bl" style="margin-top:4px">The Revelation</h1><button class="linkbtn" data-act="goCodex">← Back to the Codex</button>`;
+  if (!R) {
+    const ready = revealReady();
+    h += `<div class="card center"><div class="waxseal">✠</div><h3 class="sc">The vision is sealed</h3>
+      <p><b>${found} of ${need}</b> shards recovered.</p>
+      <p class="flavour">${ready ? 'Enough of the blade has been gathered. The truth can be told.' : `The seal will not break until ${need} shards have been recovered. One priest’s vision is the daemon’s lie, and neither knows which.`}</p>
+      ${ready ? '<button class="btn block seal" data-act="breakSeal">Break the seal (GM reveal)</button>' : `<button class="btn block" disabled>Sealed: ${plural(need - found, 'more shard')} needed</button>`}</div>`;
+    h += omensHtml(false);
+    if (!ready) h += `<details class="card"><summary>Gamesmaster’s override</summary><p class="small muted">Break the seal before the Revelation, if both players agree. The Chronicle records that it was broken early.</p><button class="btn block danger" data-act="breakSeal" data-early="1">Break the seal early…</button></details>`;
+    return h;
+  }
+  const t = R.t, pr = priestOf(t), lp = priestOf(other(t));
+  h += `<div class="card center reveal-card side-${t}"><div class="waxseal broken">✠</div>
+    <div class="small muted">The seal was broken on turn ${R.turn}${R.early ? ', early, by the Gamesmaster’s decree' : ''}</div>
+    <h2 class="bl" style="color:var(--seal);margin-top:6px">The Daemon’s Lie</h2>
+    <p class="evtext">The vision of <b>${esc(pr ? pr.name : 'the Priest')}</b> was never ${godOf(t)}’s.</p>
+    <p class="flavour">The daemon that wounded Karl Franz planted it, and has watched every step ${esc(theN(exName(t), false))} has taken. ${lp ? esc(lp.name) + ' of ' + esc(theN(exName(other(t)), false)) : esc(theN(exName(other(t)), true))} marched under a true vision.</p></div>`;
+  h += choiceCardHtml();
+  h += forgeCardHtml(false);
+  h += omensHtml(true);
+  return h;
+}
+function choiceCardHtml() {
+  const R = C.reveal; if (!R) return '';
+  const t = R.t, e = EX(t);
+  if (e.status === 'lost') return `<div class="card"><p class="small">${esc(exName(t))} has already fallen. There is nobody left to repent.</p></div>`;
+  if (!R.choice) return `<div class="card edge side-${t}"><h3 class="sc">${esc(e.player)}, your priest was deceived</h3>
+    <p class="small">Choose what ${esc(theN(exName(t), false))} does now. The choice shapes the final battle.</p>
+    <button class="pick" data-act="revealRepent"><b>Repent</b><div class="muted">Fight a penance battle against the cult (Battle March). Win it and your shards are cleansed. At the Forge, the cult’s host attacks both armies.</div></button>
+    <button class="pick" data-act="revealEmbrace"><b>Embrace the vision</b><div class="muted">Keep following it. Gain the relic “The Daemon’s Whisper” now, the cult grows by 2, and at the Forge you field Warriors of Chaos allies worth ${num(S().finale.alliesPerCult, 50)} pts per step of the cult track.</div></button></div>`;
+  if (R.choice === 'embrace') return `<div class="card edge side-${t}"><h3 class="sc">${esc(exName(t))} embraced the vision</h3><p class="small">At the Forge it fields up to ${(C.threat.cult || 0) * num(S().finale.alliesPerCult, 50)} pts of Warriors of Chaos allies (the cult track is at ${C.threat.cult || 0}).</p></div>`;
+  const m = R.penance && missionById(R.penance.missionId), act = m && m.status === 'active';
+  return `<div class="card edge side-${t}"><h3 class="sc">${esc(exName(t))} repented</h3>
+    ${R.cleansed ? '<p class="small"><b>The penance is done.</b> Its shards burn clean.</p>'
+      : act ? `<p class="small">The penance battle awaits.</p><button class="btn block seal" data-act="viewMission" data-id="${m.id}">${esc(m.name)}</button>`
+      : `<p class="small">The penance failed or was abandoned. Until it is won, the expedition fights at the Forge with −1 Leadership.</p>${C.active === t && !(R.penance && R.penance.lastTurn === C.turn) ? '<button class="btn block seal" data-act="penance">Seek penance again</button>' : `<p class="small muted">${C.active === t ? 'Try again next turn.' : 'It may try again on its own turn.'}</p>`}`}</div>`;
+}
+async function breakSeal(early) {
+  if (C.reveal) return;
+  if (!early && !revealReady()) return toast('The seal holds');
+  if (!await confirmBox({ title: 'Gather both players', danger: true, ok: 'We are both here',
+    text: `<p>The answer appears on this screen, and once shown it cannot be hidden again.</p>${early ? '<div class="note-box warnbox"><b>The Revelation condition has not been met.</b> The Chronicle will record that the seal was broken early.</div>' : ''}` })) return;
+  if (!await confirmBox({ title: 'Break the seal?', danger: true, ok: 'Break the seal', text: '<p>Truly? Name the priest whose vision the daemon planted?</p>' })) return;
+  const x = unsealSecret(C.seal, sealKey(C));
+  if (!x || !SIDES.includes(x.t)) return alertBox('The seal is damaged', '<p>The secret could not be read from this campaign file. Nothing has been changed.</p>');
+  C.reveal = { t: x.t, turn: C.turn, at: Date.now(), early: !!early, choice: null, cleansed: false, penance: null };
+  const pr = priestOf(x.t);
+  chron(null, 'revelation', `${early ? 'By the Gamesmaster’s decree the seal was broken early. ' : ''}The truth was told at last: the vision of ${pr ? pr.name : 'the Priest'} was never ${godOf(x.t)}’s, but the daemon’s lie. ${exName(x.t)} had been marching where the daemon wished.`, { tag: 'The Seal Is Broken' });
+  save(); UI.view = 'reveal'; render(); window.scrollTo(0, 0);
+}
+function startPenance(t) {
+  const e = EX(t), r = e.pos && regionById(e.pos.regionId), p = r && pinOf(r, e.pos.pinId);
+  const m = createMission({ side: t, regionId: r ? r.id : null, pinId: p ? p.id : null, kind: 'penance', opp: 'chaos', scale: 'march', scenario: PENANCE_SC,
+    mods: ['Penance: win to cleanse the expedition and its shards. Lose or draw, and it may try again on a later turn.'] });
+  const R = C.reveal; R.penance = { missionId: m.id, tries: ((R.penance || {}).tries || 0) + 1, lastTurn: C.turn };
+  return m;
+}
+async function revealChoice(kind) {
+  const R = C.reveal; if (!R || R.choice) return; const t = R.t;
+  if (kind === 'repent') {
+    if (!await confirmBox({ title: 'Repent?', ok: 'Repent', text: `<p>${esc(exName(t))} turns from the false vision. A penance battle against the cult is created now (Battle March, at its current camp).</p>` })) return;
+    R.choice = 'repent'; const m = startPenance(t);
+    chron(t, 'revelation', `${exName(t)} knelt before ${godOf(t)} and swore to burn the daemon’s lie from its ranks. Penance would be paid in blood.`, { tag: 'Repentance' });
+    save(); render(); missionSheet(m);
+  } else {
+    if (!await confirmBox({ title: 'Embrace the vision?', danger: true, ok: 'Embrace it', text: `<p>${esc(exName(t))} keeps following the vision, knowing what sent it. It gains <b>The Daemon’s Whisper</b>, the cult grows by 2, and at the Forge it fields Warriors of Chaos allies.</p>` })) return;
+    R.choice = 'embrace';
+    makeRelic(t, { name: 'The Daemon’s Whisper', effect: 'Once per battle, re-roll a failed prayer or casting roll. Each time, roll a D6: on a 1 the bearer suffers a wound.' });
+    addThreat('cult', 2, 'Embraced the vision', t); setFlag('embraced', t);
+    const pr = priestOf(t);
+    chron(t, 'revelation', `${pr ? pr.name : 'The Priest'} heard the truth, and smiled. ${exName(t)} would follow the vision to the end, whatever had sent it.`, { tag: 'The Vision Embraced' });
+    save(); render();
+  }
+}
+
+/* ---------- the runesmith and the Forge of Alaric ---------- */
+function forgeLoc() {
+  const F = S().finale; let r = regionById(F.regionId) || regionById('worlds_edge');
+  let p = r && (pinOf(r, F.pinId) || r.pins.find(x => /zhufbar/i.test(x.name)) || r.pins.find(x => x.terrain === 'fortress') || r.pins[0]);
+  if (!p) { r = C.regions.find(x => x.pins.length) || null; p = r ? r.pins[0] : null; }
+  return { r, p };
+}
+const atForge = s => { const { p } = forgeLoc(), q = EX(s).pos; return !!(p && q && q.pinId === p.id); };
+const knowsSmith = s => reqOk('runesmith_known|runesmith_rumour|heard_of_runesmith', s);
+const activeOfKind = (kind, s) => (C.missions || []).find(m => m.kind === kind && m.status === 'active' && (!s || m.side === s));
+function forgeCardHtml(compact) {
+  const R = C.reveal, F = C.finale; if (!R || F.winner) return '';
+  const { r, p } = forgeLoc(), a = C.active, where = p ? `${p.name}, ${r.short || r.name}` : 'the forge';
+  const row = (n, done, body) => `<div class="stp ${done ? 'done' : ''}"><span class="num">${done ? '✓' : n}</span><div class="grow">${body}</div></div>`;
+  const chosen = !!R.choice || EX(R.t).status === 'lost';
+  let s1 = chosen ? `${esc(exShort(R.t))}: ${R.choice === 'embrace' ? 'embraced the vision' : R.choice === 'repent' ? (R.cleansed ? 'repented and cleansed' : 'repented, penance unfinished') : 'fallen'}`
+    : `<div class="row between"><span>${esc(exShort(R.t))} must repent or embrace</span>${compact ? '<button class="btn sm seal" data-act="goReveal">Choose</button>' : ''}</div>`;
+  const q = F.quest[a], smithM = activeOfKind('smith');
+  let s2;
+  if (F.smith) s2 = `The runesmith stands with ${esc(theN(exName(F.smith), false))}`;
+  else if (smithM) s2 = `<div class="row between"><span>${esc(smithM.scenario.name)}</span><button class="btn sm seal" data-act="viewMission" data-id="${smithM.id}">View</button></div>`;
+  else if (EX(a).status !== 'lost' && atForge(a)) s2 = q && q.lastTurn === C.turn ? `<span class="small">One battle per turn. Seek him again next turn.</span>`
+    : `<div class="row between"><span>Seek the runesmith at ${esc(p.name)}${q ? `<div class="small muted">Battle ${q.step + 1} of ${q.steps}</div>` : knowsSmith(a) ? '<div class="small muted">You know the way: one battle</div>' : '<div class="small muted">The way is hidden: two battles</div>'}</span><button class="btn sm seal" data-act="seekSmith">Seek him</button></div>`;
+  else s2 = `<span>Find the runesmith of Alaric’s line at <b>${esc(where)}</b>.</span><div class="small muted">March there${knowsSmith(a) ? '' : '. Rumours of him (dwarf traders, prospectors, engineers) make the search shorter'}.</div>`;
+  const finM = activeOfKind('finale');
+  let s3 = !F.smith ? '<span class="muted">The final battle at the anvil</span>'
+    : finM ? `<div class="row between"><span>${esc(finM.scenario.name)}</span><button class="btn sm seal" data-act="viewMission" data-id="${finM.id}">View</button></div>`
+    : !chosen ? `<span>The deceived expedition must choose before the final battle.</span>`
+    : EX(a).status !== 'lost' && atForge(a) ? `<div class="row between"><span>Call the final battle</span><button class="btn sm seal" data-act="callFinale">To the anvil</button></div>`
+    : `<span>March to <b>${esc(where)}</b> and call the final battle.</span>`;
+  return `<div class="card forge"><h3 class="sc">The Forge of Alaric</h3><p class="small flavour" style="margin:2px 0 0">Only a runesmith of Alaric’s line can make the blade whole.</p>
+    <div class="steps">${row(1, chosen, s1)}${row(2, !!F.smith, s2)}${row(3, false, s3)}</div></div>`;
+}
+function seekSmith() {
+  const s = C.active, F = C.finale, { r, p } = forgeLoc();
+  if (!C.reveal || F.smith || F.winner) return;
+  if (!atForge(s)) return toast(`March to ${p ? p.name : 'the forge'} first`);
+  if (activeOfKind('smith', s)) return missionSheet(activeOfKind('smith', s));
+  let q = F.quest[s];
+  if (q && q.lastTurn === C.turn) return toast('One battle per turn');
+  if (!q) {
+    q = F.quest[s] = { step: 0, steps: knowsSmith(s) ? 1 : 2, results: [], lastTurn: null };
+    chron(s, 'finale', `${exName(s)} went looking for the runesmith of Alaric’s line beneath ${p.name}.`, { tag: 'The Runesmith' });
+  }
+  const last = q.step === q.steps - 1, mods = [];
+  if (last && hasFlag('runesmith_gift', s)) mods.push('Your gift went ahead of you: the hold’s defenders sally a turn early (turn 2).');
+  const m = createMission({ side: s, regionId: r.id, pinId: p.id, kind: 'smith', opp: 'orcs', scale: last ? 'march' : 'mordheim', scenario: SMITH_SC[last ? 1 : 0], mods });
+  q.lastTurn = C.turn; save(); render(); missionSheet(m);
+}
+function finaleMods(s, rivalAlive) {
+  const R = C.reveal, F = S().finale, cult = C.threat.cult || 0, d = R.t, mods = [];
+  if (C.finale.smith) mods.push(`The runesmith stands with ${theN(exName(C.finale.smith), false)}: they choose the deployment zones and who takes the first turn.`);
+  const listTxt = pts => { const L = enemyList('chaos', pts, 'full'); return L.lines.map(l => `${l.n ? l.n + ' × ' : ''}${l.name}`).join(', '); };
+  if (rivalAlive && R.choice === 'embrace' && EX(d).status !== 'lost') {
+    const pts = cult * num(F.alliesPerCult, 50);
+    mods.push(pts > 0 ? `${exName(d)} embraced the vision: it adds up to ${pts} pts of Warriors of Chaos allies (cult track ${cult} × ${num(F.alliesPerCult, 50)}). Suggested: ${listTxt(pts)}.` : `${exName(d)} embraced the vision, but the cult is spent: no allies come.`);
+  } else if (rivalAlive) {
+    const pts = cult * num(F.cultNpcPerCult, 30);
+    if (pts > 0) mods.push(`The daemon’s host attacks both armies: at the start of turn 3, ${pts} pts of Warriors of Chaos (cult track ${cult} × ${num(F.cultNpcPerCult, 30)}) enter from a random table edge. They move towards and attack the nearest unit of either side. Suggested: ${listTxt(pts)}.`);
+  }
+  if (rivalAlive && R.choice === 'repent' && !R.cleansed && EX(d).status !== 'lost') mods.push(`${exName(d)}’s penance is unfinished: its units suffer −1 Leadership.`);
+  if (rivalAlive) mods.push('The expedition holding more shards may re-roll one failed Leadership test.');
+  return mods;
+}
+async function callFinale() {
+  const s = C.active, F = C.finale, { r, p } = forgeLoc();
+  if (!C.reveal || !F.smith || F.winner) return;
+  if (!atForge(s)) return toast(`March to ${p ? p.name : 'the forge'} first`);
+  if (activeOfKind('finale')) return missionSheet(activeOfKind('finale'));
+  const rv = other(s), rivalAlive = EX(rv).status !== 'lost';
+  if (!await confirmBox({ title: 'The final battle?', ok: 'To the anvil', text: `<p>${rivalAlive ? `${esc(exName(rv))} races to the forge. The two expeditions meet at the anvil in a Full Old World battle.` : `${esc(exName(s))} faces the daemon’s host alone. The other player commands it.`} The winner reforges the Runefang and wins the campaign.</p>` })) return;
+  const g = { side: s, regionId: r.id, pinId: p.id, kind: 'finale', scale: 'full', points: num(S().finale.points, 2000), mods: finaleMods(s, rivalAlive) };
+  const m = createMission(rivalAlive ? { ...g, opp: 'rival', scenario: FORGE_SC } : { ...g, opp: 'chaos', scenario: FORGE_SC_CULT });
+  if (rivalAlive) { EX(rv).pos = { regionId: r.id, pinId: p.id }; EX(rv).trail.push({ regionId: r.id, pinId: p.id, x: p.x, y: p.y, turn: C.turn, ts: Date.now() }); }
+  chron(s, 'finale', `${exName(s)} called the final battle at the Forge of Alaric.${rivalAlive ? ' ' + theN(exName(rv), true) + ' came to meet it.' : ''}`, { tag: 'The Forge' });
+  save(); render(); missionSheet(m);
+}
+function p4Preview(m, res) {
+  if (m.kind === 'penance') return res === 'win' ? 'Victory completes the penance and cleanses the expedition.' : 'The penance fails. It may be sought again on a later turn.';
+  if (m.kind === 'smith') { const q = C.finale.quest[m.side]; return res !== 'win' ? 'The way stays barred. Try again on a later turn.' : q && q.step < q.steps - 1 ? 'Victory opens the hidden road. One more battle reaches the runesmith.' : 'Victory brings you to the runesmith!'; }
+  if (m.kind === 'finale') { const w = res === 'win' ? m.side : res === 'loss' && m.opp === 'rival' ? m.oppSide : null; return res === 'draw' ? 'A draw: the final battle must be fought again.' : w ? `${exName(w)} reforges the Runefang and wins the campaign!` : 'The daemon’s host holds the forge. Rally and try again.'; }
+  return '';
+}
+function p4AfterBattle(m, res) {
+  const R = C.reveal;
+  if (m.kind === 'penance' && R) {
+    if (res !== 'win') return `The penance failed. ${exName(m.side)} may seek it again on a later turn.`;
+    R.cleansed = true; addThreat('cult', -2, 'The penance was paid', m.side); const pr = priestOf(m.side); if (pr) pr.xp += 2;
+    return `The penance is paid. ${exName(m.side)} is cleansed, and its shards burn clean.`;
+  }
+  if (m.kind === 'smith') {
+    const q = C.finale.quest[m.side]; if (!q) return '';
+    if (res !== 'win') return `The way to the runesmith stays barred. ${exName(m.side)} may try again on a later turn.`;
+    q.results.push(res);
+    if (q.step < q.steps - 1) { q.step++; return 'The hidden road is found. The hold lies ahead: one more battle, on a later turn.'; }
+    C.finale.smith = m.side; setFlag('runesmith_found', m.side);
+    return `${exName(m.side)} reached the runesmith of Alaric’s line. He will reforge the Runefang at his anvil, for whoever holds it.`;
+  }
+  if (m.kind === 'finale') {
+    if (res === 'draw') return 'Neither side holds the anvil. The final battle must be fought again.';
+    const w = res === 'win' ? m.side : m.opp === 'rival' ? m.oppSide : null;
+    if (!w) return `The daemon’s host drove ${theN(exName(m.side), false)} from the forge. Rally, and try again.`;
+    Object.assign(C.finale, { winner: w, turn: C.turn, at: Date.now() });
+    const d = R && R.t, end = w !== d ? 'The blade rang true under the hammer, as it had for Alaric. The daemon’s plan lay broken with its shards.'
+      : R.choice === 'embrace' ? 'The runesmith wept as he worked. The blade is whole, but it whispers, and somewhere the daemon is smiling.'
+      : 'Redeemed in battle, they carried the blade home. The runesmith said only that steel does not care who was fooled.';
+    chron(w, 'finale', `At the Forge of Alaric, ${theN(exName(w), false)} held the anvil, and the runesmith reforged the Reikland Runefang. ${end}`, { tag: 'The Runefang Reforged' });
+    return `${exName(w)} holds the anvil. The Runefang is reforged!`;
+  }
+  return '';
+}
+
+
+/* ---------- the Chronicle as a story ---------- */
+const MINOR_KINDS = new Set(['gold', 'replenish', 'hire', 'heal', 'roster', 'rank', 'loot', 'turn', 'mission']);
+const KIND_TAG = { finale: 'The Forge', revelation: 'The Seal Is Broken', death: 'A Death in the Ranks', shard: 'Of Shards', battle: 'Steel Is Drawn', threat: 'The World Moves', omen: 'Ill Omens', event: 'On the Road', camp: 'By the Campfire', investigate: 'The Search', march: 'The March', note: 'Notes', story: 'Prologue' };
+const KIND_RANK = ['finale', 'revelation', 'death', 'shard', 'battle', 'threat', 'event', 'camp', 'investigate', 'march', 'note', 'story'];
+const ORD = ['', 'First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth', 'Ninth', 'Tenth', 'Eleventh', 'Twelfth', 'Thirteenth', 'Fourteenth', 'Fifteenth', 'Sixteenth', 'Seventeenth', 'Eighteenth', 'Nineteenth', 'Twentieth'];
+function roman(n) { let s = ''; for (const [v, r] of [[1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']]) while (n >= v) { s += r; n -= v; } return s || '0'; }
+const turnWord = n => ORD[n] ? `The ${ORD[n]} Turn` : `Turn ${n}`;
+// Older entries carry their effects in brackets at the end: move them to the margin.
+function storyOf(c) {
+  let text = String(c.text || ''), notes = Array.isArray(c.notes) ? c.notes.filter(Boolean) : [];
+  if (!c.notes && (c.kind === 'event' || c.kind === 'investigate')) {
+    const m = text.match(/^([\s\S]*?)\s*\(([^()]*)\)\s*$/);
+    if (m && c.kind === 'event') { text = m[1]; notes = m[2].split(/;\s*/).filter(Boolean); }
+  }
+  return { text, notes };
+}
+function chapters(filter) {
+  const out = [], by = new Map();
+  for (const c of C.chronicle) {
+    if (filter && c.side && c.side !== filter) continue;
+    if (!by.has(c.turn)) { const g = { turn: c.turn, list: [] }; by.set(c.turn, g); out.push(g); }
+    by.get(c.turn).list.push(c);
+  }
+  out.sort((a, b) => a.turn - b.turn);
+  for (const g of out) {
+    const mv = g.list.find(c => c.kind === 'turn' || c.kind === 'march');
+    g.side = mv ? mv.side : null;
+    const key = KIND_RANK.map(k => g.list.find(c => c.kind === k)).find(Boolean);
+    g.tag = key ? (key.tag || KIND_TAG[key.kind]) : 'Quiet Days';
+    g.title = turnWord(g.turn);
+    const lead = g.side ? 'The ' + exShort(g.side) + ' march' : g.turn === 1 ? 'Prologue' : 'Both camps';
+    g.sub = lead === g.tag ? lead : `${lead} · ${g.tag}`;
+  }
+  return out;
+}
+function viewChron() {
+  const f = UI.chronSide || '', notes = !!UI.chronNotes, chs = chapters(f);
+  let h = `<div class="row between" style="margin-top:4px"><h1 class="bl">Chronicle</h1><button class="btn sm" data-act="chronAdd">+ Entry</button></div>
+    <button class="linkbtn" data-act="goCodex">← Back to the Codex</button>
+    <div class="seg" style="margin-top:6px">${[['', 'Both'], ['sig', exShort('sig')], ['ulr', exShort('ulr')]].map(([k, l]) => `<button data-act="chronSide" data-side="${k}" class="${f === k ? 'on' : ''}">${esc(l)}</button>`).join('')}</div>
+    <label class="toggle" style="margin-top:4px"><input type="checkbox" data-act="chronNotes" ${notes ? 'checked' : ''}> <span class="small">Show the quartermaster’s notes (gold, recruits, effects)</span></label>
+    <div class="btns"><button class="btn" data-act="chronTxt">Export as text</button>${chs.length > 2 ? '<button class="btn" data-act="chronLatest">Latest chapter ↓</button>' : ''}</div>
+    <div class="story">`;
+  chs.forEach((g, gi) => {
+    const open = gi >= chs.length - 2;
+    let body = '', first = true;
+    for (const c of g.list) {
+      const minor = MINOR_KINDS.has(c.kind);
+      if (minor && !notes) continue;
+      if (c.kind === 'turn') continue;
+      const { text, notes: nn } = storyOf(c);
+      if (minor) { body += `<p class="margin">${esc(text)}</p>`; continue; }
+      const cls = ['para', c.side ? 's-' + c.side : '', c.kind === 'story' ? 'opening' : '', first && c.kind !== 'story' ? 'first' : '', c.kind === 'revelation' || c.kind === 'finale' ? 'great' : ''].join(' ');
+      if (c.kind !== 'story') first = false;
+      body += `<p class="${cls}">${esc(text)}</p>`;
+      if (notes && nn.length) body += `<p class="margin">${nn.map(esc).join(' · ')}</p>`;
+    }
+    if (!body) body = '<p class="margin">Nothing of note for this filter.</p>';
+    h += `<article class="chapter" id="chap-${g.turn}"><details ${open ? 'open' : ''}><summary><span class="chap-n">Chapter ${roman(g.turn)}</span><span class="chap-t">${esc(g.title)}</span><span class="chap-s">${esc(g.sub)}</span></summary><div class="chap-body">${body}</div></details></article>`;
+  });
+  return h + (chs.length ? '' : '<div class="card empty">Nothing yet written.</div>') + '</div>';
+}
+function wrapTxt(s, w = 72, ind = '') {
+  const out = []; let line = '';
+  for (const word of String(s).split(/\s+/).filter(Boolean)) { if ((line + ' ' + word).trim().length > w) { out.push(ind + line.trim()); line = word; } else line += ' ' + word; }
+  if (line.trim()) out.push(ind + line.trim());
+  return out.join('\n');
+}
+function chronicleText() {
+  let out = `${C.name.toUpperCase()}\nA chronicle of the campaign, exported ${new Date().toLocaleString()}\n${'='.repeat(48)}\n`;
+  for (const g of chapters('')) {
+    out += `\n\nCHAPTER ${roman(g.turn)}: ${g.title.toUpperCase()}\n${g.sub}\n${'-'.repeat(32)}\n`;
+    for (const c of g.list) {
+      if (c.kind === 'turn') continue;
+      const { text, notes } = storyOf(c);
+      if (MINOR_KINDS.has(c.kind)) { out += `\n${wrapTxt('· ' + text, 70, '    ')}`; continue; }
+      out += `\n\n${wrapTxt((c.side ? '[' + exShort(c.side) + '] ' : '') + text)}`;
+      if (notes.length) out += `\n${wrapTxt('(' + notes.join('; ') + ')', 70, '    ')}`;
+    }
+  }
+  return out + '\n';
+}
+
+/* ---------- Codex: phase 4 editors ---------- */
+function campEventsSheet() {
+  tableEditor({ title: 'Camp events', get: () => C.tables.campEvents,
+    intro: `<p class="small muted">Rolled when an expedition ends its turn and makes camp: the general events plus those of the region it is camped in. Events with a requirement pay off earlier choices. Higher weight = more likely. ☠ = daemon-touched (twice as likely for the deceived priest’s expedition).</p>`,
+    summary: x => `<div class="row between"><b>${x.lean ? '☠ ' : ''}${esc(x.title)}</b><span class="evk evk-${x.kind}">${esc(EV_KINDS[x.kind] || x.kind)}</span></div><div class="muted">${x.where ? esc((regionById(x.where) || { name: x.where }).name) : 'Anywhere'} · weight ${x.weight}${x.req ? ' · needs ' + esc(x.req) : ''}${x.once ? ' · once' : ''}</div>`,
+    blank: () => EVt(uid('c-ev'), 'New camp event', 'camp', '', 2, '', [EVc('Onward')]), edit: (x, isNew) => editRoadEvent(x, isNew, { title: n => n ? 'New camp event' : 'Camp event' }) });
+}
+function threatEventsSheet() {
+  tableEditor({ title: 'Threat events', get: () => C.tables.threatEvents,
+    intro: `<p class="small muted">Each strikes once when its track reaches the step. “Falls back to” resets the track afterwards so the later steps can strike again.</p>`,
+    summary: x => `<div class="row between"><b>${num(x.at)} · ${esc(x.title)}</b><span class="evk" style="background:${(TRACKS[x.track] || TRACKS.cult).color}">${esc((TRACKS[x.track] || { label: x.track }).label)}</span></div><div class="muted">${esc(TARGETS[x.target] || x.target)}${x.reset !== '' && x.reset != null ? ' · falls back to ' + x.reset : ''}</div>`,
+    blank: () => THv(uid('thr'), 'cult', 5, 'leader', 'New threat event', 'choice', '', [EVc('Onward')]),
+    edit: (x, isNew) => editRoadEvent(x, isNew, { threat: true, title: n => n ? 'New threat event' : 'Threat event',
+      fields: d => `<div class="two">${fieldHtml({ key: 'track', label: 'Track', type: 'select', value: d.track, options: Object.entries(TRACKS).map(([k, t]) => [k, t.label]) })}${fieldHtml({ key: 'at', label: 'Strikes at step', type: 'stepper', value: num(d.at, 3), min: 1, max: 30 })}</div>
+        ${fieldHtml({ key: 'target', label: 'Strikes', type: 'select', value: d.target, options: Object.entries(TARGETS) })}
+        ${fieldHtml({ key: 'reset', label: 'Afterwards the track falls back to (blank = it doesn’t)', value: d.reset ?? '', placeholder: 'e.g. 0' })}`,
+      read: (v, d) => { d.track = v.track; d.at = Math.max(1, Math.round(num(v.at, 3))); d.target = v.target; const rs = String(v.reset ?? '').trim(); d.reset = rs === '' || !isFinite(+rs) ? '' : Math.max(0, Math.round(+rs)); } }) });
+}
+function omensSheet() {
+  tableEditor({ title: 'Omens', get: () => C.tables.omens,
+    intro: `<p class="small muted">Rolled by the <b>omen</b> effect. A “pointing” omen names one priest: the deceived one ${num(S().threat.lean, 67)}% of the time, the other otherwise. A riddle names nobody. Write {who} (the priest), {whoex} (his expedition), {god}, {sym} (comet or wolf) and {other} (the other priest).</p>`,
+    summary: x => `<div class="row between"><b>${x.kind === 'neutral' ? 'Riddle' : 'Points at a priest'}</b><span class="small">w ${x.weight}</span></div><div class="muted">${esc(x.text)}</div>`,
+    blank: () => ({ id: uid('om'), kind: 'point', weight: 2, text: '' }),
+    edit: async (x, isNew) => { const v = await formSheet({ title: isNew ? 'New omen' : 'Omen', fields: [
+      { key: 'text', label: 'Text', type: 'textarea', value: x.text }, { key: 'kind', label: 'Kind', type: 'select', value: x.kind, options: [['point', 'Points at a priest'], ['neutral', 'Riddle (names nobody)']] },
+      { key: 'weight', label: 'Weight', type: 'stepper', value: x.weight, min: 0, max: 20 }, ...delField(isNew)] });
+      if (!v) return null; if (v.remove) return 'delete'; if (!v.text.trim()) return null;
+      return { ...x, text: v.text.trim(), kind: v.kind, weight: Math.max(0, Math.round(v.weight)) }; } });
+}
+function cultTwistsSheet() {
+  tableEditor({ title: 'Cult twists', get: () => C.tables.cultTwists,
+    intro: `<p class="small muted">When the cult track is at ${num(S().threat.cultTwistAt, 6)} or more, a battlefield twist has a ${num(S().threat.cultTwistChance, 40)}% chance to come from this table instead.</p>`,
+    summary: x => `<div class="row between"><b>${esc(x.name)}</b><span class="small">w ${x.weight}</span></div><div class="muted">${esc(x.effect)}</div>`,
+    blank: () => ({ id: uid('ct'), name: '', effect: '', weight: 1 }),
+    edit: async (x, isNew) => { const v = await formSheet({ title: isNew ? 'New cult twist' : x.name, fields: [
+      { key: 'name', label: 'Name', value: x.name }, { key: 'effect', label: 'Effect', type: 'textarea', value: x.effect }, { key: 'weight', label: 'Weight', type: 'stepper', value: x.weight, min: 0, max: 20 }, ...delField(isNew)] });
+      if (!v) return null; if (v.remove) return 'delete'; if (!v.name.trim()) return null; return { ...x, name: v.name.trim(), effect: v.effect, weight: Math.max(0, Math.round(v.weight)) }; } });
+}
+async function setThreatSheet() {
+  const T = S().threat;
+  const v = await formSheet({ title: 'Threat & omens', fields: [
+    { key: 'roll', label: 'Each track rises on a D6 roll of at least', type: 'stepper', value: T.roll, min: 1, max: 7, hint: 'Rolled at the end of every full round. 7 = never by itself.' },
+    { key: 'lean', label: 'How often omens point at the deceived priest (%)', type: 'number', value: T.lean, hint: '50 = no help at all, 100 = always true. Default 67 (about 2 to 1).' },
+    { key: 'cultTwistAt', label: 'Cult twists begin at cult step', type: 'stepper', value: T.cultTwistAt, min: 0, max: 30 },
+    { key: 'cultTwistChance', label: 'Chance a twist comes from the cult table (%)', type: 'number', value: T.cultTwistChance },
+  ] });
+  if (!v) return;
+  Object.assign(T, { roll: clamp(Math.round(v.roll), 1, 7), lean: clamp(Math.round(v.lean), 0, 100), cultTwistAt: Math.max(0, Math.round(v.cultTwistAt)), cultTwistChance: clamp(Math.round(v.cultTwistChance), 0, 100) });
+  save(); toast('Saved');
+}
+async function setFinaleSheet() {
+  const F = S().finale, cur = forgeLoc();
+  const opts = C.regions.flatMap(r => r.pins.map(p => [r.id + '|' + p.id, `${r.short || r.name}: ${p.name}`]));
+  const v = await formSheet({ title: 'The Forge of Alaric', intro: '<p class="small muted">Where the runesmith works, and how big the final battle is.</p>', fields: [
+    { key: 'loc', label: 'The forge', type: 'select', value: cur.r && cur.p ? cur.r.id + '|' + cur.p.id : '', options: opts.length ? opts : [['', 'No pins yet']] },
+    { key: 'points', label: 'Final battle points', type: 'number', value: F.points },
+    { key: 'allies', label: 'Chaos allies per cult step, if the deceived embraced the vision', type: 'number', value: F.alliesPerCult },
+    { key: 'npc', label: 'Cult host per cult step, if they repented (attacks both sides)', type: 'number', value: F.cultNpcPerCult },
+  ] });
+  if (!v) return;
+  const [rid, pid] = String(v.loc || '').split('|');
+  Object.assign(F, { regionId: rid || F.regionId, pinId: pid || F.pinId, points: Math.max(100, Math.round(num(v.points, 2000))), alliesPerCult: Math.max(0, Math.round(num(v.allies, 50))), cultNpcPerCult: Math.max(0, Math.round(num(v.npc, 30))) });
+  save(); render(); toast('Saved');
+}
+function p4CodexHtml() {
+  const t = C.tables;
+  return `<div class="section-h"><h2 class="bl">The Daemon’s Plot</h2></div>
+    <div class="card"><div class="btns" style="flex-direction:column">
+      <button class="btn block seal" data-act="goReveal">The Revelation${C.reveal ? ' (revealed)' : revealReady() ? ' (ready)' : ` (${shardsTotalFound()}/${num(S().revelationShards, 5)} shards)`}</button>
+      <button class="btn block" data-act="threatInfo">The world moves: threat track</button>
+      <button class="btn block" data-act="setThreat">Threat & omen rules</button>
+      <button class="btn block" data-act="setCampEvents">Camp events (${(t.campEvents || []).length})</button>
+      <button class="btn block" data-act="setThreatEvents">Threat events (${(t.threatEvents || []).length})</button>
+      <button class="btn block" data-act="setOmens">Omens (${(t.omens || []).length})</button>
+      <button class="btn block" data-act="setCultTwists">Cult twists (${(t.cultTwists || []).length})</button>
+      <button class="btn block" data-act="setFinale">The Forge of Alaric (finale)</button>
+    </div></div>`;
+}
+
+Object.assign(ACT, {
+  passTurn: endTurnFlow,
+  campOpen: el => campSheet(el.dataset.side, false),
+  threatOpen: el => { const r = C.threat.pending.find(x => x.id === el.dataset.id); if (r) threatSheet(r, false); },
+  threatInfo: threatInfoSheet,
+  goReveal: () => go('reveal'),
+  breakSeal: el => breakSeal(el.dataset.early === '1'),
+  revealRepent: () => revealChoice('repent'),
+  revealEmbrace: () => revealChoice('embrace'),
+  penance: () => { const R = C.reveal; if (!R || R.cleansed || C.active !== R.t) return; if (R.penance && R.penance.lastTurn === C.turn) return toast('Try again next turn'); const m = startPenance(R.t); save(); render(); missionSheet(m); },
+  seekSmith, callFinale,
+  undoWin: async () => { if (!await confirmBox({ title: 'Undo the victory?', text: '<p>Clear the campaign winner? The final battle can then be fought again.</p>', ok: 'Undo' })) return; C.finale.winner = null; chron(null, 'note', 'Correction: the final battle is not yet decided.'); save(); render(); },
+  chronSide: el => { UI.chronSide = el.dataset.side || ''; render(); },
+  chronNotes: el => { UI.chronNotes = !UI.chronNotes; render(); },
+  chronLatest: () => { const a = $$('.chapter'); const last = a[a.length - 1]; if (last) { const d = $('details', last); if (d) d.open = true; last.scrollIntoView({ behavior: 'smooth', block: 'start' }); } },
+  setCampEvents: campEventsSheet, setThreatEvents: threatEventsSheet, setOmens: omensSheet, setCultTwists: cultTwistsSheet,
+  setThreat: setThreatSheet, setFinale: setFinaleSheet,
 });
 
 
