@@ -363,6 +363,7 @@ h3.mh{margin-top:14px}
 .story p.opening{font-style:italic;color:var(--ink2)}
 .story p.great{font-weight:700}
 .story p.margin{font-size:.85rem;color:var(--muted);font-style:italic;margin:-.35em 0 .6em 13px}
+.mk-hot.off{opacity:.38;filter:grayscale(.7)}
 
 @media (max-width:370px){.two{grid-template-columns:1fr}}
 </style>
@@ -385,7 +386,7 @@ h3.mh{margin-top:14px}
    RUNEFANG — Old World campaign companion
    Phase 1: data model, storage, export/import, rosters, gold
    ===================================================================== */
-const APP_VERSION = '4.0.0 · phase 4';
+const APP_VERSION = '4.1.0 · phase 4.1';
 const SCHEMA = 4;
 const FORMAT = 'runefang-campaign';
 
@@ -2014,7 +2015,7 @@ async function undoImport() {
   await DB.put('backups', 'last', cur);
   render(); toast('Restored');
 }
-async function newCampaignFlow() {
+async function newCampaignFlowP4() {
   if (!await confirmBox({ title: 'Begin anew?', text: '<p>Start a fresh campaign with fresh rosters? Export first if you want to keep the current one. An undo copy is kept on this phone too.</p>', ok: 'Continue', danger: true })) return;
   const v = await formSheet({ title: 'New campaign', ok: 'Begin', fields: [
     { key: 'name', label: 'Campaign name', value: 'The Shattered Runefang' },
@@ -2531,7 +2532,7 @@ function regionTrails(r) {
   return out;
 }
 function overviewMarkers() {
-  const out = C.regions.map(r => ({ id: r.id, x: r.hot.x, y: r.hot.y, hit: true, drag: true, ref: r, cls: 'mk-hot' + (r.far ? ' far' : ''),
+  const out = C.regions.map(r => ({ id: r.id, x: r.hot.x, y: r.hot.y, hit: true, drag: true, ref: r, cls: 'mk-hot' + (r.far ? ' far' : '') + (inPlay(r) ? '' : ' off'),
     html: `<div class="hot" style="--d:${r.danger}">${missionsAt(r.id).length ? '<span class="pseal">✠</span>' : ''}</div><div class="plabel">${esc(r.short || r.name)}</div>` }));
   const at = s => { const q = EX(s).pos; return q && regionById(q.regionId); };
   SIDES.forEach(s => {
@@ -2589,7 +2590,7 @@ function regionCard(r) {
     </div></div></div>`;
 }
 function viewMap() {
-  const near = C.regions.filter(r => !r.far), far = C.regions.filter(r => r.far);
+  const near = C.regions.filter(r => !r.far && inPlay(r)), far = C.regions.filter(r => r.far && inPlay(r)), outside = C.regions.filter(r => !inPlay(r));
   return `<div class="row between" style="margin-top:4px"><h1 class="bl">The Old World</h1>
       <button class="btn sm" data-act="ovSheet">Map image</button></div>
     <div class="mapframe ${UI.arrange ? 'setup' : ''}"><div class="mv" id="mvHost"></div>
@@ -2597,9 +2598,10 @@ function viewMap() {
       <div class="mv-tools"><div></div><div class="zoomstack">${zoomBtns()}</div></div></div>
     <p class="small muted" style="margin:6px 2px 0">Tap a red seal to open its region. Pinch, double-tap or use + and − to zoom.</p>
     <div class="section-h"><h2 class="bl">Regions</h2><span class="small muted">${C.shards.filter(x => x.status === 'rumoured' && x.regionId).length} shard rumours</span></div>
+    ${C.scope && C.scope.mode !== 'world' ? `<p class="small flavour" style="margin:2px 2px 6px">This campaign is fought in ${esc(scopeLabel())}.</p>` : ''}
     ${near.map(regionCard).join('')}
-    <div class="section-h"><h2 class="bl">Far lands</h2><span class="small muted">later in the campaign</span></div>
-    ${far.map(regionCard).join('') || '<div class="empty">No far lands.</div>'}
+    ${far.length ? `<div class="section-h"><h2 class="bl">Far lands</h2><span class="small muted">later in the campaign</span></div>${far.map(regionCard).join('')}` : ''}
+    ${outside.length ? `<details class="card" style="margin-top:12px"><summary>Not in this campaign (${outside.length})</summary><p class="small muted">Set aside for this campaign. Their maps and pins are kept for the next one.</p>${outside.map(regionCard).join('')}</details>` : ''}
     <div class="btns" style="margin-top:10px"><button class="btn" data-act="newRegion">+ Region</button><button class="btn" data-act="arrange">${UI.arrange ? 'Stop arranging' : 'Arrange regions'}</button></div>`;
 }
 const zoomBtns = () => `<button class="btn round zb" data-act="zoomIn" aria-label="Zoom in">+</button><button class="btn round zb" data-act="zoomOut" aria-label="Zoom out">−</button><button class="btn round zb" data-act="zoomFit" aria-label="Fit map"><svg viewBox="0 0 24 24" class="ic"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>`;
@@ -2692,8 +2694,9 @@ function pinSheet(r, p) {
       ${cluesHtml(r, p.id)}
       <div class="btns" style="flex-direction:column;margin-top:14px">
         ${canInv ? `<button class="btn seal block" data-a="investigate">Investigate ${esc(p.name)}</button>` : ''}
-        <button class="btn ${canInv ? '' : 'seal'} block" data-a="march" data-s="${a}" ${here.includes(a) ? 'disabled' : ''}>${ts.marched && EX(a).status !== 'lost' ? `Move the ${esc(exShort(a))} Expedition here (already marched)` : `March the ${esc(exShort(a))} Expedition here`}</button>
-        <button class="btn block" data-a="march" data-s="${b}" ${here.includes(b) ? 'disabled' : ''}>Move the ${esc(exShort(b))} Expedition here</button>
+        ${inPlay(r) ? '' : '<p class="small"><b>This region is not part of this campaign.</b> Its pins can still be edited.</p>'}
+        <button class="btn ${canInv ? '' : 'seal'} block" data-a="march" data-s="${a}" ${here.includes(a) || !inPlay(r) ? 'disabled' : ''}>${ts.marched && EX(a).status !== 'lost' ? `Move the ${esc(exShort(a))} Expedition here (already marched)` : `March the ${esc(exShort(a))} Expedition here`}</button>
+        <button class="btn block" data-a="march" data-s="${b}" ${here.includes(b) || !inPlay(r) ? 'disabled' : ''}>Move the ${esc(exShort(b))} Expedition here</button>
         <button class="btn block ghost" data-a="edit">Edit pin</button></div>
       <p class="small muted">Marching the ${esc(exShort(a))} Expedition rolls a road event. Moving the other expedition is a free correction.</p>`,
     onMount: sh => sh.body.addEventListener('click', e => {
@@ -2993,7 +2996,7 @@ function runFx(s, str, ctx = {}) {
         L(tg.length === 1 ? `${tg[0].name} +${n} XP${canRankUp(tg[0]) ? ' (can rank up!)' : ''}` : `Every regiment +${n} XP`); break; }
       case 'flag': if (arg) { setFlag(arg, s, ctx.r); } break;
       case 'unflag': if (arg) unsetFlag(arg, s); break;
-      case 'threat': { const tr = (rest[0] || '').toLowerCase(), n = Math.round(num(rest[1], 1)); if ((tr === 'rival' || tr === 'cult') && n) { addThreat(tr, n, ctx.title || 'Event', s); L(`${TRACKS[tr].label} ${n > 0 ? '+' : '−'}${Math.abs(n)}`); } break; }
+      case 'threat': { const tr = (rest[0] || '').toLowerCase(), n = Math.round(num(rest[1], 1)); if ((tr === 'rival' || tr === 'cult') && n && trackOn(tr)) { addThreat(tr, n, ctx.title || 'Event', s); L(`${TRACKS[tr].label} ${n > 0 ? '+' : '−'}${Math.abs(n)}`); } break; }
       case 'omen': { const t = omenFor(s, ctx); if (t) L('Omen: ' + t); break; }
       case 'rob': { const n = Math.max(0, Math.round(num(rest[0], 20))), k = Math.min(n, Math.max(0, e.gold)); if (k) { addGold(s, -k, ctx.title || 'Stolen'); L(`−${k} gc stolen`); } else L('Nothing left to steal'); break; }
       case 'snatch': L(snatchShard(s)); break;
@@ -3216,7 +3219,7 @@ function genMission(g) {
   const scale = SCALES[g.scale] ? g.scale : (opp === 'rival' ? 'march' : Math.random() < 0.3 ? 'mordheim' : 'march');
   const points = g.points ? Math.round(num(g.points)) : missionPoints(scale, r);
   const sc = g.scenario || pickScenario(scale, opp === 'rival' ? 'rival' : g.kind, p && p.terrain);
-  const enemy = opp === 'rival' ? rivalList(rv, points) : enemyList(opp, points, scale, g.extra || 0, g.fewer || 0);
+  const enemy = opp === 'rival' ? rivalList(rv, points) : (scale === 'mordheim' && warbandList(opp, g.extra || 0, g.fewer || 0)) || enemyList(opp, points, scale, g.extra || 0, g.fewer || 0);
   const where = p ? p.name : r ? (r.short || r.name) : 'the road';
   const ch = g.chainId && (C.chains || []).find(c => c.id === g.chainId), shName = ch ? C.shards[ch.shard].name : '';
   return { id: uid('msn'), side: g.side, opp, oppSide: opp === 'rival' ? rv : null, regionId: g.regionId, pinId: g.pinId, kind: g.kind, scale, points,
@@ -3272,11 +3275,12 @@ function captureShard(i, s) {
   (C.chains || []).forEach(c => { if (c.shard === i && c.status === 'active') c.status = c.side === s ? 'won' : 'void'; });
 }
 function fleeShard(i) {
+  if (opt('stayPut')) return '';
   const sh = C.shards[i], r = regionById(sh.regionId);
   const occupied = new Set(SIDES.map(s => EX(s).pos && EX(s).pos.pinId).filter(Boolean));
   let R = r;
   if (!r || Math.random() >= 0.6 || r.pins.length < 3) {
-    const near = C.regions.filter(x => x !== r && x.pins.length && (!x.far || (r && r.far))).sort((a, b) => r ? Math.hypot(a.hot.x - r.hot.x, a.hot.y - r.hot.y) - Math.hypot(b.hot.x - r.hot.x, b.hot.y - r.hot.y) : 0).slice(0, 3);
+    const near = C.regions.filter(x => x !== r && x.pins.length && inPlay(x) && (!x.far || (r && r.far))).sort((a, b) => r ? Math.hypot(a.hot.x - r.hot.x, a.hot.y - r.hot.y) - Math.hypot(b.hot.x - r.hot.x, b.hot.y - r.hot.y) : 0).slice(0, 3);
     if (near.length) R = pickOne(near);
   }
   if (!R || !R.pins.length) return '';
@@ -3293,7 +3297,9 @@ function advanceChain(m, res) {
   if (res === 'draw') { ch.prev = 'draw'; return `${theN(sh.name, true)} is still contested. The final mission must be fought again.`; }
   if (res === 'win') { captureShard(ch.shard, ch.side); ch.status = 'won'; return `${exName(ch.side)} recovered ${theN(sh.name, false)}!`; }
   if (m.opp === 'rival') { ch.status = 'failed'; captureShard(ch.shard, m.oppSide); return `${theN(exName(m.oppSide), true)} seized ${theN(sh.name, false)}!`; }
-  ch.status = 'failed'; const dest = fleeShard(ch.shard);
+  ch.status = 'failed';
+  if (opt('stayPut')) { const p = pinOf(regionById(sh.regionId), sh.pinId); return `The enemy still holds ${theN(sh.name, false)}${p ? ' at ' + p.name : ''}. It has not moved: investigate there on a later turn to take up the trail again.`; }
+  const dest = fleeShard(ch.shard);
   return `The enemy fled with ${theN(sh.name, false)}${dest}. The hunt goes on.`;
 }
 
@@ -3306,6 +3312,7 @@ function yourForce(m, s = m.side) {
 }
 function enemyHtml(m) {
   const en = m.enemy || { lines: [] };
+  if (en.warband) return warbandHtml(en);
   if (en.rival) return `<p class="small" style="margin:4px 0">${esc(exName(m.oppSide))} fields ${esc(yourForce(m, m.oppSide).replace(/^Up to/, 'up to'))}</p>
     <div class="elist">${en.lines.map(l => `<div class="el"><span class="grow">${l.n ? l.n + ' × ' : ''}${esc(l.name)}</span><span class="muted">${l.pts} pts</span></div>`).join('')}</div>`;
   return `<div class="elist">${en.lines.map(l => `<div class="el ${l.removed ? 'rm' : ''} ${l.extra ? 'ex' : ''}"><span class="grow">${l.n ? l.n + ' × ' : ''}${esc(l.name)}${l.extra ? ' <b>(extra unit)</b>' : ''}${l.removed ? ' (removed)' : ''}</span><span class="muted">${l.pts} pts</span></div>`).join('')}
@@ -4068,6 +4075,7 @@ function seedPhase4(c) {
   const f = c.finale = c.finale && typeof c.finale === 'object' ? c.finale : {};
   f.quest = f.quest && typeof f.quest === 'object' ? f.quest : {};
   if (f.smith === undefined) f.smith = null; if (f.winner === undefined) f.winner = null;
+  seedPhase41(c);
   c.schema = Math.max(c.schema || 1, 4);
   return c;
 }
@@ -4098,7 +4106,7 @@ function omenFor(s, ctx = {}) {
 const threatEntry = id => (C.tables.threatEvents || []).find(x => x && x.id === id) || null;
 const trackMax = tr => Math.max(12, ...(C.tables.threatEvents || []).filter(x => x && x.track === tr).map(x => num(x.at)));
 function addThreat(tr, n, why, s) {
-  const T = C.threat; if (!TRACKS[tr] || !n) return;
+  const T = C.threat; if (!TRACKS[tr] || !n || !trackOn(tr)) return;
   const before = T[tr] || 0; T[tr] = clamp(before + n, 0, 99);
   if (T[tr] === before) return;
   T.log.push({ turn: C.turn, track: tr, from: before, to: T[tr], why: why || '', side: s || null });
@@ -4122,7 +4130,7 @@ function threatTargets(t, ctx = {}) {
 }
 function checkThresholds(ctx = {}) {
   const T = C.threat, out = [];
-  for (const tr of Object.keys(TRACKS)) {
+  for (const tr of tracksOn()) {
     const list = (C.tables.threatEvents || []).filter(x => x && x.track === tr && num(x.at) > 0).sort((a, b) => num(a.at) - num(b.at));
     for (const e of list) {
       const key = tr + ':' + e.id;
@@ -4143,7 +4151,7 @@ function checkThresholds(ctx = {}) {
 }
 function worldMoves(ctx) {
   const rolls = [];
-  if (ctx.roundEnd) for (const tr of Object.keys(TRACKS)) {
+  if (ctx.roundEnd) for (const tr of tracksOn()) {
     const r = d6(), need = clamp(Math.round(num(S().threat.roll, 4)), 1, 7), up = r >= need;
     rolls.push({ tr, r, need, up, to: (C.threat[tr] || 0) + (up ? 1 : 0) });
     if (up) addThreat(tr, 1, `The world moves (rolled ${r})`);
@@ -4152,6 +4160,10 @@ function worldMoves(ctx) {
 }
 function snatchShard(s) {
   const ch = activeChain(s);
+  if (opt('stayPut')) {
+    if (!ch) return 'The agents bribe guides and burn maps, but the shards do not move.';
+    abandonChain(ch, 'snatched'); return `The agents bribe your guides, and the trail of ${theN(C.shards[ch.shard].name, false)} goes cold. The shard has not moved: take up the trail again.`;
+  }
   let i = ch ? ch.shard : -1;
   if (i < 0) {
     const cands = C.shards.map((x, k) => [x, k]).filter(([x]) => x.status === 'rumoured' && x.regionId);
@@ -4166,7 +4178,7 @@ function snatchShard(s) {
 function rollTwist() {
   const T = S().threat, ct = (C.tables.cultTwists || []).filter(x => x && num(x.weight, 1) > 0);
   const ch = num(T.cultTwistChance, 40) + (hasFlag('tainted_ground') ? 20 : 0);
-  if (ct.length && (C.threat.cult || 0) >= num(T.cultTwistAt, 6) && d100() <= ch) { const t = wpick(ct); if (t) return { name: t.name, effect: 'The daemon’s cult is at work. ' + t.effect }; }
+  if (trackOn('cult') && ct.length && (C.threat.cult || 0) >= num(T.cultTwistAt, 6) && d100() <= ch) { const t = wpick(ct); if (t) return { name: t.name, effect: 'The daemon’s cult is at work. ' + t.effect }; }
   return wpick(C.tables.twists.filter(Boolean));
 }
 
@@ -4301,7 +4313,8 @@ async function endTurnFlow() {
 
 /* ---------- campaign screen cards ---------- */
 function threatTracksHtml() {
-  return `<div class="card">${Object.entries(TRACKS).map(([k, t]) => {
+  if (!tracksOn().length) return '<div class="card empty">Both threat tracks are switched off for this campaign (Codex → Campaign options).</div>';
+  return `<div class="card">${Object.entries(TRACKS).filter(([k]) => trackOn(k)).map(([k, t]) => {
     const v = C.threat[k] || 0, mx = trackMax(k), ths = (C.tables.threatEvents || []).filter(x => x && x.track === k && num(x.at) > 0);
     const next = ths.filter(x => !C.threat.fired.includes(k + ':' + x.id)).sort((a, b) => num(a.at) - num(b.at))[0];
     return `<div class="trk"><div class="row between"><b class="sc">${esc(t.label)}</b><b>${v} <span class="small muted">/ ${mx}</span></b></div>
@@ -4324,7 +4337,7 @@ function bannerHtml() {
 function p4HomeHtml() {
   let h = '';
   if (C.reveal) h += forgeCardHtml(true);
-  h += `<div class="section-h"><h2 class="bl">The World Moves</h2><button class="btn sm" data-act="threatInfo">Details</button></div>${threatTracksHtml()}`;
+  if (tracksOn().length) h += `<div class="section-h"><h2 class="bl">The World Moves</h2><button class="btn sm" data-act="threatInfo">Details</button></div>${threatTracksHtml()}`;
   return h;
 }
 function p4ShardBtn() {
@@ -4337,7 +4350,7 @@ function threatInfoSheet() {
       const log = [...C.threat.log].reverse().slice(0, 14);
       sh.body.innerHTML = `<p class="small muted" style="margin-top:8px">Two powers the players don’t control. At the end of every full round (after both expeditions have marched), each track rises by 1 on a D6 roll of ${num(S().threat.roll, 4)}+. Events push them too. When a track reaches a marked step, its event strikes.</p>
         ${threatTracksHtml()}
-        ${Object.entries(TRACKS).map(([k, t]) => `<h3 class="sc mh">${esc(t.label)}</h3><p class="small muted" style="margin:2px 0">${esc(t.sub)}</p>
+        ${Object.entries(TRACKS).filter(([k]) => trackOn(k)).map(([k, t]) => `<h3 class="sc mh">${esc(t.label)}</h3><p class="small muted" style="margin:2px 0">${esc(t.sub)}</p>
           ${(C.tables.threatEvents || []).filter(x => x && x.track === k).sort((a, b) => num(a.at) - num(b.at)).map(x => `<div class="listed small"><b style="min-width:28px">${num(x.at)}</b><span class="grow">${esc(x.title)}<div class="muted">${esc(TARGETS[x.target] || x.target)}${x.reset !== '' && x.reset != null ? ` · then falls to ${x.reset}` : ''}</div></span>${C.threat.fired.includes(k + ':' + x.id) ? '<span class="chip">struck</span>' : ''}</div>`).join('')}
           <div class="row" style="margin-top:6px"><span class="grow small muted">Gamesmaster’s hand</span><button class="btn sm" data-adj="${k}" data-d="-1">−1</button><button class="btn sm" data-adj="${k}" data-d="1">+1</button></div>`).join('')}
         <h3 class="sc mh">Recent movements</h3>${log.length ? log.map(l => `<div class="listed small"><span class="muted" style="min-width:36px">T${l.turn}</span><span class="grow">${esc(TRACKS[l.track] ? TRACKS[l.track].label : l.track)}: ${l.from} → ${l.to}<div class="muted">${esc(l.why)}</div></span></div>`).join('') : '<div class="empty">Nothing has moved yet.</div>'}`;
@@ -4396,8 +4409,8 @@ function choiceCardHtml() {
   if (!R.choice) return `<div class="card edge side-${t}"><h3 class="sc">${esc(e.player)}, your priest was deceived</h3>
     <p class="small">Choose what ${esc(theN(exName(t), false))} does now. The choice shapes the final battle.</p>
     <button class="pick" data-act="revealRepent"><b>Repent</b><div class="muted">Fight a penance battle against the cult (Battle March). Win it and your shards are cleansed. At the Forge, the cult’s host attacks both armies.</div></button>
-    <button class="pick" data-act="revealEmbrace"><b>Embrace the vision</b><div class="muted">Keep following it. Gain the relic “The Daemon’s Whisper” now, the cult grows by 2, and at the Forge you field Warriors of Chaos allies worth ${num(S().finale.alliesPerCult, 50)} pts per step of the cult track.</div></button></div>`;
-  if (R.choice === 'embrace') return `<div class="card edge side-${t}"><h3 class="sc">${esc(exName(t))} embraced the vision</h3><p class="small">At the Forge it fields up to ${(C.threat.cult || 0) * num(S().finale.alliesPerCult, 50)} pts of Warriors of Chaos allies (the cult track is at ${C.threat.cult || 0}).</p></div>`;
+    <button class="pick" data-act="revealEmbrace"><b>Embrace the vision</b><div class="muted">Keep following it. Gain the relic “The Daemon’s Whisper” now${trackOn('cult') ? ', the cult grows by 2,' : ''} and at the Forge you field Warriors of Chaos allies worth ${num(S().finale.alliesPerCult, 50)} pts per step of the cult track${trackOn('cult') ? '' : ' (fixed at ' + cultLevel() + ' with cults off)'}.</div></button></div>`;
+  if (R.choice === 'embrace') return `<div class="card edge side-${t}"><h3 class="sc">${esc(exName(t))} embraced the vision</h3><p class="small">At the Forge it fields up to ${cultLevel() * num(S().finale.alliesPerCult, 50)} pts of Warriors of Chaos allies (${trackOn('cult') ? 'the cult track is at ' + cultLevel() : 'a fixed cult step of ' + cultLevel()}).</p></div>`;
   const m = R.penance && missionById(R.penance.missionId), act = m && m.status === 'active';
   return `<div class="card edge side-${t}"><h3 class="sc">${esc(exName(t))} repented</h3>
     ${R.cleansed ? '<p class="small"><b>The penance is done.</b> Its shards burn clean.</p>'
@@ -4432,7 +4445,7 @@ async function revealChoice(kind) {
     chron(t, 'revelation', `${exName(t)} knelt before ${godOf(t)} and swore to burn the daemon’s lie from its ranks. Penance would be paid in blood.`, { tag: 'Repentance' });
     save(); render(); missionSheet(m);
   } else {
-    if (!await confirmBox({ title: 'Embrace the vision?', danger: true, ok: 'Embrace it', text: `<p>${esc(exName(t))} keeps following the vision, knowing what sent it. It gains <b>The Daemon’s Whisper</b>, the cult grows by 2, and at the Forge it fields Warriors of Chaos allies.</p>` })) return;
+    if (!await confirmBox({ title: 'Embrace the vision?', danger: true, ok: 'Embrace it', text: `<p>${esc(exName(t))} keeps following the vision, knowing what sent it. It gains <b>The Daemon’s Whisper</b>${trackOn('cult') ? ', the cult grows by 2,' : ''} and at the Forge it fields Warriors of Chaos allies.</p>` })) return;
     R.choice = 'embrace';
     makeRelic(t, { name: 'The Daemon’s Whisper', effect: 'Once per battle, re-roll a failed prayer or casting roll. Each time, roll a D6: on a 1 the bearer suffers a wound.' });
     addThreat('cult', 2, 'Embraced the vision', t); setFlag('embraced', t);
@@ -4444,9 +4457,11 @@ async function revealChoice(kind) {
 
 /* ---------- the runesmith and the Forge of Alaric ---------- */
 function forgeLoc() {
-  const F = S().finale; let r = regionById(F.regionId) || regionById('worlds_edge');
+  const F = S().finale; let r = [regionById(F.regionId), regionById('worlds_edge')].find(x => x && inPlay(x) && x.pins.length) || null;
   let p = r && (pinOf(r, F.pinId) || r.pins.find(x => /zhufbar/i.test(x.name)) || r.pins.find(x => x.terrain === 'fortress') || r.pins[0]);
-  if (!p) { r = C.regions.find(x => x.pins.length) || null; p = r ? r.pins[0] : null; }
+  if (!p) { const play = C.regions.filter(x => inPlay(x) && x.pins.length); r = play[0] || C.regions.find(x => x.pins.length) || null;
+    const homes = new Set(SIDES.map(s => ((EX(s).trail || [])[0] || {}).pinId)), ok = r ? r.pins.filter(x => !homes.has(x.id)) : [];
+    p = r ? (ok.find(x => x.terrain === 'fortress') || ok.find(x => x.terrain === 'town') || ok[0] || r.pins[0]) : null; }
   return { r, p };
 }
 const atForge = s => { const { p } = forgeLoc(), q = EX(s).pos; return !!(p && q && q.pinId === p.id); };
@@ -4492,7 +4507,7 @@ function seekSmith() {
   q.lastTurn = C.turn; save(); render(); missionSheet(m);
 }
 function finaleMods(s, rivalAlive) {
-  const R = C.reveal, F = S().finale, cult = C.threat.cult || 0, d = R.t, mods = [];
+  const R = C.reveal, F = S().finale, cult = cultLevel(), d = R.t, mods = [];
   if (C.finale.smith) mods.push(`The runesmith stands with ${theN(exName(C.finale.smith), false)}: they choose the deployment zones and who takes the first turn.`);
   const listTxt = pts => { const L = enemyList('chaos', pts, 'full'); return L.lines.map(l => `${l.n ? l.n + ' × ' : ''}${l.name}`).join(', '); };
   if (rivalAlive && R.choice === 'embrace' && EX(d).status !== 'lost') {
@@ -4707,6 +4722,8 @@ function p4CodexHtml() {
   return `<div class="section-h"><h2 class="bl">The Daemon’s Plot</h2></div>
     <div class="card"><div class="btns" style="flex-direction:column">
       <button class="btn block seal" data-act="goReveal">The Revelation${C.reveal ? ' (revealed)' : revealReady() ? ' (ready)' : ` (${shardsTotalFound()}/${num(S().revelationShards, 5)} shards)`}</button>
+      <button class="btn block" data-act="setOptions">Campaign options: ${esc(scopeLabel())}</button>
+      <button class="btn block" data-act="setWarbands">Mordheim warbands</button>
       <button class="btn block" data-act="threatInfo">The world moves: threat track</button>
       <button class="btn block" data-act="setThreat">Threat & omen rules</button>
       <button class="btn block" data-act="setCampEvents">Camp events (${(t.campEvents || []).length})</button>
@@ -4735,6 +4752,260 @@ Object.assign(ACT, {
   setCampEvents: campEventsSheet, setThreatEvents: threatEventsSheet, setOmens: omensSheet, setCultTwists: cultTwistsSheet,
   setThreat: setThreatSheet, setFinale: setFinaleSheet,
 });
+
+
+/* =====================================================================
+   4.1: campaign options (scope, shard count, agents, cults, blades stay put)
+   and Mordheim warbands that grow with the campaign
+   ===================================================================== */
+const OPT_DEFAULTS = { agents: true, cult: true, stayPut: false };
+const opt = k => { const o = (C && C.options) || OPT_DEFAULTS; return k in o ? !!o[k] : !!OPT_DEFAULTS[k]; };
+const trackOn = tr => tr === 'rival' ? opt('agents') : tr === 'cult' ? opt('cult') : false;
+const tracksOn = () => Object.keys(TRACKS).filter(trackOn);
+const cultLevel = () => trackOn('cult') ? (C.threat.cult || 0) : Math.max(0, Math.round(num(S().finale.fixedCult, 6)));
+const SCOPE_WORDS = { world: 'The whole world', oldworld: 'The Old World' };
+function inPlay(r, c = C) {
+  if (!r) return false;
+  const sc = (c && c.scope) || { mode: 'world' };
+  return sc.mode === 'region' ? r.id === sc.regionId : sc.mode === 'oldworld' ? !(r.far || r.id === 'cathay') : true;
+}
+function scopeLabel(c = C) {
+  const sc = (c && c.scope) || { mode: 'world' };
+  if (sc.mode !== 'region') return SCOPE_WORDS[sc.mode] || SCOPE_WORDS.world;
+  const r = (c.regions || []).find(x => x.id === sc.regionId);
+  return r ? `${r.name} alone` : 'One region';
+}
+const SHARD_ORDER = [1, 3, 6, 0, 2, 4, 5];   // which shards a smaller campaign uses: grip, master rune, point, pommel, crossguard, fury, cleaving
+const SHARD_TERRAIN_W = { ruins: 3, fortress: 2.5, forest: 2, mountains: 2, marsh: 2, hills: 1.5, jungle: 2, desert: 1.5, river: 1, road: 0.6, village: 1, town: 0.8 };
+
+/* Applied once, when a campaign begins. Never deletes a region, a pin or a map: regions outside the campaign are only set aside. */
+function setupScope(c, o) {
+  const mode = ['world', 'oldworld', 'region'].includes(o.mode) ? o.mode : 'world';
+  c.scope = { mode, regionId: mode === 'region' ? o.regionId : null };
+  c.options = { agents: o.agents !== false, cult: o.cult !== false, stayPut: !!o.stayPut };
+  const play = c.regions.filter(r => inPlay(r, c) && r.pins.length);
+  if (!play.length) { c.scope = { mode: 'world', regionId: null }; return setupScope(c, { ...o, mode: 'world' }); }
+  const used = new Set();
+  // starting camps
+  if (mode === 'region') {
+    const r = play[0], homes = SIDES.map(s => START_POS[s][0] === r.id ? r.pins.find(p => p.id === pinId(...START_POS[s])) : null);
+    const settled = r.pins.filter(p => ['town', 'village', 'fortress'].includes(p.terrain));
+    const pool = settled.length >= 2 ? settled : r.pins;
+    let a = homes[0] || homes[1] ? (homes[0] || null) : pickOne(pool), b = homes[1] || null;
+    if (!a) a = pool.filter(p => p !== b).sort((x, y) => pinDist(r, y, b) - pinDist(r, x, b))[0] || r.pins[0];
+    if (!b || b === a) b = pool.filter(p => p !== a).sort((x, y) => pinDist(r, y, a) - pinDist(r, x, a))[0] || r.pins.find(p => p !== a) || a;
+    [[ 'sig', a ], [ 'ulr', b ]].forEach(([s, p]) => { const e = c.ex[s]; e.pos = { regionId: r.id, pinId: p.id }; e.trail = [{ regionId: r.id, pinId: p.id, x: p.x, y: p.y, turn: 1, ts: Date.now() }]; used.add(p.id); });
+  } else {
+    for (const s of SIDES) {
+      const e = c.ex[s], r = e.pos && c.regions.find(x => x.id === e.pos.regionId);
+      if (!r || !inPlay(r, c)) { const r2 = pickOne(play), p = pickOne(r2.pins); e.pos = { regionId: r2.id, pinId: p.id }; e.trail = [{ regionId: r2.id, pinId: p.id, x: p.x, y: p.y, turn: 1, ts: Date.now() }]; }
+      if (e.pos && e.pos.pinId) used.add(e.pos.pinId);
+    }
+  }
+  // the shards
+  const pinsInPlay = play.reduce((a, r) => a + r.pins.length, 0);
+  const N = clamp(Math.round(num(o.shards, 0)) || (mode === 'region' ? 3 : 7), 1, Math.min(SHARD_NAMES.length, Math.max(1, pinsInPlay - used.size)));
+  const idx = SHARD_ORDER.slice(0, N).sort((x, y) => x - y);
+  c.shards = idx.map(i => ({ id: 'shard' + (i + 1), name: SHARD_NAMES[i], status: 'rumoured', regionId: null, pinId: null, notes: '' }));
+  const usedRegions = new Set();
+  for (const sh of c.shards) {
+    const i = SHARD_NAMES.indexOf(sh.name), site = SHARD_SITES[i];
+    let r = site && mode !== 'region' ? play.find(x => x.id === site[0]) : null, p = r ? r.pins.find(x => x.id === pinId(...site)) : null;
+    if (!p || used.has(p.id)) {
+      const fresh = play.filter(x => !usedRegions.has(x.id)), regs = mode === 'region' || !fresh.length ? play : fresh;
+      const cands = regs.flatMap(x => x.pins.filter(q => !used.has(q.id)).map(q => ({ r: x, p: q, weight: SHARD_TERRAIN_W[q.terrain] || 1 })));
+      if (!cands.length) break;
+      ({ r, p } = wpick(cands));
+    }
+    sh.regionId = r.id; sh.pinId = p.id; used.add(p.id); usedRegions.add(r.id);
+  }
+  c.shards = c.shards.filter(x => x.regionId);
+  c.settings.totalShards = c.shards.length;
+  c.settings.revelationShards = Math.max(1, Math.ceil(c.shards.length * 2 / 3));
+  const bits = [mode !== 'world' ? `This campaign is fought in ${scopeLabel(c).replace(/ alone$/, '')}${mode === 'region' ? ' alone' : ''}.` : '',
+    `${c.shards.length === 7 ? 'Seven' : ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six'][c.shards.length]} shard${c.shards.length === 1 ? '' : 's'} of the blade lie hidden.`,
+    c.options.stayPut ? 'Where the shards lie, there they stay.' : ''].filter(Boolean);
+  c.chronicle.push({ id: uid('ch'), ts: Date.now(), turn: 1, side: null, kind: 'story', text: bits.join(' ') });
+  return c;
+}
+
+/* ---------- the new-campaign screen ---------- */
+async function newCampaignFlow() {
+  if (!await confirmBox({ title: 'Begin anew?', text: '<p>Start a fresh campaign with fresh rosters? Export first if you want to keep the current one. An undo copy is kept on this phone too.</p>', ok: 'Continue', danger: true })) return;
+  const regOpts = C.regions.filter(r => r.pins.length >= 3).map(r => ['region:' + r.id, `One region: ${r.name} (${r.pins.length} pins)`]);
+  const owN = C.regions.filter(r => inPlay(r, { scope: { mode: 'oldworld' } })).length;
+  const v = await formSheet({ title: 'New campaign', ok: 'Begin', fields: [
+    { key: 'name', label: 'Campaign name', value: 'The Shattered Runefang' },
+    { key: 'p1', label: 'Player commanding the Sigmarite Expedition', value: EX('sig').player },
+    { key: 'p2', label: 'Player commanding the Ulrican Expedition', value: EX('ulr').player },
+    { key: 'scope', label: 'Where the campaign is fought', type: 'select', value: 'world', options: [['world', `The whole world (${C.regions.length} regions)`], ['oldworld', `The Old World (${owN} regions, no far lands)`], ...regOpts],
+      hint: 'Regions outside the campaign keep their maps and pins. They are only set aside.' },
+    { key: 'shards', label: 'Shards of the blade', type: 'select', value: '0', options: [['0', 'Automatic: 7, or 3 for one region'], ...[1, 2, 3, 4, 5, 6, 7].map(n => [String(n), `${n} shard${n > 1 ? 's' : ''} (Revelation at ${Math.ceil(n * 2 / 3)})`])] },
+    { key: 'agents', type: 'toggle', label: 'Imperial agents: the court agents track', value: true },
+    { key: 'cult', type: 'toggle', label: 'Chaos cults: the cult track, cult raids and cult twists', value: true },
+    { key: 'stayPut', type: 'toggle', label: 'The blades stay put: shards never move once hidden', value: false },
+    { key: 'keep', type: 'toggle', label: 'Keep our world: map images, regions, pins, edited tables and house rules', value: true,
+      hint: 'Rosters, gold, positions, shards, missions, flags and the Chronicle always start fresh. Turn this off only for a completely blank slate.' },
+  ] });
+  if (!v) return;
+  const [mode, rid] = String(v.scope).startsWith('region:') ? ['region', v.scope.slice(7)] : [v.scope, null];
+  const scope = { mode, regionId: rid, shards: +v.shards || 0, agents: !!v.agents, cult: !!v.cult, stayPut: !!v.stayPut };
+  if (!await confirmBox({ title: 'Last chance', text: `<p>The current campaign will be replaced${v.keep ? '. Your maps, pins and tables are kept' : ', <b>including all map images and pins</b>'}. The daemon will choose afresh which vision it planted.</p>`, ok: 'Begin the campaign', danger: true })) return;
+  await snapshotForUndo();
+  const nc = newCampaign({ name: v.name.trim(), p1: v.p1.trim(), p2: v.p2.trim() });
+  let keepImages = {};
+  if (v.keep) {
+    Object.assign(nc, { regions: clone(C.regions), overview: clone(C.overview), tables: clone(C.tables), unitCatalog: clone(C.unitCatalog),
+      perkLibrary: clone(C.perkLibrary), settings: clone(C.settings) });
+    for (const r of nc.regions) r.pins.forEach(p => { delete p.visited; });
+    for (const sd of SIDES) { const e = nc.ex[sd]; e.pos = null; e.trail = []; e.gold = Math.max(0, Math.round(num(nc.settings.startingGold, 200))); if (e.ledger) e.ledger = []; }
+    nc.shards.forEach(x => { x.regionId = null; x.pinId = undefined; });
+    seedPhase2(nc); seedPhase3(nc); seedPhase4(nc);
+    try { for (const k of await DB.keys('images')) keepImages[k] = await DB.get('images', k); } catch (e) { console.warn(e); }
+  }
+  if (mode === 'region' && !nc.regions.some(r => r.id === rid)) Object.assign(scope, { mode: 'world', regionId: null });
+  setupScope(nc, scope);
+  await replaceCampaign(nc, keepImages);
+  UI.side = 'sig'; go('home'); toast('A new campaign begins');
+}
+
+/* ---------- options in the Codex ---------- */
+async function campaignOptionsSheet() {
+  const v = await formSheet({ title: 'Campaign options', intro: `<p class="small muted" style="margin-top:8px"><b>${esc(scopeLabel())}</b> · ${plural(C.shards.length, 'shard')} · Revelation at ${num(S().revelationShards, 5)}. Where the campaign is fought and how many shards it has are set when it begins.</p>`, fields: [
+    { key: 'agents', type: 'toggle', label: 'Imperial agents: the court agents track', value: opt('agents') },
+    { key: 'cult', type: 'toggle', label: 'Chaos cults: the cult track, cult raids and cult twists', value: opt('cult') },
+    { key: 'stayPut', type: 'toggle', label: 'The blades stay put: shards never move once hidden', value: opt('stayPut') },
+    { key: 'fixedCult', label: 'With cults off: the final battle’s cult forces count as cult step', type: 'stepper', value: num(S().finale.fixedCult, 6), min: 0, max: 20 },
+  ] });
+  if (!v) return;
+  const was = { ...C.options };
+  C.options = { agents: !!v.agents, cult: !!v.cult, stayPut: !!v.stayPut };
+  S().finale.fixedCult = Math.max(0, Math.round(num(v.fixedCult, 6)));
+  const ch = [['agents', 'Imperial agents'], ['cult', 'Chaos cults'], ['stayPut', 'The blades stay put']].filter(([k]) => !!was[k] !== C.options[k]).map(([k, l]) => `${l} ${C.options[k] ? 'on' : 'off'}`);
+  if (ch.length) chron(null, 'note', `The campaign’s rules changed: ${ch.join(', ')}.`);
+  save(); render(); toast('Saved');
+}
+
+/* ---------- Mordheim warbands ---------- */
+const WL = (n, name) => ({ n, name });
+const WT = (turn, n, name) => ({ turn, n, name });
+const WB = (id, name, core, later, notes = '', weight = 1) => ({ id, name, weight, core, later, notes });
+const DEFAULT_WARBANDS = {
+  beasts: [
+    WB('wb-wargor', 'The Wargor’s Raiders', [WL(1, 'Wargor chieftain'), WL(2, 'Gors with great weapons'), WL(3, 'Ungors with bows'), WL(1, 'Chaos Warhound')],
+      [WT(6, 2, 'Gors with hand weapon and shield'), WT(12, 1, 'Bestigor'), WT(18, 2, 'Chaos Warhounds')]),
+    WB('wb-ungor', 'The Ungor Rabble', [WL(1, 'Ungor halfhorn'), WL(4, 'Ungors with spears'), WL(2, 'Ungor raiders with bows'), WL(2, 'Chaos Warhounds')],
+      [WT(6, 1, 'Gor with great weapon'), WT(12, 3, 'Ungors with spears'), WT(18, 1, 'Wargor')]),
+    WB('wb-bray', 'The Bray-shaman’s Herd', [WL(1, 'Bray-shaman'), WL(3, 'Gors with paired weapons'), WL(2, 'Ungors with bows')],
+      [WT(8, 1, 'Chaos Warhound'), WT(14, 2, 'Bestigors'), WT(20, 1, 'Minotaur')], 'The shaman is the leader. If he falls, the herd tests to scatter.'),
+  ],
+  chaos: [
+    WB('wb-retinue', 'The Champion’s Retinue', [WL(1, 'Exalted Champion'), WL(2, 'Chaos Warriors'), WL(4, 'Chaos Marauders')],
+      [WT(6, 2, 'Marauders with flails'), WT(12, 1, 'Chaos Warrior with halberd'), WT(18, 1, 'Chaos Spawn')]),
+    WB('wb-raiders', 'Marauder Raiding Party', [WL(1, 'Marauder Chieftain'), WL(6, 'Chaos Marauders'), WL(2, 'Chaos Warhounds')],
+      [WT(8, 2, 'Chaos Warriors'), WT(14, 1, 'Chaos Spawn'), WT(20, 1, 'Exalted Champion')]),
+    WB('wb-cultists', 'The Daemon’s Cultists', [WL(1, 'Aspiring Champion'), WL(6, 'Cultists (Marauders)')],
+      [WT(6, 2, 'Cultists (Marauders)'), WT(10, 1, 'Chaos Spawn'), WT(16, 2, 'Chaos Warriors')], 'Robed fanatics who serve the daemon that shattered the blade.'),
+  ],
+  orcs: [
+    WB('wb-snatchas', 'Night Goblin Snatchas', [WL(1, 'Night Goblin Boss'), WL(6, 'Night Goblins with spears'), WL(3, 'Night Goblins with bows')],
+      [WT(6, 1, 'Night Goblin Shaman'), WT(10, 1, 'Night Goblin Fanatic'), WT(16, 1, 'Troll')], 'Fanatics are hidden among the spearmen until released.'),
+    WB('wb-boyz', 'Orc Boyz Mob', [WL(1, 'Orc Big Boss'), WL(5, 'Orc Boyz'), WL(2, 'Orc Arrer Boyz')],
+      [WT(6, 1, 'Orc Shaman'), WT(12, 3, 'Orc Boyz'), WT(18, 1, 'Troll')]),
+    WB('wb-warlord', 'Da Warlord’s Ladz', [WL(1, 'Orc Warlord'), WL(4, 'Orc Boyz with big choppas')],
+      [WT(8, 3, 'Night Goblins'), WT(14, 1, 'Troll'), WT(20, 1, 'Orc Shaman')]),
+  ],
+  undead: [
+    WB('wb-coven', 'Coven of the Night', [WL(1, 'Vampire'), WL(4, 'Crypt Ghouls'), WL(4, 'Zombies')],
+      [WT(6, 3, 'Zombies'), WT(12, 1, 'Cairn Wraith'), WT(18, 1, 'Varghulf')]),
+    WB('wb-ghouls', 'The Ghoul Pack', [WL(1, 'Crypt Ghast'), WL(6, 'Crypt Ghouls')],
+      [WT(8, 1, 'Tomb Banshee'), WT(14, 2, 'Crypt Ghouls'), WT(18, 1, 'Varghulf')]),
+    WB('wb-shamblers', 'The Necromancer’s Shamblers', [WL(1, 'Necromancer'), WL(10, 'Zombies')],
+      [WT(6, 1, 'Tomb Banshee'), WT(12, 5, 'Zombies'), WT(16, 1, 'Cairn Wraith')], 'Kill the Necromancer and the dead fall still at the end of the turn.'),
+  ],
+  bandits: [
+    WB('wb-cutthroats', 'Cutthroats of the Road', [WL(1, 'Bandit Chief'), WL(4, 'Cutthroats'), WL(3, 'Bandits with bows')],
+      [WT(6, 1, 'Thug with great weapon'), WT(12, 2, 'Cutthroats'), WT(18, 1, 'Mercenary Champion')]),
+    WB('wb-deserters', 'The Deserters', [WL(1, 'Brigand Sergeant'), WL(5, 'Deserters (Free Company)'), WL(2, 'Handgunners')],
+      [WT(8, 2, 'War dogs'), WT(14, 2, 'Deserters (Free Company)'), WT(20, 1, 'Pistolier')]),
+  ],
+  dwarfs: [
+    WB('wb-grudge', 'The Grudge-bearers', [WL(1, 'Dwarf Thane'), WL(4, 'Dwarf Warriors'), WL(2, 'Handgunners')],
+      [WT(6, 1, 'Troll Slayer'), WT(12, 2, 'Miners'), WT(18, 1, 'Engineer with pistol')]),
+    WB('wb-miners', 'The Miners’ Delve', [WL(1, 'Mining Prospector'), WL(4, 'Miners'), WL(1, 'Troll Slayer')],
+      [WT(8, 2, 'Dwarf Warriors'), WT(14, 2, 'Handgunners'), WT(20, 1, 'Dwarf Thane')], 'Miners may deploy anywhere at least 12" from the enemy, after the enemy deploys.'),
+  ],
+  cathay: [
+    WB('wb-jade', 'The Jade Patrol', [WL(1, 'Jade Officer'), WL(4, 'Jade Warriors'), WL(2, 'Crane Gunners')],
+      [WT(6, 3, 'Peasant Levy'), WT(12, 1, 'Strategist'), WT(18, 2, 'Celestial Dragon Guard')]),
+    WB('wb-envoy', 'The Envoy’s Escort', [WL(1, 'Strategist'), WL(3, 'Celestial Dragon Guard'), WL(2, 'Peasant Levy with crossbows')],
+      [WT(8, 2, 'Jade Warriors'), WT(14, 2, 'Crane Gunners'), WT(20, 1, 'Lord Magistrate')]),
+  ],
+};
+function seedPhase41(c) {
+  const t = c.tables = c.tables || {};
+  if (!t.warbands || typeof t.warbands !== 'object' || Array.isArray(t.warbands)) t.warbands = {};
+  for (const k in FACTIONS) if (!Array.isArray(t.warbands[k])) t.warbands[k] = clone(DEFAULT_WARBANDS[k] || []);
+  if (!c.options || typeof c.options !== 'object') c.options = { ...OPT_DEFAULTS };
+  for (const k in OPT_DEFAULTS) if (typeof c.options[k] !== 'boolean') c.options[k] = OPT_DEFAULTS[k];
+  if (!c.scope || typeof c.scope !== 'object') c.scope = { mode: 'world', regionId: null };
+  if (c.settings && c.settings.finale && c.settings.finale.fixedCult === undefined) c.settings.finale.fixedCult = 6;
+  return c;
+}
+function warbandList(fac, extra = 0, fewer = 0) {
+  const pool = ((C.tables.warbands || {})[fac] || []).filter(w => w && Array.isArray(w.core) && w.core.length && num(w.weight, 1) > 0);
+  if (!pool.length) return null;
+  const w = wpick(pool, x => num(x.weight, 1));
+  const lines = [], add = (l, o = {}) => {
+    const n = Math.max(1, Math.round(num(l.n, 1))), same = !o.extra && lines.find(x => x.name === l.name && !x.extra && x.joined === o.joined);
+    if (same) same.n += n; else lines.push({ name: l.name, n, pts: 0, ...o });
+  };
+  w.core.forEach(l => add(l, { leader: !lines.length }));
+  const later = (w.later || []).filter(l => l && l.name).slice().sort((a, b) => num(a.turn) - num(b.turn));
+  later.filter(l => C.turn >= num(l.turn)).forEach(l => add(l, { joined: num(l.turn) }));
+  const next = later.find(l => C.turn < num(l.turn));
+  if (extra) { if (next) add(next, { extra: true }); else { const c = pickOne(lines.filter(x => !x.leader)) || lines[0]; lines.push({ name: c.name, n: 1, pts: 0, extra: true }); } }
+  if (fewer) { const c = lines.filter(x => !x.leader && !x.extra && x.n > 1).sort((a, b) => b.n - a.n)[0]; if (c) { c.n -= 1; c.fewer = true; } }
+  return { warband: w.name, notes: w.notes || '', next: next && !extra ? `${next.n} × ${next.name} (turn ${num(next.turn)})` : '', lines, total: 0 };
+}
+function warbandHtml(en) {
+  const n = en.lines.reduce((a, l) => a + (l.n || 1), 0);
+  return `<p class="small" style="margin:4px 0"><b>${esc(en.warband)}</b> · ${n} models</p>
+    <div class="elist">${en.lines.map(l => `<div class="el ${l.extra ? 'ex' : ''}"><span class="grow">${l.n} × ${esc(l.name)}${l.leader ? ' <span class="muted">(leader)</span>' : ''}${l.extra ? ' <b>(joins early)</b>' : ''}${l.fewer ? ' <span class="muted">(one fewer)</span>' : ''}</span>${l.joined ? `<span class="muted small">joined turn ${l.joined}</span>` : ''}</div>`).join('')}</div>
+    ${en.notes ? `<p class="small flavour" style="margin:6px 0 0">${esc(en.notes)}</p>` : ''}
+    <div class="hint">A warband from Codex → Mordheim warbands.${en.next ? ` It grows with the campaign: next to join is ${esc(en.next)}.` : ''}</div>`;
+}
+function parseLines(txt, later) {
+  return String(txt || '').split('\n').map(s => s.trim()).filter(Boolean).map(s => {
+    if (later) { const m = s.match(/^(?:turn\s*)?(\d+)\s*[:\-–]\s*(\d+)\s*[x×]?\s*(.+)$/i); return m ? WT(+m[1], +m[2], m[3].trim()) : null; }
+    const m = s.match(/^(\d+)\s*[x×]?\s*(.+)$/i); return m ? WL(+m[1], m[2].trim()) : WL(1, s);
+  }).filter(Boolean);
+}
+function warbandsSheet() {
+  openSheet({ title: 'Mordheim warbands', html: `<p class="small muted" style="margin-top:8px">Mordheim-scale battles draw their opposition from these warbands instead of the opposition lists. Each warband has a core, and reinforcements that join as the campaign reaches later turns.</p>
+    ${Object.entries(FACTIONS).map(([k, f]) => `<button class="pick" data-f="${k}"><div class="row between"><b>${esc(f.label)}</b><span class="small">${plural(((C.tables.warbands || {})[k] || []).length, 'warband')}</span></div><div class="muted">${((C.tables.warbands || {})[k] || []).map(w => esc(w.name)).join(' · ') || 'None: the opposition list is used instead'}</div></button>`).join('')}`,
+    onMount: sh => sh.body.addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; sh.close(); setTimeout(() => warbandTable(b.dataset.f), 30); }) });
+}
+function warbandTable(fac) {
+  tableEditor({ title: `${FACTIONS[fac].label}: warbands`, get: () => C.tables.warbands[fac],
+    intro: `<p class="small muted">One is picked at random for each Mordheim battle against the ${esc(FACTIONS[fac].label)} (higher weight = more often). With none here, the opposition list is used.</p>`,
+    summary: w => `<div class="row between"><b>${esc(w.name)}</b><span class="small">w ${w.weight}</span></div><div class="muted">${(w.core || []).map(l => `${l.n} ${esc(l.name)}`).join(', ')}${(w.later || []).length ? ` · then ${(w.later || []).map(l => `T${l.turn}: ${l.n} ${esc(l.name)}`).join(', ')}` : ''}</div>`,
+    blank: () => WB(uid('wb'), 'New warband', [], []),
+    edit: async (w, isNew) => {
+      const v = await formSheet({ title: isNew ? 'New warband' : w.name, fields: [
+        { key: 'name', label: 'Name', value: w.name },
+        { key: 'core', label: 'Core models, one line each (leader first)', type: 'textarea', value: (w.core || []).map(l => `${l.n} ${l.name}`).join('\n'), hint: 'e.g. 2 Gors with great weapons' },
+        { key: 'later', label: 'Reinforcements: turn, then models', type: 'textarea', value: (w.later || []).map(l => `${l.turn}: ${l.n} ${l.name}`).join('\n'), hint: 'e.g. 12: 1 Bestigor (joins from campaign turn 12)' },
+        { key: 'notes', label: 'Notes', type: 'textarea', value: w.notes || '' },
+        { key: 'weight', label: 'Weight', type: 'stepper', value: num(w.weight, 1), min: 0, max: 20 }, ...delField(isNew)] });
+      if (!v) return null; if (v.remove) return 'delete';
+      const core = parseLines(v.core, false);
+      if (!v.name.trim() || !core.length) { toast('A warband needs a name and at least one model'); return null; }
+      return { ...w, name: v.name.trim(), core, later: parseLines(v.later, true), notes: v.notes.trim(), weight: Math.max(0, Math.round(num(v.weight, 1))) };
+    } });
+}
+
+Object.assign(ACT, { newCampaign: newCampaignFlow, setOptions: campaignOptionsSheet, setWarbands: warbandsSheet });
 
 
 const setTopH = () => { try { document.documentElement.style.setProperty('--toph', $('#top').offsetHeight + 'px'); } catch (e) {} };
