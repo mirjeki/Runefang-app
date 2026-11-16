@@ -200,6 +200,78 @@ details>summary{min-height:44px;display:flex;align-items:center;cursor:pointer;f
 #toast.show{opacity:1;transform:translateX(-50%)}
 .empty{text-align:center;color:var(--muted);padding:18px 8px;font-style:italic}
 .note-box{background:#fbf2d9;border:1px dashed var(--line);border-radius:10px;padding:10px 12px;font-size:.92rem}
+
+/* ---------- phase 2: maps ---------- */
+.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle}
+.dng{display:inline-flex;gap:3px;vertical-align:middle}
+.dng i{width:9px;height:9px;transform:rotate(45deg);border:1.5px solid var(--seal);background:transparent;display:inline-block}
+.dng i.on{background:var(--seal)}
+.mapframe{position:relative;height:min(58vh,560px);margin:10px 0 0;border-radius:12px;overflow:hidden;border:3px double #b9913f;box-shadow:0 2px 8px rgba(60,30,5,.35)}
+.mapframe .mv{position:absolute;inset:0}
+.mapscreen{position:fixed;left:0;right:0;top:var(--toph,58px);bottom:calc(var(--navh) + var(--safe-b));display:flex;flex-direction:column;z-index:5;background:var(--parch)}
+.ms-head{display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:2px solid var(--line);background:linear-gradient(#f4e7c6,#ead8ac)}
+.ms-head h2{font-family:'Unifraktur',serif;font-weight:normal;font-size:1.4rem;line-height:1.1;color:var(--seal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ms-body{position:relative;flex:1;min-height:0}
+.ms-body .mv{position:absolute;inset:0}
+.mv{overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;
+  background:#4a3420 radial-gradient(ellipse at 50% 40%,#6b4d2c,#2e1f10 75%)}
+.mv.dragging{cursor:grabbing}
+.mv.loading::after{content:'Unrolling the map…';position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);color:#f3e1b4;font-style:italic;background:rgba(30,18,8,.7);padding:8px 14px;border-radius:10px}
+.mv-stage{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+.mv-img{display:block;max-width:none;pointer-events:none;-webkit-user-drag:none;user-select:none}
+.mv-blank{background-color:#ecdcb4;background-image:linear-gradient(rgba(122,96,64,.18) 1px,transparent 1px),linear-gradient(90deg,rgba(122,96,64,.18) 1px,transparent 1px);box-shadow:inset 0 0 120px rgba(110,70,25,.45)}
+.mv-msg{position:absolute;left:12px;right:12px;top:50%;transform:translateY(-50%);text-align:center;color:var(--ink2);font-style:italic;pointer-events:none;text-shadow:0 1px 0 #fff6dc;font-size:1rem}
+.mv-trail{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.mv-trail polyline{fill:none;stroke-dasharray:.01 11;stroke-linecap:round;stroke-linejoin:round}
+.mv-trail .tr-under{stroke:#1b1108;stroke-width:8;opacity:.85}
+.mv-trail .tr{stroke-width:4.5}
+.mv-ov{position:absolute;inset:0;pointer-events:none}
+.mk{position:absolute;left:0;top:0;width:0;height:0;will-change:transform}
+.pin{position:absolute;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;border:2px solid #fbefd0;box-shadow:0 1px 3px rgba(0,0,0,.6),0 0 0 1px rgba(40,20,5,.6);display:flex;align-items:center;justify-content:center;color:#fff8e0}
+.pin svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pin.static{position:relative;margin:0;flex:none}
+.pin.static.sm{width:26px;height:26px}
+.pseal{position:absolute;right:-9px;top:-9px;width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#c63a30,#6e1210);color:#ffe9b8;font-size:11px;line-height:18px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.6)}
+.plabel{position:absolute;left:0;top:16px;transform:translateX(-50%);white-space:nowrap;font-size:12px;font-weight:700;padding:1px 6px;border-radius:6px;background:rgba(251,243,220,.92);color:var(--ink);border:1px solid var(--line);display:none;box-shadow:0 1px 2px rgba(0,0,0,.3)}
+.mv-labels .plabel,.mk.lift .plabel,.mk.moving .plabel{display:block}
+.mk.lift .pin{transform:scale(1.35);box-shadow:0 6px 12px rgba(0,0,0,.55),0 0 0 3px #d6ad2b}
+.mk.moving .pin{box-shadow:0 0 0 4px #d6ad2b,0 1px 3px rgba(0,0,0,.6);animation:pulse 1s infinite alternate}
+@keyframes pulse{to{transform:scale(1.2)}}
+.mk.ghost .pin{opacity:.85;box-shadow:0 0 0 4px rgba(214,173,43,.9)}
+.setup .mk-pin .pin{border-color:#ffd75a}
+.mk-token{z-index:2}
+.token{position:absolute;left:calc(var(--off,0px) - 14px);top:-50px;width:28px;height:34px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.7))}
+.token .shield{width:28px;height:34px}
+.token.sm{left:calc(var(--off,0px) + 6px);top:-36px;width:20px;height:25px}
+.token.sm .shield{width:20px;height:25px}
+.token.sm::after{display:none}
+.token::after{content:'';position:absolute;left:12px;top:33px;width:4px;height:6px;background:#2a1b0e}
+.hot{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;border:2px solid #fbefd0;
+  background:radial-gradient(circle at 35% 30%,#d24a3c,#7b1714);box-shadow:0 1px 3px rgba(0,0,0,.6),0 0 0 1px rgba(40,20,5,.6)}
+.hot::after{content:'';position:absolute;inset:5px;border-radius:50%;border:1.5px solid rgba(255,233,184,.7)}
+.mk-hot.far .hot{background:radial-gradient(circle at 35% 30%,#8c6ab0,#3d2558)}
+.mk-hot .plabel{top:14px}
+.mv-tools{position:absolute;left:10px;right:10px;bottom:10px;display:flex;justify-content:space-between;align-items:flex-end;pointer-events:none;z-index:3}
+.mv-tools>*{pointer-events:auto}
+.mv-tools>div:empty{pointer-events:none}
+.zoomstack{display:flex;flex-direction:column;gap:8px}
+.zb{background:rgba(247,237,210,.95);box-shadow:0 2px 5px rgba(0,0,0,.4);font-size:1.6rem;line-height:1}
+.setupbtn{box-shadow:0 2px 6px rgba(0,0,0,.45);min-width:120px}
+.ms-banner{position:absolute;left:10px;right:10px;top:10px;z-index:3;background:rgba(42,27,14,.92);color:#f8e8c0;border:1px solid #b9913f;border-radius:12px;padding:10px 12px;font-size:.95rem;display:flex;align-items:center;gap:10px;justify-content:space-between}
+.ms-banner .btn{flex:none}
+.region-card .thumb{width:64px;height:64px;flex:none;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#e8d5a8;display:flex;align-items:center;justify-content:center;font-size:.72rem;color:var(--muted);font-style:italic}
+.region-card .thumb img{width:100%;height:100%;object-fit:cover}
+.thumbbig{width:84px;height:84px;object-fit:cover;border-radius:8px;border:1px solid var(--line);flex:none}
+.rumour{display:flex;align-items:center;gap:6px;margin-top:4px;color:var(--ink2)}
+.rumour .mini{width:14px;height:19px;display:inline-block;flex:none}
+.rumour .mini svg{width:100%;height:100%}
+.pick.rec{border-color:var(--seal);box-shadow:0 0 0 2px rgba(142,27,27,.25)}
+.warnbox{border-color:var(--warn);background:#fbecd0;margin:8px 0}
+.ex-loc{display:flex;align-items:center;gap:4px;margin-top:6px;font-size:.92rem;color:var(--ink2)}
+.ex-loc .ic{width:18px;height:18px;color:var(--seal)}
+body.mapmode{overflow:hidden}
+.shards{grid-template-columns:repeat(7,minmax(0,1fr))}
+.shard svg{display:block}
 </style>
 </head>
 <body>
@@ -220,8 +292,8 @@ details>summary{min-height:44px;display:flex;align-items:center;cursor:pointer;f
    RUNEFANG — Old World campaign companion
    Phase 1: data model, storage, export/import, rosters, gold
    ===================================================================== */
-const APP_VERSION = '1.0 · phase 1';
-const SCHEMA = 1;
+const APP_VERSION = '2.0 · phase 2';
+const SCHEMA = 2;
 const FORMAT = 'runefang-campaign';
 
 /* ---------- tiny helpers ---------- */
@@ -319,6 +391,188 @@ const SHARD_NAMES = [
   'The Point of Ending',
 ];
 
+/* =====================================================================
+   PHASE 2 SEED: regions, pins, shard sites (all editable in-app)
+   Pin positions are fractions (0–1) of the map image width / height,
+   read by eye from the campaign's region maps. Nudge them in Pin Setup.
+   ===================================================================== */
+const TERRAIN = {
+  town:      { label: 'Town',           setup: 'A cluster of buildings and walls in the centre, streets between them, scattered fences and gardens at the edges.' },
+  village:   { label: 'Village',        setup: 'Three or four cottages, a well, fields with fences and hedges, an orchard or copse on one flank.' },
+  fortress:  { label: 'Fortress',       setup: 'A walled keep or tower on one table edge, a gatehouse road leading to it, rubble and earthworks in front.' },
+  forest:    { label: 'Forest',         setup: 'Lots of woods: four to six woodland pieces, narrow clearings and a winding track through the trees.' },
+  hills:     { label: 'Hills',          setup: 'Two or three large hills, a rocky outcrop, open ground between; a ruined watchtower on one crest.' },
+  river:     { label: 'River crossing', setup: 'A river down the middle of the table with a bridge and a ford; reeds and marsh along the banks.' },
+  road:      { label: 'Road',           setup: 'A road running table edge to table edge, a waystone and a wrecked wagon, hedges or woods flanking it.' },
+  marsh:     { label: 'Marsh',          setup: 'Several marsh and pool pieces, a few dead trees, a causeway of firm ground through the middle.' },
+  ruins:     { label: 'Ruins',          setup: 'Broken walls and toppled columns across the centre, a graveyard or shrine, rubble giving cover.' },
+  mountains: { label: 'Mountains',      setup: 'A narrow pass between impassable crags, boulders and scree slopes, a high ledge for war machines.' },
+  desert:    { label: 'Desert',         setup: 'Open dunes and rocky ridges, a dry oasis or ruined tomb in the centre, little cover.' },
+  jungle:    { label: 'Jungle',         setup: 'Dense jungle pieces everywhere, a ziggurat or idol in a clearing, a stream cutting across.' },
+};
+const FACTIONS = {
+  undead:  { label: 'Vampire Counts',    color: '#4b3b6b' },
+  beasts:  { label: 'Beasts of Chaos',   color: '#6b4a1f' },
+  chaos:   { label: 'Warriors of Chaos', color: '#2f2f2f' },
+  orcs:    { label: 'Orcs & Goblins',    color: '#3f6b23' },
+  bandits: { label: 'Bandits',           color: '#7a5a3a' },
+  dwarfs:  { label: 'Dwarfs',            color: '#2b5f78' },
+  cathay:  { label: 'Grand Cathay',      color: '#a3241c' },
+};
+const slug = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+// [id, name, short, aspect(w/h), danger, far, home, hot{x,y on Old World map}, factions, blurb, pins[name, terrain, faction, x%, y%]]
+const REGION_SEED = [
+  ['stirland', 'Stirland', 'Stirland', 1.404, 1, false, 'sig', [50.5, 43.5], { bandits: 3, undead: 2, beasts: 2, orcs: 1, chaos: 1, dwarfs: 1 },
+   'Rolling backwater hills along the Stir and the Aver. The Sigmarite Expedition musters at Wurtbad, with Sylvania’s shadow at its back.',
+   [['Wurtbad', 'town', '', 42.2, 25.9], ['Marburg', 'town', '', 61.5, 22], ['Siegfriedhof', 'village', 'undead', 86.2, 23], ['Hunger Wood', 'forest', 'beasts', 88.5, 32],
+    ['Haunted Hills', 'hills', 'undead', 86, 45], ['Leicheberg', 'town', 'undead', 80.8, 52.7], ['Black Run', 'river', 'undead', 82.7, 58.7], ['Leithag Hills', 'hills', 'orcs', 68.5, 38.9],
+    ['Nattern Forest', 'forest', 'beasts', 11.5, 36.7], ['Blutdorf', 'village', 'bandits', 16, 48], ['Stirhugel', 'hills', '', 31.5, 47.5], ['Wolfsbach', 'river', '', 26.4, 54.5],
+    ['Franzen', 'river', '', 38, 61.8], ['Kelham', 'village', '', 46.5, 56], ['Halstedt', 'town', '', 53, 52.6], ['The Moot', 'village', '', 65.4, 65.9],
+    ['Swartzhafen', 'town', '', 82, 65.9], ['Drebkau & the Zhufbar Road', 'road', 'dwarfs', 83.5, 72], ['Sigmaringen', 'town', '', 71.5, 86.9]]],
+  ['middenheim', 'Middenland & the Drakwald', 'Middenland', 1.405, 1, false, 'ulr', [46.5, 35], { beasts: 4, chaos: 2, bandits: 2, orcs: 1, undead: 1 },
+   'The City of the White Wolf atop the Fauschlag, ringed by the endless Drakwald. Home of the Ulrican Expedition, and of the beastherds that stalk it.',
+   [['Middenheim', 'fortress', '', 36.5, 48.1], ['Arenburg', 'town', '', 33.5, 28.6], ['Norderingen', 'village', '', 20.8, 28.6], ['Elsterweld', 'town', '', 16.9, 41.6],
+    ['Great North Road', 'road', 'bandits', 26.5, 42.7], ['Drakwald', 'forest', 'beasts', 21.2, 49.7], ['Hunxe', 'ruins', 'beasts', 22.7, 58.9], ['Jagerhausen', 'town', '', 12.7, 70.3],
+    ['Schoninghagen', 'town', '', 24.6, 75.7], ['Grevenfeld', 'town', '', 37.5, 68.1], ['Immelsheld', 'village', '', 42.8, 70.3], ['Warrenburg', 'village', '', 42.7, 41.1],
+    ['Lindenhem', 'ruins', 'undead', 45.8, 32.1], ['Forest of Shadows', 'forest', 'beasts', 53.8, 16.2], ['Blackstone Hills', 'hills', 'orcs', 66.9, 31.4],
+    ['Mining Colony & Prison', 'fortress', 'bandits', 75, 47], ['The Ancient Oak', 'forest', 'beasts', 58.5, 69.2], ['Old Forest Road', 'road', 'bandits', 50, 83.8],
+    ['Holzbeck', 'village', '', 58.5, 82.2], ['Middle Mountains', 'mountains', 'chaos', 86.9, 59.5]]],
+  ['sylvania', 'Sylvania', 'Sylvania', 1.415, 4, false, null, [55, 46], { undead: 5, beasts: 2, bandits: 1, chaos: 1 },
+   'Misty forests, cursed moors and the castles of the von Carsteins. The dead do not stay buried here.',
+   [['Castle Drakenhof', 'fortress', 'undead', 52.9, 62.5], ['Drakenhof', 'town', 'undead', 53.2, 55.5], ['Waldenhof', 'town', 'undead', 57.3, 37], ['Templehof', 'town', 'undead', 28.5, 34.8],
+    ['Vanhaldenschlosse', 'fortress', 'undead', 26.5, 41.3], ['Hunger Wood', 'forest', 'beasts', 17.7, 30], ['Eisigfurt', 'river', '', 32.7, 21.2], ['Grim Wood', 'forest', 'beasts', 37.7, 30.2],
+    ['Grim Moor', 'marsh', 'undead', 37, 38.8], ['Hel Fenn', 'marsh', 'undead', 46.5, 28], ['Mikalsdorf', 'village', '', 46, 33.7], ['Nachthafen', 'village', 'undead', 45.4, 47.9],
+    ['Teufelheim', 'village', 'undead', 70, 47.9], ['Tangled Wood', 'forest', 'beasts', 77, 51], ['Dark Moor', 'marsh', 'undead', 67, 55.7], ['Haunted Hills', 'hills', 'undead', 35.4, 63],
+    ['Naubonum', 'ruins', 'bandits', 18.8, 63.6], ['Leicheberg', 'town', '', 9.8, 59.3], ['Ghoul Wood', 'forest', 'undead', 22.3, 82], ['World’s Edge Foothills', 'mountains', 'orcs', 77, 82.7]]],
+  ['ostermark', 'Ostermark & Mordheim', 'Ostermark', 1.414, 3, false, null, [55, 39], { chaos: 3, undead: 2, beasts: 2, bandits: 2, orcs: 1 },
+   'Bleak moors and the shattered City of the Damned. Wyrdstone still glitters in Mordheim’s rubble, and worse things dig for it.',
+   [['Bechafen', 'town', '', 36.9, 17.2], ['Gryphon Wood', 'forest', 'beasts', 30.8, 22.8], ['Kubel', 'village', '', 25, 30], ['Sitlakes', 'village', '', 27.5, 44],
+    ['Bleak Moors', 'marsh', 'undead', 37.3, 44], ['Mordheim', 'ruins', 'chaos', 25.6, 71.3], ['Bissendorf', 'village', 'bandits', 13, 58.5], ['Zeisholz', 'town', '', 48.8, 37.5],
+    ['Elbing', 'river', '', 53, 46], ['Burgenhof', 'town', '', 48.6, 63.1], ['Fichetal', 'village', 'bandits', 55.4, 65.2], ['Essen', 'village', '', 42.7, 77.5],
+    ['Eerie Downs', 'hills', 'undead', 54.2, 81], ['Nachtdorf', 'village', 'undead', 65.8, 74], ['Karak Kadrin', 'fortress', 'dwarfs', 72.3, 83.5], ['The Veldt', 'hills', 'beasts', 64.2, 36.5],
+    ['Rheden', 'river', '', 62.2, 21.4], ['Rundespitze', 'town', '', 73.7, 45.9], ['Weiler', 'village', 'orcs', 76.5, 50.2]]],
+  ['averland', 'Averland', 'Averland', 1.415, 2, false, null, [51, 47.5], { orcs: 3, bandits: 2, dwarfs: 2, beasts: 1, undead: 1 },
+   'Cattle country on the Upper Reik and the Aver, guarding the Black Fire Pass road. Greenskins come down from the Black Mountains every spring.',
+   [['Averheim', 'town', '', 39.2, 27.7], ['Streissen', 'town', '', 33.5, 22.8], ['Lengenfeld', 'village', '', 20.4, 18.5], ['Colmfahre', 'village', 'bandits', 13.5, 38.3],
+    ['Wuppertal', 'town', '', 23.5, 45.7], ['Loningbruck', 'river', '', 30, 53.3], ['Heideck', 'town', '', 42.3, 39.7], ['Bernloch', 'town', '', 42.2, 49.5],
+    ['Agbeiten', 'river', '', 39.6, 60.4], ['Hochsleben', 'town', '', 51, 66.4], ['Grenzstadt', 'fortress', 'orcs', 63.5, 70.7], ['Merfeld', 'village', '', 49.2, 81],
+    ['Karak Angazhar', 'fortress', 'dwarfs', 59.2, 86], ['Old Dwarf Road Watchtower', 'ruins', 'dwarfs', 57.7, 56], ['Pfungzig', 'town', '', 61.8, 34], ['Barliton', 'river', '', 68, 25.6],
+    ['Einsamholz', 'town', '', 75.4, 29.4], ['Sleepy Wood', 'forest', 'beasts', 85.4, 29.4], ['Dreifussen', 'town', 'orcs', 86.5, 40.8], ['Black Mountains', 'mountains', 'orcs', 77.7, 82.7]]],
+  ['hochland', 'Hochland', 'Hochland', 0.707, 2, false, null, [49.5, 37.5], { beasts: 3, orcs: 2, bandits: 2, chaos: 1 },
+   'Hunters’ country: deep forest, the Weiss Hills and the Middle Mountains to the north, where the beastherds gather in the long winters.',
+   [['Hergig', 'town', '', 83.2, 67.3], ['Holzbeck', 'village', '', 15.2, 14.2], ['Hovelhof', 'village', '', 37.5, 18.3], ['Ahresdorf', 'village', '', 37.5, 26.2],
+    ['Esk', 'fortress', 'orcs', 58.2, 22.3], ['Koerin', 'village', '', 65.8, 27.3], ['Breder', 'village', 'beasts', 78.6, 29.2], ['Middle Mountains', 'mountains', 'chaos', 69.6, 12.7],
+    ['Hochland Deepwood', 'forest', 'beasts', 32.6, 34.6], ['Bergendorf', 'village', 'bandits', 36.5, 45.4], ['Weiss Hills', 'hills', 'orcs', 51.7, 44.2], ['Fort Schippel', 'fortress', '', 62.2, 48.1],
+    ['Heegerdorf', 'village', '', 40.8, 48.8], ['Flaschfurt', 'river', '', 33.2, 59.2], ['Barwedel', 'village', 'beasts', 47.3, 63.8], ['Fort Denkh', 'fortress', '', 19, 68.5],
+    ['Luthorst', 'village', '', 34.3, 73.8], ['Langweis', 'village', '', 62.9, 71.9], ['Tussenhof', 'river', '', 39.2, 85.4]]],
+  ['nordland', 'Nordland', 'Nordland', 1.415, 2, false, null, [46, 31.5], { chaos: 3, beasts: 3, bandits: 1, undead: 1 },
+   'Windswept coast on the Sea of Claws. Norse longships raid the harbours and the Laurelorn hides its own secrets.',
+   [['Salzemund', 'town', '', 59.2, 51.1], ['Laurelorn Forest', 'forest', 'beasts', 37.7, 55.5], ['Arnau', 'village', 'chaos', 13.5, 17.4], ['Hargendorf', 'village', 'chaos', 38.8, 27.7],
+    ['Dietershafen', 'town', 'chaos', 51.2, 29.4], ['Neues Emskrank', 'fortress', '', 62.7, 22.8], ['Teufelsumpf', 'marsh', 'undead', 55.4, 26.7], ['Enchanted Hills', 'hills', '', 48, 37.5],
+    ['Luftberg', 'town', '', 67.7, 41.9], ['Norden', 'town', 'chaos', 84.2, 31.6], ['Bramble Hills', 'hills', 'beasts', 80, 49], ['Silver Hills', 'hills', '', 50, 58.2],
+    ['Forest of Shadows', 'forest', 'beasts', 60, 64.2], ['Frote', 'village', 'bandits', 63.8, 74], ['Misty Hills', 'hills', '', 35.4, 65.2], ['Schadensumpf', 'marsh', 'undead', 39.2, 77.8],
+    ['Bokel', 'village', '', 28.5, 83.2], ['Hüven', 'village', '', 74.2, 51.7]]],
+  ['worlds_edge', 'World’s Edge Mountains', 'World’s Edge', 0.437, 4, false, null, [59, 48], { orcs: 5, dwarfs: 3, chaos: 1, beasts: 1 },
+   'The spine of the Old World, where the dwarf holds endure and the greenskin tribes swarm. Somewhere here a runesmith of Alaric’s line still works.',
+   [['Kislev', 'town', 'chaos', 40.8, 11.4], ['Red Eye Mountain', 'mountains', 'orcs', 54.5, 10.8], ['Karak Kadrin', 'fortress', 'dwarfs', 52.7, 23.1], ['Gnashrak’s Lair', 'ruins', 'orcs', 69.4, 21.2],
+    ['Zhufbar', 'fortress', 'dwarfs', 40.8, 27.3], ['Black Water', 'marsh', 'dwarfs', 33.4, 32.3], ['Mount Gunbad', 'ruins', 'orcs', 58, 31.5], ['Black Fire Pass', 'road', 'orcs', 24.6, 34.6],
+    ['Karaz-a-Karak', 'fortress', 'dwarfs', 49.2, 35.8], ['Blackvenom Tribe', 'forest', 'orcs', 22.8, 40.4], ['Bloody Spearz Tribe', 'mountains', 'orcs', 47.5, 41.5], ['Howling Rock', 'hills', 'beasts', 80.8, 28.8],
+    ['Barak Varr', 'fortress', 'dwarfs', 21, 48.5], ['Mad Dog Pass', 'road', 'orcs', 54.5, 47.7], ['Black Crag', 'fortress', 'orcs', 40.4, 55], ['Death Pass', 'road', 'orcs', 60.6, 55.9],
+    ['Karak Eight Peaks', 'ruins', 'orcs', 36.9, 57.7], ['Karak Azul', 'fortress', 'dwarfs', 44, 59.2], ['Crooked Fang Fort', 'fortress', 'orcs', 16.7, 60.8], ['Karak Azgal', 'ruins', 'orcs', 37.8, 62.3]]],
+  ['border_princes', 'The Border Princes', 'Border Princes', 1.414, 3, false, null, [50.5, 56], { orcs: 4, bandits: 3, dwarfs: 1, undead: 1, chaos: 1 },
+   'A lawless patchwork of petty princedoms between the Black Mountains and the Badlands. Every hill has a robber-baron, every valley a warband.',
+   [['Barak Varr', 'fortress', 'dwarfs', 61.5, 49.5], ['Somjek', 'village', 'orcs', 55.6, 47.3], ['Matorea', 'town', '', 45.8, 50], ['Mortensholm', 'town', '', 42.3, 30.4],
+    ['Brovska', 'town', '', 67.7, 31.5], ['Vale of Webs', 'forest', 'orcs', 77.7, 29.3], ['Zenres', 'village', 'orcs', 74.2, 35.9], ['Black Mountains', 'mountains', 'orcs', 53.8, 15.2],
+    ['Zvorak', 'town', 'bandits', 23.8, 46.2], ['Kharnos Forest', 'forest', 'beasts', 27.7, 43.5], ['Thessos', 'river', '', 29.6, 56.5], ['Myrmidens', 'town', 'bandits', 16.5, 81.5],
+    ['Stretto Pass', 'road', 'bandits', 8.8, 64.7], ['Blood River', 'river', 'orcs', 73, 51], ['The Badlands', 'hills', 'orcs', 60.8, 69.6], ['Stinking Geysers', 'marsh', 'chaos', 50.8, 72.8],
+    ['Mount Bloodhorn', 'mountains', 'beasts', 51.2, 80.4], ['Skull-takerz Camp', 'fortress', 'orcs', 66.2, 79.3], ['Karak Eight Peaks', 'ruins', 'orcs', 85, 72], ['Death Pass', 'mountains', 'orcs', 89, 64]]],
+  ['bretonnia', 'Bretonnia', 'Bretonnia', 0.707, 2, false, null, [33, 41], { beasts: 2, undead: 2, orcs: 2, bandits: 2 },
+   'Land of the Lady and her questing knights. Fair to look upon, but Mousillon festers and the Forest of Arden is never quiet.',
+   [['Couronne', 'town', '', 37.5, 24.2], ['L’Anguille', 'town', '', 25.2, 21.5], ['Castle Artois', 'fortress', '', 31, 31.5], ['The Pale Sisters', 'mountains', 'beasts', 46.8, 29.2],
+    ['Marienburg', 'town', 'bandits', 65.3, 28.8], ['Gisoreux', 'town', '', 47.9, 40.4], ['Forest of Arden', 'forest', 'beasts', 37.5, 39.6], ['Castle Bastonne', 'fortress', '', 47.9, 48.8],
+    ['Mousillon', 'ruins', 'undead', 31.6, 48.5], ['Massif Orcal', 'mountains', 'orcs', 55.5, 53.8], ['Grey Mountains', 'mountains', 'orcs', 70.7, 51.5], ['Castle Drachenfels', 'ruins', 'undead', 81, 46.5],
+    ['Bordeleaux', 'town', '', 28.8, 57.7], ['Aquitaine', 'town', '', 39.2, 63.8], ['Brionne', 'town', '', 29.4, 69.6], ['Castle Carcassonne', 'fortress', '', 40.8, 75.8],
+    ['Quenelles', 'town', '', 68.6, 72.3], ['Athel Loren', 'forest', 'beasts', 81.6, 67.7], ['Irrana Mountains', 'mountains', 'orcs', 12, 81.5]]],
+  ['tilea', 'Tilea', 'Tilea', 0.707, 3, false, null, [37, 57], { bandits: 4, chaos: 2, undead: 1, orcs: 1, dwarfs: 1 },
+   'Merchant city-states, mercenary companies for hire and pirates in every harbour. Gold opens every door; something gnaws beneath Skavenblight.',
+   [['Miragliano', 'town', '', 57.7, 17.3], ['Skavenblight', 'ruins', 'chaos', 27.7, 17.3], ['Blighted Marshes', 'marsh', 'chaos', 40.3, 10], ['Tobaro', 'town', '', 25, 26.5],
+    ['Ravola', 'town', '', 78.3, 12.7], ['Trantio', 'town', '', 76.2, 30.8], ['Trantine Hills', 'hills', 'bandits', 80.5, 34.6], ['Khazid Ursaz', 'fortress', 'dwarfs', 91.4, 24.6],
+    ['Remas', 'town', '', 59.3, 41.2], ['Pavona', 'town', '', 78.3, 44.6], ['Portomaggiore', 'town', 'bandits', 56.6, 61.9], ['Monte Castello', 'fortress', 'orcs', 91.4, 59.5],
+    ['Ventimiglia', 'town', '', 52.2, 74.6], ['Plain of Luccini', 'hills', '', 64.2, 78.5], ['Fortress of the Pirate King', 'fortress', 'bandits', 20.7, 74.6], ['Dwarf Hold of Sartosa', 'fortress', 'dwarfs', 23.4, 88.5],
+    ['Cave of the Damned', 'ruins', 'undead', 13, 94.2], ['Sartosa', 'town', 'bandits', 59.8, 91.2], ['Irrana Mountains', 'mountains', 'orcs', 21.8, 9.2]]],
+  ['cathay', 'Grand Cathay & the Chaos Wastes', 'Cathay', 0.885, 4, false, null, [95, 42], { cathay: 5, chaos: 3, beasts: 1, orcs: 1 },
+   'Beyond the Great Bastion lies the Celestial Empire of the Dragon. Its envoys are courteous, its armies vast, and the Wastes press against its wall.',
+   [['The Great Bastion', 'fortress', 'chaos', 51, 40], ['Snake Gate', 'fortress', 'chaos', 36, 40], ['Terracotta Graveyard', 'ruins', 'undead', 40, 41.5], ['Mountain Yagami', 'mountains', 'chaos', 20, 42.5],
+    ['Nan-Gau', 'town', 'cathay', 31.5, 44.5], ['Forests of the Serpent', 'forest', 'beasts', 43, 43], ['Celestial Mountains', 'mountains', 'cathay', 41, 50.5], ['Forests of the Moon', 'forest', 'cathay', 53, 54.5],
+    ['Shang Yang', 'town', 'cathay', 25, 56], ['Warpstone Desert', 'desert', 'chaos', 19, 55], ['Cave of Wizwall', 'ruins', 'beasts', 26.5, 58.5], ['Celestial Monastery', 'fortress', 'cathay', 31, 60],
+    ['Chimai', 'town', 'cathay', 56, 59.5], ['Nongchang', 'town', 'cathay', 50.5, 63.5], ['Hanyu Port', 'town', 'bandits', 14, 62.5], ['Wastelands of Jinshen', 'desert', 'bandits', 22, 66],
+    ['Shi Long', 'river', 'cathay', 40, 67], ['Temple of the Elemental Winds', 'ruins', 'cathay', 30, 72], ['Bamboo Crossing', 'river', 'cathay', 47.5, 74.5], ['Broken Lands of Tian Li', 'hills', 'beasts', 15, 81], ['Dai Chang', 'town', 'cathay', 69, 79.5]]],
+  ['khuresh', 'The Hinterlands of Khuresh', 'Khuresh', 0.963, 5, true, null, [94, 66], { beasts: 3, chaos: 3, undead: 2, cathay: 1 },
+   'A far land of strangling jungle and serpent-idols. Few who sail past the Gates of Calith return, and those who do will not speak of it.',
+   [['Gnawed Plateau', 'hills', 'beasts', 41.5, 10.8], ['Jungles of Chi’an', 'jungle', 'beasts', 59.1, 8.8], ['Ashur Khuat', 'town', '', 52.7, 12.7], ['Goblin Valley', 'hills', 'orcs', 53.1, 17.3],
+    ['Takhta Tulang', 'ruins', 'undead', 36.3, 18.8], ['Bleeding Obelisk', 'ruins', 'chaos', 73.1, 14.2], ['Darah Ambang', 'town', '', 62.7, 22.7], ['Plains of the Eternal Thunder', 'hills', 'chaos', 84.7, 20.8],
+    ['Haunted Gorges', 'hills', 'undead', 36.3, 27.3], ['Icon of Nagendra', 'ruins', 'chaos', 54.3, 29.6], ['City of Deliverance', 'town', '', 50.3, 36.2], ['Perang Jamji', 'town', '', 66.7, 36.2],
+    ['Temple of the First Shadow', 'ruins', 'undead', 38.3, 40], ['Drowned City of Melay', 'ruins', 'undead', 28.4, 43.1], ['The Black Nest', 'mountains', 'beasts', 50.3, 46.2], ['Deformed Idol', 'ruins', 'beasts', 40.7, 46.9],
+    ['Hitm Jurang', 'fortress', '', 52.3, 53], ['Blind Jungles', 'jungle', 'beasts', 41.5, 57.7], ['Cage of Souls', 'ruins', 'undead', 43.9, 71.2], ['Gates of Calith', 'fortress', 'chaos', 47.7, 83]]],
+  ['araby', 'Araby & the Southlands', 'Araby', 1.055, 5, true, null, [24, 84], { undead: 4, bandits: 3, chaos: 2, beasts: 1 },
+   'A far land of burning desert, tomb-cities of the dead kings and jungles beyond the mountains. Corsairs sell anything, including you.',
+   [['El-Kalabad', 'town', 'bandits', 29.2, 34.5], ['Sudenburg', 'town', '', 35.8, 37.7], ['Zarekten', 'town', 'bandits', 13, 28], ['Black Oasis', 'desert', 'bandits', 23, 26.6],
+    ['Land of the Dead', 'ruins', 'undead', 43, 21.9], ['Ka-Sabar', 'ruins', 'undead', 41.9, 33.7], ['Desert of Choices', 'desert', 'undead', 38.5, 40.8], ['Devil’s Backbone', 'mountains', 'chaos', 60.8, 23.5],
+    ['Lost Plateau', 'mountains', 'beasts', 50, 34], ['Crater of the Walking Dead', 'ruins', 'undead', 56.2, 31.7], ['DoomGlade Swamp', 'marsh', 'undead', 56.5, 28.8], ['Cursed Jungle', 'jungle', 'beasts', 63.8, 28.8],
+    ['Temple of Skulls', 'ruins', 'chaos', 62.7, 33.3], ['Golden Tower of the Gods', 'ruins', '', 53.8, 45], ['Teotiqua', 'ruins', '', 53.5, 51.1], ['Smoking Caverns of Sotek', 'mountains', 'beasts', 50, 58],
+    ['Zatlan', 'ruins', '', 40.8, 62.1], ['Jungle of the Gods', 'jungle', 'beasts', 54.6, 62.9], ['Elven Fortress', 'fortress', '', 41.9, 78.7], ['Daemon’s Gate', 'ruins', 'chaos', 63.8, 83.2]]],
+  ['albion', 'The Isle of Albion', 'Albion', 0.764, 5, true, null, [27.5, 32], { chaos: 3, beasts: 3, undead: 2, orcs: 1 },
+   'A far land wrapped in mist and ogham stones, where giants walk and the Dark Emissaries stir. Norse raiders land on its eastern shore.',
+   [['Imperial Tradetown', 'town', '', 68.5, 58.1], ['Tower of Lienog', 'fortress', '', 27.2, 45], ['Ochness', 'village', '', 38.8, 27.7], ['Citadel of Lead', 'fortress', 'chaos', 61.4, 27.7],
+    ['Plain of Battles', 'hills', 'chaos', 60.4, 22.3], ['The Lost Valley', 'hills', 'beasts', 73.5, 25.4], ['Forge of the Old Ones', 'ruins', 'chaos', 77.5, 31.5], ['The Blackmoor', 'marsh', 'chaos', 77.5, 36.2],
+    ['Beast Peaks', 'mountains', 'beasts', 50.4, 33.5], ['Giant’s Causeway', 'road', '', 37.3, 38.5], ['Giant’s Land', 'hills', 'beasts', 41.3, 45.4], ['Bel-A-Hat', 'ruins', '', 60.4, 46.9],
+    ['Pillar of Og-Agog', 'ruins', '', 52.9, 50], ['Great Bogs', 'marsh', 'undead', 74, 53.8], ['Black Forests', 'forest', 'beasts', 32.2, 55.4], ['Great Ogham', 'ruins', 'undead', 47.3, 60.8],
+    ['Native Hideouts', 'ruins', 'bandits', 23.2, 67.7], ['Isle of Wights', 'ruins', 'undead', 45.3, 75.4], ['Looterikson’s Landing', 'road', 'chaos', 82.6, 45.4], ['Muddy Point', 'marsh', 'orcs', 21.7, 83]]],
+];
+const OVERVIEW_ASPECT = 1.23;   // The Great Map of the Old World
+// shard index → [regionId, pin name]; the pin is the shard's true resting place (used by missions in phase 3)
+const SHARD_SITES = [
+  ['sylvania', 'Castle Drakenhof'], ['worlds_edge', 'Karaz-a-Karak'], ['ostermark', 'Mordheim'], ['cathay', 'Terracotta Graveyard'],
+  ['border_princes', 'Skull-takerz Camp'], ['nordland', 'Laurelorn Forest'], ['albion', 'Pillar of Og-Agog'],
+];
+const START_POS = { sig: ['stirland', 'Wurtbad'], ulr: ['middenheim', 'Middenheim'] };
+
+const pinId = (rid, name) => rid + '-' + slug(name);
+function seedRegion(row) {
+  const [id, name, short, aspect, danger, far, home, hot, factions, blurb, pins] = row;
+  return { id, name, short, aspect, danger, far, home, hot: { x: hot[0] / 100, y: hot[1] / 100 }, factions: { ...factions }, blurb, notes: '',
+    map: null, pins: pins.map(([n, t, f, x, y]) => ({ id: pinId(id, n), name: n, terrain: t, faction: f, x: x / 100, y: y / 100, notes: '', seeded: true })) };
+}
+/* Idempotent: adds anything phase 2 needs to a campaign, never removes rosters or user edits. */
+function seedPhase2(c) {
+  c.regions = Array.isArray(c.regions) ? c.regions : [];
+  if (!c.regions.length) c.regions = REGION_SEED.map(seedRegion);
+  for (const r of c.regions) {
+    r.pins = r.pins || []; r.factions = r.factions || {}; r.hot = r.hot || { x: .5, y: .5 };
+    if (r.danger == null) r.danger = 2; if (!r.aspect) r.aspect = 1.414; if (r.map === undefined) r.map = null;
+  }
+  c.overview = c.overview || { map: null, aspect: OVERVIEW_ASPECT };
+  c.missions = c.missions || [];
+  (c.shards || []).forEach((s, i) => {
+    if (!s.regionId && SHARD_SITES[i] && c.regions.some(r => r.id === SHARD_SITES[i][0])) {
+      s.regionId = SHARD_SITES[i][0]; s.pinId = pinId(...SHARD_SITES[i]);
+    }
+    if (s.pinId === undefined) s.pinId = null;
+  });
+  for (const s of SIDES) {
+    const e = c.ex[s];
+    e.trail = e.trail || [];
+    if (!e.pos) {
+      const [rid, pn] = START_POS[s]; const r = c.regions.find(x => x.id === rid); const p = r && r.pins.find(x => x.id === pinId(rid, pn));
+      e.pos = r ? { regionId: rid, pinId: p ? p.id : null } : null;
+      if (e.pos) e.trail.push({ regionId: rid, pinId: e.pos.pinId, x: p ? p.x : null, y: p ? p.y : null, turn: c.turn || 1, ts: Date.now() });
+    }
+  }
+  c.schema = Math.max(c.schema || 1, 2);
+  return c;
+}
+
 function reg(name, unitType, models, ppm, opts = {}) {
   return { id: uid('reg'), name, unitType, models, maxModels: opts.max ?? models, ppm, xp: opts.xp ?? 0, rank: 0,
            perks: [], upgrades: opts.upgrades ?? [], notes: opts.notes ?? '' };
@@ -406,6 +660,7 @@ function newCampaign(opts = {}) {
   if (opts.p2) c.ex.ulr.player = opts.p2;
   c.chronicle.push({ id: uid('ch'), ts: Date.now(), turn: 1, side: null, kind: 'story',
     text: 'The Reikland Runefang lies shattered, and Karl Franz bleeds from a daemon’s wound. Two expeditions set out to recover the scattered shards: the Sigmarite Expedition marching from Stirland, and the Ulrican Expedition from Middenland under the White Wolf’s banner. Each priest swears his vision shows the way.' });
+  seedPhase2(c);
   return c;
 }
 
@@ -432,7 +687,7 @@ function migrate(c) {
     e.regiments.forEach(r => { r.perks = r.perks || []; r.upgrades = r.upgrades || []; r.rank = r.rank || 0; r.xp = r.xp || 0; });
     e.characters.forEach(h => { h.injuries = h.injuries || []; h.xp = h.xp || 0; h.status = h.status || 'fit'; });
   }
-  // future: if (c.schema < 2) { ...seed regions...; c.schema = 2; }
+  seedPhase2(c);   // schema 1 → 2: regions, pins, shard sites, expedition positions
   return c;
 }
 
@@ -478,7 +733,7 @@ const DB = {
 
 let C = null;                       // the campaign
 let saveTimer = null, saving = false, dirty = false;
-const UI = { view: 'home', side: 'sig', ledgerAll: false, scroll: {} };
+const UI = { view: 'home', side: 'sig', ledgerAll: false, scroll: {}, mapViews: {}, regionId: null, pinSetup: false, pinMove: null, ghost: null, arrange: false, regionPushed: false };
 
 function setDot(cls, title) { const d = $('#savedot'); d.className = cls || ''; d.title = title || 'Saved'; }
 function save() {
@@ -552,7 +807,8 @@ function histOp(d) {
 window.addEventListener('popstate', () => {
   if (Sheets.skip > 0) { Sheets.skip--; return; }
   const top = Sheets.stack[Sheets.stack.length - 1];
-  if (top) removeSheet(top, undefined);
+  if (top) return removeSheet(top, undefined);
+  if (UI.view === 'region' && UI.regionPushed) { UI.regionPushed = false; go('map'); }
 });
 function openSheet({ title, html, footer, cls, onMount, onClose }) {
   const el = document.createElement('div');
@@ -563,7 +819,8 @@ function openSheet({ title, html, footer, cls, onMount, onClose }) {
   $('#sheet-root').appendChild(el);
   const sh = { el, onClose, body: $('.sh-body', el), foot: $('.sh-foot', el) };
   sh.close = v => closeSheet(sh, v);
-  $('.backdrop', el).onclick = () => sh.close();
+  const opened = performance.now();
+  $('.backdrop', el).onclick = () => { if (performance.now() - opened > 400) sh.close(); };
   $('.x', el).onclick = () => sh.close();
   Sheets.stack.push(sh); histOp(1);
   document.body.classList.add('noscroll');
@@ -666,13 +923,15 @@ window.addEventListener('unhandledrejection', e => toast('Error: ' + ((e.reason 
    ICONS & ORNAMENT
    ===================================================================== */
 const ICON = {
+  map: '<svg viewBox="0 0 24 24"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg>',
   home: '<svg viewBox="0 0 24 24"><path d="M4 21V10l3-2V5h3v1.5L12 5l8 5v11"/><path d="M9 21v-5a3 3 0 0 1 6 0v5"/><path d="M2 21h20"/></svg>',
   roster: '<svg viewBox="0 0 24 24"><path d="M6 21V3"/><path d="M6 4h12l-3 4 3 4H6"/><circle cx="6" cy="21" r=".6"/></svg>',
   camp: '<svg viewBox="0 0 24 24"><path d="M12 3 2 21h20L12 3z"/><path d="M12 3v18"/><path d="M9 21l3-6 3 6"/></svg>',
   chron: '<svg viewBox="0 0 24 24"><path d="M6 4h11a2 2 0 0 1 2 2v13a2 2 0 0 0 2-2V8"/><path d="M6 4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h13"/><path d="M8 9h7M8 12h7M8 15h5"/></svg>',
   more: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>',
 };
-const TABS = [['home', 'Campaign'], ['roster', 'Roster'], ['camp', 'Camp'], ['chron', 'Chronicle'], ['more', 'Codex']];
+const TABS = [['home', 'Campaign'], ['map', 'Map'], ['roster', 'Roster'], ['camp', 'Camp'], ['more', 'Codex']];
+const tabOf = v => ({ chron: 'more', region: 'map' })[v] || v;
 function shieldSvg(s) {
   const [a, b] = s === 'sig' ? ['#3e6130', '#d6ad2b'] : ['#2b4f7a', '#e3e9f1'];
   return `<svg class="shield" viewBox="0 0 22 26"><path d="M1 1h20v10c0 7-5 11.5-10 14C6 22.5 1 18 1 11z" fill="${b}" stroke="#2a1b0e" stroke-width="1.4"/><path d="M11 1h10v10c0 7-5 11.5-10 14z" fill="${a}"/><path d="M1 1h20v10c0 7-5 11.5-10 14C6 22.5 1 18 1 11z" fill="none" stroke="#2a1b0e" stroke-width="1.4"/></svg>`;
@@ -690,7 +949,7 @@ const pips = r => `<span class="pips" aria-label="Rank ${r}">${[1, 2, 3].map(i =
    RENDERING
    ===================================================================== */
 function renderTabs() {
-  $('#tabs').innerHTML = TABS.map(([k, l]) => `<button data-tab="${k}" class="${UI.view === k ? 'on' : ''}">${ICON[k]}<span>${l}</span></button>`).join('');
+  $('#tabs').innerHTML = TABS.map(([k, l]) => `<button data-tab="${k}" class="${tabOf(UI.view) === k ? 'on' : ''}">${ICON[k]}<span>${l}</span></button>`).join('');
 }
 function renderTop() {
   $('#turnchip').innerHTML = `Turn ${C.turn}<br><span style="color:${C.active === 'sig' ? '#f2d067' : '#cfe0f5'}">${esc(exShort(C.active))} to march</span>`;
@@ -699,12 +958,19 @@ function render() {
   if (!C) return;
   renderTop(); renderTabs();
   const v = $('#view');
-  const fn = { home: viewHome, roster: viewRoster, camp: viewCamp, chron: viewChron, more: viewMore }[UI.view] || viewHome;
+  const fn = { home: viewHome, map: viewMap, region: viewRegion, roster: viewRoster, camp: viewCamp, chron: viewChron, more: viewMore }[UI.view] || viewHome;
+  if (MV) { MV.destroy(); MV = null; }
+  setTopH();
   v.innerHTML = fn();
+  document.body.classList.toggle('mapmode', UI.view === 'region');
   if (UI.view === 'more') fillCodexAsync();
+  if (UI.view === 'map' || UI.view === 'region') mountMap();
 }
 function go(view) {
-  UI.scroll[UI.view] = window.scrollY;
+  if (UI.view === 'region' && view !== 'region' && UI.regionPushed) { UI.regionPushed = false; Sheets.skip++; try { history.back(); } catch (e) { Sheets.skip--; } }
+  if (view !== 'region') { UI.pinSetup = false; UI.pinMove = null; UI.ghost = null; }
+  if (view !== 'map') UI.arrange = false;
+  if (UI.view !== 'region') UI.scroll[UI.view] = window.scrollY;
   UI.view = view; render();
   window.scrollTo(0, UI.scroll[view] || 0);
 }
@@ -728,7 +994,7 @@ function viewHome() {
       <h3 class="sc">The road calls</h3>
       <div class="title">${esc(exName(a))} marches this turn</div>
       <div class="small muted">${esc(EX(other(a)).player)} commands the opposition.</div></div></div>
-      <div class="btns" style="margin-top:10px"><button class="btn" data-act="passTurn">End turn · pass to ${esc(exShort(other(a)))}</button></div></div>`;
+      <div class="btns" style="margin-top:10px"><button class="btn seal" data-act="openMap">Open the map</button><button class="btn" data-act="passTurn">End turn · pass to ${esc(exShort(other(a)))}</button></div></div>`;
 
   for (const s of SIDES) {
     const e = EX(s), p = priestOf(s);
@@ -736,6 +1002,7 @@ function viewHome() {
     h += `<div class="card edge tap ex-card side-${s}" data-act="goRoster" data-side="${s}">
       <div class="row">${shieldSvg(s)}<div class="grow"><div class="name">${esc(e.name)}</div>
       <div class="small muted">${esc(e.player)} · ${esc(e.army)} · for ${esc(e.patron)}</div></div></div>
+      ${(l => l ? `<div class="ex-loc">${pinGlyph}<span>Camped at ${esc(l.label)}</span></div>` : '')(locOf(s))}
       ${p ? `<div class="row" style="margin-top:8px"><span class="priest-mark">✠</span><span class="grow">${esc(p.name)}</span><span class="st st-${p.status}">${STATUS[p.status]}</span></div>` : `<div class="small" style="color:var(--bad);margin-top:8px">No Priest assigned! Mark one in the roster.</div>`}
       <div class="stats"><div><b>${e.gold}</b><span>gold crowns</span></div><div><b>${armyPts(s)}</b><span>points</span></div><div><b>${shardsHeld(s)}</b><span>shards</span></div></div>
       <div class="small muted" style="margin-top:8px">${plural(regs, 'regiment')} · ${plural(e.characters.filter(x => x.status !== 'dead').length, 'hero')}</div></div>`;
@@ -853,6 +1120,7 @@ function viewCamp() {
 function viewChron() {
   const list = [...C.chronicle].reverse();
   let h = `<div class="row between" style="margin-top:4px"><h1 class="bl">Chronicle</h1><button class="btn sm" data-act="chronAdd">+ Entry</button></div>
+    <button class="linkbtn" data-act="goCodex">← Back to the Codex</button>
     <p class="small muted">Every hire, rank and twist of fate is written here. The full story-style chronicle arrives in phase 4.</p>
     <div class="btns"><button class="btn" data-act="chronTxt">Export as text</button></div><div class="card chron">`;
   let lastTurn = null;
@@ -868,6 +1136,8 @@ function viewMore() {
   return `<h1 class="bl" style="margin-top:4px">Codex</h1>
     <div class="section-h"><h2 class="bl">Campaign</h2></div>
     <div class="card"><div class="btns" style="flex-direction:column">
+      <button class="btn block seal" data-act="goChron">Chronicle (${C.chronicle.length} entries)</button>
+      <button class="btn block" data-act="openMap">Map & regions (${C.regions.filter(r => r.map).length}/${C.regions.length} maps added)</button>
       <button class="btn block" data-act="setCampaign">Names, players & turn</button>
       <button class="btn block" data-act="setShards">Shards of the Runefang</button>
       <button class="btn block" data-act="setEconomy">Gold & economy</button>
@@ -877,7 +1147,7 @@ function viewMore() {
       <button class="btn block" data-act="setInjuries">Injury table (${C.tables.injuries.length})</button>
     </div></div>
     <div class="section-h"><h2 class="bl">Backup & sharing</h2></div>
-    <div class="card"><p class="small muted" style="margin-top:0">One file holds the entire campaign: rosters, chronicle and (from phase 2) your map images. Send it to the other phone and import it there.</p>
+    <div class="card"><p class="small muted" style="margin-top:0">One file holds the entire campaign: rosters, chronicle, regions, pins and your map images. Send it to the other phone and import it there.</p>
       <div class="btns"><button class="btn seal" data-act="export">Export file</button>${navigator.share ? '<button class="btn" data-act="share">Share…</button>' : ''}</div>
       <div class="btns" style="margin-top:8px"><button class="btn" data-act="import">Import file</button></div>
       <div class="small muted" style="margin-top:8px">${C.lastExport ? 'Last exported ' + new Date(C.lastExport).toLocaleString() : 'Never exported.'}</div>
@@ -1226,18 +1496,21 @@ function injurySheet() {
 function shardsSheet(idx) {
   const list = idx != null ? [idx] : C.shards.map((_, i) => i);
   if (idx == null) {
-    openSheet({ title: 'Shards', html: `<p class="small muted">Shards are found through missions from phase 3. You can also set them by hand here.</p>${C.shards.map((x, i) => `<button class="pick" data-i="${i}"><div class="row"><span style="width:22px">${shardSvg(x.status)}</span><div class="grow"><b>${esc(x.name)}</b><div class="muted">${x.status === 'rumoured' ? 'Rumoured' : x.status === 'lost' ? 'Lost / destroyed' : 'Held by the ' + esc(exShort(x.status))}</div></div></div></button>`).join('')}`,
+    openSheet({ title: 'Shards', html: `<p class="small muted">Shards are found through missions from phase 3. You can also set them by hand here.</p>${C.shards.map((x, i) => `<button class="pick" data-i="${i}"><div class="row"><span style="width:22px">${shardSvg(x.status)}</span><div class="grow"><b>${esc(x.name)}</b><div class="muted">${x.regionId && regionById(x.regionId) ? esc(regionById(x.regionId).name) + ' · ' : ''}${x.status === 'rumoured' ? 'Rumoured' : x.status === 'lost' ? 'Lost / destroyed' : 'Held by the ' + esc(exShort(x.status))}</div></div></div></button>`).join('')}`,
       onMount: sh => sh.body.addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (b) { sh.close(); shardsSheet(+b.dataset.i); } }) });
     return;
   }
   const x = C.shards[idx];
   formSheet({ title: 'Shard', fields: [
     { key: 'name', label: 'Name', value: x.name },
+    { key: 'regionId', label: 'Rumoured in', type: 'select', value: x.regionId || '', options: [['', 'Unknown'], ...C.regions.map(r => [r.id, r.name + (r.far ? ' (far land)' : '')])], hint: 'Changing the region picks a new hidden resting place inside it.' },
     { key: 'status', label: 'Status', type: 'select', value: x.status, options: [['rumoured', 'Rumoured (not yet found)'], ['sig', 'Held by the ' + exShort('sig')], ['ulr', 'Held by the ' + exShort('ulr')], ['lost', 'Lost / destroyed']] },
     { key: 'notes', label: 'Notes', type: 'textarea', value: x.notes },
   ] }).then(v => {
     if (!v) return;
     if (v.status !== x.status && (v.status === 'sig' || v.status === 'ulr')) chron(v.status, 'shard', `${exName(v.status)} recovered the ${v.name.trim() || x.name}.`);
+    const nr = v.regionId || null;
+    if (nr !== (x.regionId || null)) { x.regionId = nr; const rr = regionById(nr); x.pinId = rr && rr.pins.length ? rr.pins[Math.floor(Math.random() * rr.pins.length)].id : null; }
     Object.assign(x, { name: v.name.trim() || x.name, status: v.status, notes: v.notes }); save(); render();
   });
 }
@@ -1290,6 +1563,7 @@ async function snapshotForUndo() {
 async function replaceCampaign(camp, images) {
   await DB.clear('images');
   for (const [k, v] of Object.entries(images || {})) await DB.put('images', k, typeof v === 'string' && v.startsWith('data:') ? await dataURLToBlob(v) : v);
+  clearImageCache(); UI.mapViews = {}; UI.view = UI.view === 'region' ? 'map' : UI.view;
   C = migrate(camp); dirty = true; await flush();
 }
 async function doImport(file) {
@@ -1434,6 +1708,682 @@ $('#importFile').addEventListener('change', e => { const f = e.target.files[0]; 
 
 
 /* =====================================================================
+   PHASE 2: MAPS — regions, image upload, zoom/pan viewer, pin setup,
+   expedition tokens and trails
+   ===================================================================== */
+const regionById = id => C.regions.find(r => r.id === id) || null;
+const pinOf = (r, id) => (r && id) ? r.pins.find(p => p.id === id) || null : null;
+const DANGER_WORDS = ['', 'Quiet', 'Uneasy', 'Perilous', 'Deadly', 'Accursed'];
+const dangerHtml = n => `<span class="dng" aria-label="Danger ${n} of 5">${[1, 2, 3, 4, 5].map(i => `<i class="${n >= i ? 'on' : ''}"></i>`).join('')}</span>`;
+const missionsAt = (rid, pid) => (C.missions || []).filter(m => m.regionId === rid && (pid == null || m.pinId === pid) && (m.status === 'done' || m.status === 'complete'));
+function locOf(s) {
+  const p = EX(s).pos; if (!p) return null;
+  const r = regionById(p.regionId); if (!r) return null;
+  const pin = pinOf(r, p.pinId);
+  return { r, pin, label: pin ? `${pin.name}, ${r.short || r.name}` : r.name };
+}
+const pinGlyph = '<svg viewBox="0 0 24 24" class="ic"><path d="M12 22s7-7.5 7-12.5A7 7 0 0 0 5 9.5C5 14.5 12 22 12 22z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
+
+/* ---------- terrain icons (white strokes on the pin disc) ---------- */
+const TICON = {
+  town: 'M4 20V11l5-4 5 4v9M14 20v-6h6v6M3 20h18', village: 'M5 20v-8l7-6 7 6v8M10 20v-5h4v5',
+  fortress: 'M5 20V7h3v3h2V7h4v3h2V7h3v13zM10 20v-4h4v4', forest: 'M12 3 6 12h4l-5 7h14l-5-7h4zM12 19v3',
+  hills: 'M2 19l6-8 4 5 3-3 7 6z', river: 'M3 9c3-2 6 2 9 0s6-2 9 0M3 15c3-2 6 2 9 0s6-2 9 0',
+  road: 'M7 21l4-18M17 21l-4-18M12 17v3M12 10v3', marsh: 'M3 18h18M5 14h4M15 14h4M8 18V9M12 18V6M16 18v-8',
+  ruins: 'M3 20h18M6 20V9h3v11M15 20v-7h3v7M10 6h4', mountains: 'M2 20l7-13 4 7 2-3 7 9z',
+  desert: 'M2 18c4-5 8-5 10-2s7 2 10-2M17 9a2 2 0 1 0 0-.1', jungle: 'M12 21V9M12 9C9 5 5 5 3 7M12 9c3-4 7-4 9-2M12 9c-1-3-1-5 1-7',
+};
+const terrIcon = t => `<svg viewBox="0 0 24 24"><path d="${TICON[t] || TICON.town}"/></svg>`;
+const facColor = f => (FACTIONS[f] || {}).color || '#3a2614';
+const terrOptions = () => Object.entries(TERRAIN).map(([k, v]) => [k, v.label]);
+const facOptions = () => [['', 'None'], ...Object.entries(FACTIONS).map(([k, v]) => [k, v.label])];
+
+/* =====================================================================
+   IMAGES — stored as Blobs in IndexedDB 'images'; decoded lazily (LRU of 3)
+   ===================================================================== */
+const ImgCache = new Map();
+function getImageEl(key) {
+  if (ImgCache.has(key)) { const p = ImgCache.get(key); ImgCache.delete(key); ImgCache.set(key, p); return p; }
+  const p = (async () => {
+    const v = await DB.get('images', key);
+    if (!v) throw new Error('Image missing from storage');
+    const src = v instanceof Blob ? URL.createObjectURL(v) : v;
+    const img = new Image(); img.alt = ''; img.draggable = false; img.decoding = 'async'; img._src = src; img.src = src;
+    try { await img.decode(); } catch (e) {
+      if (!img.complete || !img.naturalWidth) await new Promise((res, rej) => { img.onload = res; img.onerror = () => rej(new Error('This phone could not decode the image')); });
+    }
+    return img;
+  })();
+  p.catch(() => ImgCache.delete(key));
+  ImgCache.set(key, p);
+  while (ImgCache.size > 3) {
+    const [k0, p0] = ImgCache.entries().next().value; ImgCache.delete(k0);
+    p0.then(img => { if (!img.isConnected) { if (img._src.startsWith('blob:')) URL.revokeObjectURL(img._src); img.removeAttribute('src'); } }).catch(() => {});
+  }
+  return p;
+}
+function forgetImage(key) {
+  const p = ImgCache.get(key); if (!p) return; ImgCache.delete(key);
+  p.then(img => { if (img._src.startsWith('blob:')) URL.revokeObjectURL(img._src); }).catch(() => {});
+}
+function clearImageCache() { for (const k of [...ImgCache.keys()]) forgetImage(k); }
+async function storeImage(key, blob) {
+  await DB.put('images', key, DB.ok ? blob : await blobToDataURL(blob));
+}
+function chooseFile(accept = 'image/*') {
+  return new Promise(res => {
+    const inp = document.createElement('input'); inp.type = 'file'; inp.accept = accept; inp.style.display = 'none';
+    inp.onchange = () => { res(inp.files[0] || null); inp.remove(); };
+    document.body.appendChild(inp); inp.click();
+  });
+}
+async function readImageFile(file) {
+  const url = URL.createObjectURL(file); const img = new Image(); img.src = url;
+  try { await img.decode(); } catch (e) {
+    if (!img.naturalWidth) { URL.revokeObjectURL(url); throw new Error('That file isn’t an image this phone can open. Try a JPEG or PNG.'); }
+  }
+  return { img, url, w: img.naturalWidth, h: img.naturalHeight };
+}
+async function drawJPEG(img, w, h, max, q, bg = '#ecdcb4') {
+  const s = Math.min(1, max / Math.max(w, h)); const cw = Math.max(1, Math.round(w * s)), ch = Math.max(1, Math.round(h * s));
+  const cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
+  const ctx = cv.getContext('2d'); ctx.fillStyle = bg; ctx.fillRect(0, 0, cw, ch);
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(img, 0, 0, cw, ch);
+  const blob = await new Promise((res, rej) => cv.toBlob(b => b ? res(b) : rej(new Error('This phone could not encode the JPEG')), 'image/jpeg', q));
+  cv.width = cv.height = 1;
+  return { blob, w: cw, h: ch };
+}
+const MB = n => (n / 1048576).toFixed(n < 1048576 ? 2 : 1) + ' MB';
+const ratioTxt = a => a >= 1 ? `${a.toFixed(2)} : 1 (landscape)` : `1 : ${(1 / a).toFixed(2)} (portrait)`;
+
+/* target: { kind: 'region', r } or { kind: 'overview' } */
+async function uploadMap(target) {
+  const file = await chooseFile(); if (!file) return;
+  const isR = target.kind === 'region', r = target.r;
+  const holder = isR ? r : C.overview;
+  const expected = isR ? r.aspect : C.overview.aspect;
+  toast('Reading the map…', 6000);
+  let info;
+  try { info = await readImageFile(file); } catch (e) { return alertBox('Not an image', `<p>${esc(e.message)}</p>`); }
+  let enc = null, thumb = null;
+  try { enc = await drawJPEG(info.img, info.w, info.h, 4096, 0.85); } catch (e) { console.warn(e); }
+  try { const t = await drawJPEG(info.img, info.w, info.h, 200, 0.7); thumb = await blobToDataURL(t.blob); } catch (e) { console.warn(e); }
+  URL.revokeObjectURL(info.url);
+  $('#toast').classList.remove('show');
+  const actual = info.w / info.h, off = Math.abs(actual / expected - 1);
+  const huge = Math.max(info.w, info.h) > 4096;
+  const recEnc = !!enc && (huge || enc.blob.size < file.size * 0.85 || !/jpe?g/i.test(file.type));
+  const seeded = isR && r.pins.some(p => p.seeded);
+  const warn = off > 0.04 ? `<div class="note-box warnbox"><b>Different shape.</b> This image is ${ratioTxt(actual)}, but ${isR ? (seeded ? 'the seeded pins were placed on' : 'this region expects') : 'the region hotspots were placed on'} a ${ratioTxt(expected)} map. ${isR ? 'Pins' : 'Hotspots'} may sit off their places: nudge them in ${isR ? 'Pin Setup' : 'Arrange regions'} after uploading.</div>` : '';
+  const choice = await new Promise(res => openSheet({
+    title: isR ? `Map of ${r.short || r.name}` : 'The Old World map',
+    html: `<p class="small muted">Chosen: <b>${esc(file.name || 'image')}</b>, ${info.w} × ${info.h} px, ${MB(file.size)}.</p>${warn}
+      ${enc ? `<button class="pick ${recEnc ? 'rec' : ''}" data-c="jpeg"><b>Re-encode as JPEG${recEnc ? ' (recommended)' : ''}</b><div class="muted">${enc.w} × ${enc.h} px · ${MB(enc.blob.size)}. Keeps backups small and stays smooth on phones.</div></button>` : ''}
+      <button class="pick ${!recEnc ? 'rec' : ''}" data-c="orig"><b>Keep the original${!recEnc ? ' (recommended)' : ''}</b><div class="muted">${info.w} × ${info.h} px · ${MB(file.size)}.${huge ? ' Over 4096 px: may be blurry or slow on some phones.' : ''}</div></button>`,
+    onMount: sh => sh.body.addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (b) sh.close(b.dataset.c); }),
+    onClose: v => res(v || null) }));
+  if (!choice) return;
+  const use = choice === 'jpeg' ? { blob: enc.blob, w: enc.w, h: enc.h } : { blob: file, w: info.w, h: info.h };
+  const key = `map_${isR ? r.id : 'overview'}_${Date.now().toString(36)}`;
+  try { await storeImage(key, use.blob); }
+  catch (e) { console.error(e); return alertBox('Could not store the map', `<p>${e && e.name === 'QuotaExceededError' ? 'This phone’s app storage is full. Remove some map images or re-encode them as JPEG.' : esc(e.message || e)}</p>`); }
+  const old = holder.map && holder.map.key;
+  holder.map = { key, w: use.w, h: use.h, bytes: use.blob.size, type: use.blob.type || 'image', name: file.name || '', added: Date.now(), thumb };
+  if (old && old !== key) { try { await DB.del('images', old); } catch (e) {} forgetImage(old); }
+  delete UI.mapViews[isR ? 'r:' + r.id : 'ov'];
+  save(); await flush(); render();
+  toast(off > 0.04 ? 'Map added. Check the pins line up.' : 'Map added');
+}
+async function removeMap(target) {
+  const isR = target.kind === 'region', holder = isR ? target.r : C.overview;
+  if (!holder.map) return;
+  if (!await confirmBox({ title: 'Remove map image?', text: `<p>Remove the image for <b>${esc(isR ? target.r.name : 'the Old World')}</b>? ${isR ? 'Pins, trails and battles stay; they will show on blank parchment until you add a new image.' : 'Region hotspots stay.'}</p>`, ok: 'Remove', danger: true })) return;
+  const key = holder.map.key; holder.map = null;
+  try { await DB.del('images', key); } catch (e) {} forgetImage(key);
+  save(); render(); toast('Map image removed');
+}
+async function cleanOrphanImages() {
+  try {
+    const used = new Set([C.overview && C.overview.map && C.overview.map.key, ...C.regions.map(r => r.map && r.map.key)].filter(Boolean));
+    for (const k of await DB.keys('images')) if (String(k).startsWith('map_') && !used.has(k)) await DB.del('images', k);
+  } catch (e) { console.warn(e); }
+}
+
+/* =====================================================================
+   MAP VIEWER — one transformed image layer + screen-space overlay.
+   Pins keep a constant on-screen size; hit-testing is "nearest within 30 px".
+   ===================================================================== */
+class MapView {
+  constructor(host, o) {
+    this.host = host; this.o = o; this.k = 1; this.tx = 0; this.ty = 0;
+    this.ptrs = new Map(); this.g = null; this.raf = 0; this.anim = 0; this.lastTap = null; this.tapT = 0; this.dead = false;
+    host.innerHTML = '<div class="mv-stage"></div><svg class="mv-trail" xmlns="http://www.w3.org/2000/svg"></svg><div class="mv-ov"></div><div class="mv-msg"></div>';
+    [this.stage, this.svg, this.ov, this.msg] = host.children;
+    this.W = 2000; this.H = 2000 / (o.aspect || 1.414);
+    this.blank = document.createElement('div'); this.blank.className = 'mv-blank'; this.stage.appendChild(this.blank); this.sizeBlank();
+    this.measure(); this.restore(); this.setMarkers();
+    const on = (t, f, opt) => host.addEventListener(t, f, opt);
+    this.h = { d: e => this.down(e), m: e => this.move(e), u: e => this.up(e), w: e => this.wheel(e) };
+    on('pointerdown', this.h.d); on('pointermove', this.h.m); on('pointerup', this.h.u); on('pointercancel', this.h.u);
+    on('wheel', this.h.w, { passive: false }); on('contextmenu', e => e.preventDefault());
+    // Cancel the compatibility click after a touch, so a tap that opens a sheet can't also tap the sheet's backdrop.
+    on('touchend', e => { if (e.cancelable) e.preventDefault(); }, { passive: false });
+    this.ro = new ResizeObserver(() => { const c = this.centerFrac(), z = this.k / this.fitK; this.measure(); if (!this.vw) return; this.k = clamp(z * this.fitK, this.minK, this.maxK); this.centerOn(c.x, c.y); });
+    this.ro.observe(host);
+    if (o.imageKey) this.loadImage(o.imageKey); else this.showMsg(o.emptyMsg || '');
+  }
+  sizeBlank() { Object.assign(this.blank.style, { width: this.W + 'px', height: this.H + 'px', backgroundSize: `${this.W / 10}px ${this.W / 10}px` }); }
+  showMsg(t) { this.msg.textContent = t; this.msg.style.display = t ? '' : 'none'; }
+  async loadImage(key) {
+    this.host.classList.add('loading');
+    try {
+      const img = await getImageEl(key); if (this.dead) return;
+      const c = this.centerFrac(), z = this.k / this.fitK, had = this.restored;
+      img.className = 'mv-img'; this.W = img.naturalWidth; this.H = img.naturalHeight;
+      img.style.width = this.W + 'px'; img.style.height = this.H + 'px';
+      this.stage.replaceChildren(img); this.measure();
+      if (had) { this.k = clamp(z * this.fitK, this.minK, this.maxK); this.centerOn(c.x, c.y); } else this.restore();
+      this.showMsg('');
+    } catch (e) { console.warn(e); this.showMsg('The map image could not be loaded. Re-add it in Details.'); }
+    finally { this.host.classList.remove('loading'); }
+  }
+  measure() {
+    this.vw = this.host.clientWidth; this.vh = this.host.clientHeight;
+    this.fitK = Math.min(this.vw / this.W, this.vh / this.H) || 1;
+    this.minK = this.fitK; this.maxK = Math.max(this.fitK * 10, 2.5);
+  }
+  restore() {
+    const s = UI.mapViews[this.o.key]; this.restored = true;
+    if (s) { this.k = clamp(s.z * this.fitK, this.minK, this.maxK); return this.centerOn(s.cx, s.cy); }
+    const i = this.o.initial && this.o.initial();
+    if (i) { this.k = clamp(i.z * this.fitK, this.minK, this.maxK); return this.centerOn(i.x, i.y); }
+    this.k = this.fitK; this.centerOn(0.5, 0.5);
+  }
+  centerFrac() { return { x: (this.vw / 2 - this.tx) / (this.k * this.W), y: (this.vh / 2 - this.ty) / (this.k * this.H) }; }
+  centerOn(fx, fy) { this.tx = this.vw / 2 - fx * this.W * this.k; this.ty = this.vh / 2 - fy * this.H * this.k; this.clampT(); this.schedule(); }
+  clampT() {
+    const sw = this.W * this.k, sh = this.H * this.k, pad = 48;
+    this.tx = sw <= this.vw ? (this.vw - sw) / 2 : clamp(this.tx, this.vw - sw - pad, pad);
+    this.ty = sh <= this.vh ? (this.vh - sh) / 2 : clamp(this.ty, this.vh - sh - pad, pad);
+  }
+  schedule() { if (!this.raf && !this.dead) this.raf = requestAnimationFrame(() => { this.raf = 0; this.apply(); }); }
+  apply() {
+    const { k, tx, ty, W, H } = this;
+    this.stage.style.transform = `translate3d(${tx}px,${ty}px,0) scale(${k})`;
+    for (let i = 0; i < this.markers.length; i++) {
+      const m = this.markers[i];
+      m.el.style.transform = `translate3d(${(m.x * W * k + tx).toFixed(1)}px,${(m.y * H * k + ty).toFixed(1)}px,0)`;
+    }
+    for (const t of this.trails) { const pts = t.pts.map(p => (p.x * W * k + tx).toFixed(1) + ',' + (p.y * H * k + ty).toFixed(1)).join(' '); t.el.setAttribute('points', pts); t.el2.setAttribute('points', pts); }
+    this.host.classList.toggle('mv-labels', k >= this.fitK * (this.o.labelZoom || 1.8) - 1e-6);
+    const c = this.centerFrac(); UI.mapViews[this.o.key] = { cx: c.x, cy: c.y, z: k / this.fitK };
+  }
+  setMarkers() {
+    this.markers = this.o.markers();
+    this.ov.innerHTML = this.markers.map(m => `<div class="mk ${m.cls || ''}">${m.html}</div>`).join('');
+    [...this.ov.children].forEach((el, i) => { this.markers[i].el = el; });
+    this.trails = (this.o.trails ? this.o.trails() : []).filter(t => t.pts.length > 1);
+    this.svg.innerHTML = this.trails.map(t => `<polyline class="tr-under"/><polyline class="tr" style="stroke:${t.color}"/>`).join('');
+    const pl = [...this.svg.children]; this.trails.forEach((t, i) => { t.el = pl[2 * i]; t.el2 = pl[2 * i + 1]; });
+    this.schedule();
+  }
+  hit(x, y, dragOnly) {
+    let best = null, bd = 30 * 30;
+    for (const m of this.markers) {
+      if (!m.hit || (dragOnly && !m.drag)) continue;
+      const dx = m.x * this.W * this.k + this.tx - x, dy = m.y * this.H * this.k + this.ty - y, d = dx * dx + dy * dy;
+      if (d < bd) { bd = d; best = m; }
+    }
+    return best;
+  }
+  local(e) { return { x: e.clientX - this.rect.left, y: e.clientY - this.rect.top }; }
+  down(e) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (!this.ptrs.size) this.rect = this.host.getBoundingClientRect();
+    const p = this.local(e);
+    try { this.host.setPointerCapture(e.pointerId); } catch (_) {}
+    this.ptrs.set(e.pointerId, p); this.stopAnim();
+    if (this.ptrs.size === 1) {
+      const m = this.o.canDrag && this.o.canDrag() ? this.hit(p.x, p.y, true) : null;
+      this.g = { mode: 'pan', sx: p.x, sy: p.y, tx0: this.tx, ty0: this.ty, t0: performance.now(), moved: false, m, hist: [[p.x, p.y, performance.now()]] };
+    } else if (this.ptrs.size === 2) {
+      if (this.g && this.g.mode === 'drag') this.cancelDrag();
+      const [a, b] = [...this.ptrs.values()];
+      this.g = { mode: 'pinch', d0: Math.hypot(a.x - b.x, a.y - b.y) || 1, wx: ((a.x + b.x) / 2 - this.tx) / this.k, wy: ((a.y + b.y) / 2 - this.ty) / this.k, k0: this.k, moved: true };
+    }
+  }
+  move(e) {
+    if (!this.ptrs.has(e.pointerId)) return;
+    const p = this.local(e); this.ptrs.set(e.pointerId, p);
+    const g = this.g; if (!g) return;
+    if (g.mode === 'pinch') {
+      if (this.ptrs.size < 2) return;
+      const [a, b] = [...this.ptrs.values()];
+      this.k = clamp(g.k0 * Math.hypot(a.x - b.x, a.y - b.y) / g.d0, this.minK, this.maxK);
+      this.tx = (a.x + b.x) / 2 - g.wx * this.k; this.ty = (a.y + b.y) / 2 - g.wy * this.k;
+      this.clampT(); this.schedule(); return;
+    }
+    const dx = p.x - g.sx, dy = p.y - g.sy;
+    if (!g.moved) {
+      if (Math.hypot(dx, dy) < 8) return;
+      g.moved = true;
+      if (g.m) { g.mode = 'drag'; g.mx0 = g.m.x; g.my0 = g.m.y; g.m.el.classList.add('lift'); this.host.classList.add('dragging'); }
+    }
+    if (g.mode === 'drag') {
+      g.m.x = clamp(g.mx0 + dx / (this.W * this.k), 0, 1); g.m.y = clamp(g.my0 + dy / (this.H * this.k), 0, 1);
+      if (g.m.follow) g.m.follow.forEach(f => { f.x = g.m.x; f.y = g.m.y; });
+      this.schedule();
+    } else {
+      this.tx = g.tx0 + dx; this.ty = g.ty0 + dy; this.clampT(); this.schedule();
+      g.hist.push([p.x, p.y, performance.now()]); if (g.hist.length > 6) g.hist.shift();
+    }
+  }
+  cancelDrag() {
+    const g = this.g; if (!g || g.mode !== 'drag') return;
+    g.m.x = g.mx0; g.m.y = g.my0; if (g.m.follow) g.m.follow.forEach(f => { f.x = g.mx0; f.y = g.my0; });
+    g.m.el.classList.remove('lift'); this.host.classList.remove('dragging'); this.schedule();
+  }
+  up(e) {
+    if (!this.ptrs.has(e.pointerId)) return;
+    this.ptrs.delete(e.pointerId);
+    const g = this.g; if (!g) return;
+    if (g.mode === 'pinch') {
+      if (this.ptrs.size === 1) { const [p] = [...this.ptrs.values()]; this.g = { mode: 'pan', sx: p.x, sy: p.y, tx0: this.tx, ty0: this.ty, t0: 0, moved: true, hist: [] }; }
+      else if (!this.ptrs.size) this.g = null;
+      return;
+    }
+    if (this.ptrs.size) return;
+    this.g = null;
+    if (g.mode === 'drag') {
+      if (e.type === 'pointercancel') return this.cancelDrag();
+      g.m.el.classList.remove('lift'); this.host.classList.remove('dragging');
+      if (this.o.onDragEnd) this.o.onDragEnd(g.m); return;
+    }
+    if (!g.moved) { if (e.type !== 'pointercancel' && performance.now() - g.t0 < 650) this.tap(g.sx, g.sy); return; }
+    const h = g.hist; if (h.length < 2) return;
+    const a = h[0], b = h[h.length - 1], dt = b[2] - a[2];
+    if (dt <= 0 || performance.now() - b[2] > 80) return;
+    let vx = (b[0] - a[0]) / dt, vy = (b[1] - a[1]) / dt;
+    if (Math.hypot(vx, vy) < 0.3) return;
+    let last = performance.now();
+    const step = now => {
+      const d = Math.min(32, now - last); last = now;
+      this.tx += vx * d; this.ty += vy * d; this.clampT(); this.apply();
+      const f = Math.pow(0.994, d); vx *= f; vy *= f;
+      this.anim = Math.hypot(vx, vy) > 0.02 ? requestAnimationFrame(step) : 0;
+    };
+    this.anim = requestAnimationFrame(step);
+  }
+  stopAnim() { if (this.anim) cancelAnimationFrame(this.anim); this.anim = 0; }
+  tap(x, y) {
+    const now = performance.now(), m = this.hit(x, y);
+    const dbl = this.lastTap && now - this.lastTap.t < 320 && Math.hypot(x - this.lastTap.x, y - this.lastTap.y) < 40;
+    if (m && !dbl) { this.lastTap = null; clearTimeout(this.tapT); if (this.o.onTap) this.o.onTap({ marker: m }); return; }
+    if (dbl) { clearTimeout(this.tapT); this.lastTap = null; return this.zoomAt(x, y, this.k >= this.maxK * 0.98 ? this.fitK : this.k * 2); }
+    this.lastTap = { x, y, t: now };
+    const fx = (x - this.tx) / (this.k * this.W), fy = (y - this.ty) / (this.k * this.H);
+    if (fx < 0 || fx > 1 || fy < 0 || fy > 1) return;
+    if (this.o.wantsEmptyTap && this.o.wantsEmptyTap()) { clearTimeout(this.tapT); this.tapT = setTimeout(() => { this.lastTap = null; this.o.onTap({ fx, fy }); }, 300); }
+  }
+  zoomAt(x, y, k2, animate = true) {
+    const wx = (x - this.tx) / this.k, wy = (y - this.ty) / this.k;
+    k2 = clamp(k2, this.minK, this.maxK);
+    if (!animate) { this.k = k2; this.tx = x - wx * k2; this.ty = y - wy * k2; this.clampT(); return this.schedule(); }
+    const from = { k: this.k, tx: this.tx, ty: this.ty };
+    this.k = k2; this.tx = x - wx * k2; this.ty = y - wy * k2; this.clampT();
+    this.animateTo(from, { k: this.k, tx: this.tx, ty: this.ty });
+  }
+  zoomBy(f) { this.zoomAt(this.vw / 2, this.vh / 2, this.k * f); }
+  fit() { const from = { k: this.k, tx: this.tx, ty: this.ty }; this.k = this.fitK; this.centerOn(0.5, 0.5); this.animateTo(from, { k: this.k, tx: this.tx, ty: this.ty }); }
+  focus(fx, fy, z = 3) {
+    const from = { k: this.k, tx: this.tx, ty: this.ty };
+    this.k = clamp(Math.max(this.k, this.fitK * z), this.minK, this.maxK); this.centerOn(fx, fy);
+    this.animateTo(from, { k: this.k, tx: this.tx, ty: this.ty });
+  }
+  animateTo(a, b, ms = 230) {
+    this.stopAnim(); const t0 = performance.now();
+    const step = now => {
+      const t = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - t, 3);
+      this.k = a.k + (b.k - a.k) * e; this.tx = a.tx + (b.tx - a.tx) * e; this.ty = a.ty + (b.ty - a.ty) * e;
+      this.apply(); this.anim = t < 1 ? requestAnimationFrame(step) : 0;
+    };
+    this.anim = requestAnimationFrame(step);
+  }
+  wheel(e) {
+    e.preventDefault(); this.rect = this.host.getBoundingClientRect();
+    const p = this.local(e); this.zoomAt(p.x, p.y, this.k * Math.exp(-e.deltaY * 0.0018), false);
+  }
+  destroy() { this.dead = true; this.stopAnim(); if (this.raf) cancelAnimationFrame(this.raf); clearTimeout(this.tapT); this.ro.disconnect(); }
+}
+
+/* =====================================================================
+   MARKERS
+   ===================================================================== */
+function pinHtml(p, seals) {
+  return `<div class="pin" style="background:${facColor(p.faction)}">${terrIcon(p.terrain)}${seals ? `<span class="pseal" title="Battle fought here">✠</span>` : ''}</div><div class="plabel">${esc(p.name)}</div>`;
+}
+function tokenHtml(s, off, small) {
+  return `<div class="token side-${s}${small ? ' sm' : ''}" style="--off:${off}px">${shieldSvg(s)}</div>`;
+}
+const TRAIL_COL = { sig: '#e8c54a', ulr: '#eef3fa' };
+function regionMarkers(r) {
+  const out = [];
+  for (const p of r.pins) out.push({ id: p.id, x: p.x, y: p.y, hit: true, drag: true, ref: p, cls: 'mk-pin' + (UI.pinMove === p.id ? ' moving' : ''), html: pinHtml(p, missionsAt(r.id, p.id).length) });
+  const here = SIDES.filter(s => { const q = EX(s).pos; return q && q.regionId === r.id && pinOf(r, q.pinId); });
+  here.forEach(s => {
+    const pin = pinOf(r, EX(s).pos.pinId);
+    const both = here.length === 2 && EX('sig').pos.pinId === EX('ulr').pos.pinId;
+    const tok = { id: 'tok-' + s, x: pin.x, y: pin.y, hit: false, cls: 'mk-token', html: tokenHtml(s, both ? (s === 'sig' ? -15 : 15) : 0) };
+    out.push(tok);
+    const pm = out.find(m => m.ref === pin); (pm.follow = pm.follow || []).push(tok);
+  });
+  if (UI.ghost && UI.ghost.regionId === r.id) out.push({ id: 'ghost', x: UI.ghost.x, y: UI.ghost.y, hit: false, cls: 'mk-pin ghost', html: '<div class="pin" style="background:#8e1b1b">' + terrIcon('town') + '</div>' });
+  return out;
+}
+function regionTrails(r) {
+  const out = [];
+  for (const s of SIDES) {
+    let seg = [];
+    const flush = () => { if (seg.length > 1) out.push({ color: TRAIL_COL[s], pts: seg }); seg = []; };
+    for (const t of EX(s).trail) {
+      if (t.regionId !== r.id) { flush(); continue; }
+      const p = pinOf(r, t.pinId); const pt = p || (t.x != null ? { x: t.x, y: t.y } : null);
+      if (pt) seg.push(pt);
+    }
+    flush();
+  }
+  return out;
+}
+function overviewMarkers() {
+  const out = C.regions.map(r => ({ id: r.id, x: r.hot.x, y: r.hot.y, hit: true, drag: true, ref: r, cls: 'mk-hot' + (r.far ? ' far' : ''),
+    html: `<div class="hot" style="--d:${r.danger}">${missionsAt(r.id).length ? '<span class="pseal">✠</span>' : ''}</div><div class="plabel">${esc(r.short || r.name)}</div>` }));
+  const at = s => { const q = EX(s).pos; return q && regionById(q.regionId); };
+  SIDES.forEach(s => {
+    const r = at(s); if (!r) return;
+    const both = at('sig') && at('ulr') && at('sig') === at('ulr');
+    const tok = { id: 'tok-' + s, x: r.hot.x, y: r.hot.y, hit: false, cls: 'mk-token', html: tokenHtml(s, both ? (s === 'sig' ? 0 : 22) : 0, true) };
+    out.push(tok); const hm = out.find(m => m.ref === r); (hm.follow = hm.follow || []).push(tok);
+  });
+  return out;
+}
+function overviewTrails() {
+  return SIDES.map(s => {
+    const ids = []; for (const t of EX(s).trail) if (ids[ids.length - 1] !== t.regionId) ids.push(t.regionId);
+    return { color: TRAIL_COL[s], pts: ids.map(regionById).filter(Boolean).map(r => r.hot) };
+  });
+}
+
+/* =====================================================================
+   VIEWS
+   ===================================================================== */
+let MV = null;
+function mountMap() {
+  if (MV) { MV.destroy(); MV = null; }
+  const host = $('#mvHost'); if (!host) return;
+  if (UI.view === 'map') {
+    MV = new MapView(host, { key: 'ov', imageKey: C.overview.map && C.overview.map.key, aspect: C.overview.map ? C.overview.map.w / C.overview.map.h : C.overview.aspect,
+      labelZoom: 2.4, emptyMsg: 'No Old World map yet. Add it with “Map image”.',
+      initial: () => ({ x: 0.5, y: 0.43, z: 2.6 }),
+      markers: overviewMarkers, trails: overviewTrails, canDrag: () => UI.arrange,
+      onTap: ({ marker }) => { if (marker) openRegion(marker.ref.id); },
+      onDragEnd: m => { m.ref.hot = { x: +m.x.toFixed(4), y: +m.y.toFixed(4) }; save(); } });
+  } else if (UI.view === 'region') {
+    const r = regionById(UI.regionId); if (!r) return;
+    MV = new MapView(host, { key: 'r:' + r.id, imageKey: r.map && r.map.key, aspect: r.map ? r.map.w / r.map.h : r.aspect, labelZoom: 1.8,
+      emptyMsg: 'No map image yet. Tap “Details” to add one from your gallery or files.',
+      initial: () => { const q = SIDES.map(s => EX(s).pos).find(q => q && q.regionId === r.id && pinOf(r, q.pinId)); const p = q && pinOf(r, q.pinId); return p ? { x: p.x, y: p.y, z: 2 } : null; },
+      markers: () => regionMarkers(r), trails: () => regionTrails(r),
+      canDrag: () => UI.pinSetup && !UI.pinMove, wantsEmptyTap: () => UI.pinSetup || !!UI.pinMove,
+      onTap: ({ marker, fx, fy }) => regionTap(r, marker, fx, fy),
+      onDragEnd: m => { m.ref.x = +m.x.toFixed(4); m.ref.y = +m.y.toFixed(4); save(); toast(`${m.ref.name} moved`, 1400); } });
+  }
+}
+function refreshMap() { if (MV) MV.setMarkers(); else render(); }
+
+function regionCard(r) {
+  const rum = C.shards.filter(x => x.regionId === r.id);
+  const here = SIDES.filter(s => EX(s).pos && EX(s).pos.regionId === r.id);
+  const fought = missionsAt(r.id).length;
+  return `<div class="card tap region-card" data-act="openRegion" data-id="${r.id}">
+    <div class="row" style="align-items:flex-start"><div class="thumb">${r.map && r.map.thumb ? `<img src="${r.map.thumb}" alt="">` : '<span>no map</span>'}</div>
+    <div class="grow"><div class="title">${esc(r.name)}</div>
+      <div class="small muted row" style="gap:6px">${dangerHtml(r.danger)} <span>${DANGER_WORDS[r.danger] || ''} · ${plural(r.pins.length, 'pin')}${fought ? ' · ' + plural(fought, 'battle') : ''}</span></div>
+      ${rum.map(x => `<div class="small rumour"><span class="mini">${shardSvg(x.status)}</span>${x.status === 'rumoured' ? 'Rumour: ' : x.status === 'lost' ? 'Lost: ' : 'Recovered: '}${esc(x.name)}</div>`).join('')}
+      ${here.map(s => `<div class="small row" style="gap:6px;margin-top:3px">${shieldSvg(s)}<span>The ${esc(exShort(s))} Expedition is here</span></div>`).join('')}
+    </div></div></div>`;
+}
+function viewMap() {
+  const near = C.regions.filter(r => !r.far), far = C.regions.filter(r => r.far);
+  return `<div class="row between" style="margin-top:4px"><h1 class="bl">The Old World</h1>
+      <button class="btn sm" data-act="ovSheet">Map image</button></div>
+    <div class="mapframe ${UI.arrange ? 'setup' : ''}"><div class="mv" id="mvHost"></div>
+      ${UI.arrange ? `<div class="ms-banner">Arrange regions: drag a seal to move it. <button class="btn sm ink" data-act="arrange">Done</button></div>` : ''}
+      <div class="mv-tools"><div></div><div class="zoomstack">${zoomBtns()}</div></div></div>
+    <p class="small muted" style="margin:6px 2px 0">Tap a red seal to open its region. Pinch, double-tap or use + and − to zoom.</p>
+    <div class="section-h"><h2 class="bl">Regions</h2><span class="small muted">${C.shards.filter(x => x.status === 'rumoured' && x.regionId).length} shard rumours</span></div>
+    ${near.map(regionCard).join('')}
+    <div class="section-h"><h2 class="bl">Far lands</h2><span class="small muted">later in the campaign</span></div>
+    ${far.map(regionCard).join('') || '<div class="empty">No far lands.</div>'}
+    <div class="btns" style="margin-top:10px"><button class="btn" data-act="newRegion">+ Region</button><button class="btn" data-act="arrange">${UI.arrange ? 'Stop arranging' : 'Arrange regions'}</button></div>`;
+}
+const zoomBtns = () => `<button class="btn round zb" data-act="zoomIn" aria-label="Zoom in">+</button><button class="btn round zb" data-act="zoomOut" aria-label="Zoom out">−</button><button class="btn round zb" data-act="zoomFit" aria-label="Fit map"><svg viewBox="0 0 24 24" class="ic"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>`;
+function viewRegion() {
+  const r = regionById(UI.regionId);
+  if (!r) { UI.view = 'map'; return viewMap(); }
+  const mv = UI.pinMove && pinOf(r, UI.pinMove);
+  const banner = mv ? `<div class="ms-banner">Tap the new spot for <b>${esc(mv.name)}</b>. <button class="btn sm ink" data-act="cancelMove">Cancel</button></div>`
+    : UI.pinSetup ? `<div class="ms-banner">Pin Setup: tap the map to drop a pin, tap a pin to edit it, drag a pin to nudge it.</div>` : '';
+  return `<div class="mapscreen ${UI.pinSetup ? 'setup' : ''}">
+    <div class="ms-head"><button class="btn round sm" data-act="mapBack" aria-label="Back to the Old World">←</button>
+      <div class="grow" style="min-width:0"><h2>${esc(r.name)}</h2><div class="small muted row" style="gap:6px">${dangerHtml(r.danger)}<span>${DANGER_WORDS[r.danger] || ''}${r.far ? ' · far land' : ''}</span></div></div>
+      <button class="btn sm" data-act="regionInfo">Details</button></div>
+    <div class="ms-body"><div class="mv" id="mvHost"></div>${banner}
+      <div class="mv-tools"><button class="btn ${UI.pinSetup ? 'seal' : 'ink'} setupbtn" data-act="pinSetup">${UI.pinSetup ? 'Done' : 'Pin Setup'}</button><div class="zoomstack">${zoomBtns()}</div></div></div></div>`;
+}
+
+/* =====================================================================
+   REGION & PIN FLOWS
+   ===================================================================== */
+function openRegion(id) {
+  UI.regionId = id; UI.pinSetup = false; UI.pinMove = null; UI.ghost = null;
+  if (UI.view !== 'region') { try { history.pushState({ region: 1 }, ''); UI.regionPushed = true; } catch (e) {} }
+  go('region');
+}
+function regionTap(r, marker, fx, fy) {
+  if (UI.pinMove) {
+    if (marker) return;
+    const p = pinOf(r, UI.pinMove); UI.pinMove = null;
+    if (p) { p.x = +fx.toFixed(4); p.y = +fy.toFixed(4); save(); toast(`${p.name} moved`, 1400); }
+    return render();
+  }
+  if (marker) return UI.pinSetup ? editPin(r, marker.ref) : pinSheet(r, marker.ref);
+  if (UI.pinSetup) newPin(r, fx, fy);
+}
+function newPin(r, fx, fy) {
+  UI.ghost = { regionId: r.id, x: fx, y: fy }; refreshMap();
+  editPin(r, { id: null, name: '', terrain: 'village', faction: '', x: +fx.toFixed(4), y: +fy.toFixed(4), notes: '' }, true, () => { UI.ghost = null; refreshMap(); });
+}
+function editPin(r, p, isNew = false, after) {
+  openSheet({ title: isNew ? 'New pin' : 'Edit pin',
+    html: `<form class="form" onsubmit="return false">
+      ${fieldHtml({ key: 'name', label: 'Name', value: p.name, placeholder: 'e.g. Wurtbad, Hunger Wood, The Moot' })}
+      ${fieldHtml({ key: 'terrain', label: 'Terrain', type: 'select', value: p.terrain, options: terrOptions() })}
+      <div class="hint" id="pinSetupHint" style="margin-top:-8px">${esc((TERRAIN[p.terrain] || {}).setup || '')}</div>
+      ${fieldHtml({ key: 'faction', label: 'Faction affinity', type: 'select', value: p.faction || '', options: facOptions(), hint: 'Optional. Makes this faction likelier to fight here.' })}
+      ${fieldHtml({ key: 'notes', label: 'Notes', type: 'textarea', value: p.notes || '' })}</form>
+      ${isNew ? '' : `<div class="btns" style="margin-top:6px"><button class="btn" data-a="move">Move by tapping</button><button class="btn danger" data-a="del">Delete pin</button></div>`}`,
+    footer: `<button class="btn ghost" data-r="0">Cancel</button><button class="btn seal" data-r="1">${isNew ? 'Drop pin' : 'Save'}</button>`,
+    onMount: sh => {
+      $('[name=terrain]', sh.body).addEventListener('change', e => { $('#pinSetupHint', sh.body).textContent = (TERRAIN[e.target.value] || {}).setup || ''; });
+      if (isNew) setTimeout(() => { try { $('[name=name]', sh.body).focus(); } catch (e) {} }, 250);
+      sh.foot.addEventListener('click', e => {
+        const b = e.target.closest('[data-r]'); if (!b) return;
+        if (b.dataset.r !== '1') return sh.close();
+        const v = readInputs(sh.body); const name = v.name.trim();
+        if (!name) { toast('Give the pin a name'); return; }
+        Object.assign(p, { name, terrain: v.terrain, faction: v.faction, notes: v.notes });
+        if (isNew) { p.id = r.id + '-' + slug(name) + '-' + Math.random().toString(36).slice(2, 5); r.pins.push(p); }
+        save(); sh.close(true); toast(isNew ? `${name} added` : 'Pin saved', 1400);
+      });
+      sh.body.addEventListener('click', async e => {
+        const b = e.target.closest('[data-a]'); if (!b) return;
+        if (b.dataset.a === 'move') { sh.close(); UI.pinMove = p.id; render(); }
+        if (b.dataset.a === 'del') {
+          const n = missionsAt(r.id, p.id).length, at = SIDES.filter(s => EX(s).pos && EX(s).pos.pinId === p.id);
+          if (!await confirmBox({ title: 'Delete pin?', danger: true, ok: 'Delete', text: `<p>Delete <b>${esc(p.name)}</b>?${at.length ? ` The ${at.map(exShort).join(' and ')} token${at.length > 1 ? 's stand' : ' stands'} here and will stay in the region without a pin.` : ''}${n ? ` ${plural(n, 'battle')} recorded here will lose their seal on the map.` : ''}</p>` })) return;
+          r.pins = r.pins.filter(x => x !== p);
+          for (const s of SIDES) { const q = EX(s).pos; if (q && q.pinId === p.id) q.pinId = null; }
+          save(); sh.close(); toast('Pin deleted', 1400);
+        }
+      });
+    },
+    onClose: () => { if (after) after(); refreshMap(); } });
+}
+function pinSheet(r, p) {
+  const t = TERRAIN[p.terrain] || {}, f = FACTIONS[p.faction];
+  const fought = missionsAt(r.id, p.id), here = SIDES.filter(s => EX(s).pos && EX(s).pos.pinId === p.id);
+  const a = C.active, b = other(a);
+  openSheet({ title: p.name,
+    html: `<div class="row" style="margin-top:8px"><span class="pin static" style="background:${facColor(p.faction)}">${terrIcon(p.terrain)}</span>
+        <div class="grow"><b>${esc(t.label || p.terrain)}</b><div class="small muted">${f ? 'Haunt of the ' + esc(f.label) : 'No faction affinity'} · ${esc(r.name)}</div></div></div>
+      <div class="note-box" style="margin-top:10px"><b class="sc">Table setup.</b> ${esc(t.setup || '')}</div>
+      ${p.notes ? `<p class="flavour">${esc(p.notes)}</p>` : ''}
+      ${here.map(s => `<div class="row small" style="margin-top:8px;gap:6px">${shieldSvg(s)}<span>The ${esc(exShort(s))} Expedition is camped here.</span></div>`).join('')}
+      ${fought.length ? `<h3 class="sc" style="margin-top:12px">Battles fought here</h3>${fought.map(m => `<div class="listed small"><span class="wax">✠</span><span class="grow">${esc(m.name || 'Battle')} · ${esc(exShort(m.side))} · ${esc(m.result || '')}</span><span class="muted">T${m.turn || '?'}</span></div>`).join('')}` : ''}
+      <div class="btns" style="flex-direction:column;margin-top:14px">
+        <button class="btn seal block" data-a="march" data-s="${a}" ${here.includes(a) ? 'disabled' : ''}>March the ${esc(exShort(a))} Expedition here</button>
+        <button class="btn block" data-a="march" data-s="${b}" ${here.includes(b) ? 'disabled' : ''}>Move the ${esc(exShort(b))} Expedition here</button>
+        <button class="btn block ghost" data-a="edit">Edit pin</button></div>`,
+    onMount: sh => sh.body.addEventListener('click', e => {
+      const btn = e.target.closest('[data-a]'); if (!btn) return;
+      sh.close();
+      if (btn.dataset.a === 'edit') editPin(r, p);
+      if (btn.dataset.a === 'march') marchTo(btn.dataset.s, r, p);
+    }) });
+}
+function marchTo(s, r, p) {
+  const e = EX(s);
+  e.pos = { regionId: r.id, pinId: p.id };
+  e.trail.push({ regionId: r.id, pinId: p.id, x: p.x, y: p.y, turn: C.turn, ts: Date.now() });
+  if (e.trail.length > 300) e.trail.splice(0, e.trail.length - 300);
+  chron(s, 'march', `${e.name} marched to ${p.name}${p.name.includes(r.short || r.name) ? '' : ' in ' + (r.short || r.name)}.`);
+  save(); refreshMap(); toast(`${exShort(s)} Expedition marched to ${p.name}`);
+}
+function stepBack(s) {
+  const e = EX(s); if (e.trail.length < 2) return toast('Nowhere to step back to');
+  const gone = e.trail.pop(), prev = e.trail[e.trail.length - 1];
+  e.pos = { regionId: prev.regionId, pinId: prev.pinId };
+  const r = regionById(gone.regionId), p = pinOf(r, gone.pinId);
+  chron(s, 'note', `Correction: ${e.name} did not march to ${p ? p.name : 'that place'} after all.`);
+  save(); render(); toast('Stepped back');
+}
+function regionSheet(r) {
+  const rum = C.shards.filter(x => x.regionId === r.id);
+  const here = SIDES.filter(s => EX(s).pos && EX(s).pos.regionId === r.id);
+  const m = r.map;
+  const shapeOff = m && Math.abs((m.w / m.h) / r.aspect - 1) > 0.04;
+  openSheet({ title: r.name,
+    html: `<p class="flavour">${esc(r.blurb || '')}</p>
+      ${rum.length ? rum.map(x => `<div class="row small rumour"><span class="mini">${shardSvg(x.status)}</span><span>${x.status === 'rumoured' ? 'Rumoured here' : x.status === 'lost' ? 'Lost here' : 'Recovered here'}: <b>${esc(x.name)}</b></span></div>`).join('') : '<p class="small muted">No shard is rumoured here.</p>'}
+      <h3 class="sc" style="margin-top:14px">Map image</h3>
+      <div class="card" style="margin:6px 0">${m ? `<div class="row">${m.thumb ? `<img class="thumbbig" src="${m.thumb}" alt="">` : ''}<div class="grow small">${m.w} × ${m.h} px · ${MB(m.bytes || 0)}<br><span class="muted">${esc(m.name || '')}</span>${shapeOff ? `<div style="color:var(--warn)">Shape differs from the seeded layout (${ratioTxt(r.aspect)}). Check the pins.</div>` : ''}</div></div>` : `<p class="small muted" style="margin-top:0">No image yet. Expected shape: ${ratioTxt(r.aspect)}.</p>`}
+        <div class="btns" style="margin-top:8px"><button class="btn seal" data-a="upload">${m ? 'Replace image' : 'Add map image'}</button>${m ? '<button class="btn danger" data-a="rmimg">Remove</button>' : ''}</div></div>
+      <h3 class="sc" style="margin-top:14px">Pins (${r.pins.length})</h3>
+      <div class="card" style="margin:6px 0;padding:4px 12px">${r.pins.map(p => `<div class="listed tap" data-a="goto" data-id="${p.id}" style="cursor:pointer"><span class="pin static sm" style="background:${facColor(p.faction)}">${terrIcon(p.terrain)}</span><span class="grow">${esc(p.name)}</span><span class="small muted">${esc((TERRAIN[p.terrain] || {}).label || '')}</span></div>`).join('') || '<div class="empty">No pins. Use Pin Setup.</div>'}</div>
+      <div class="btns"><button class="btn" data-a="setup">Pin Setup</button>${r.pins.some(p => p.seeded) || REGION_SEED.some(x => x[0] === r.id) ? '<button class="btn" data-a="reseed">Restore seeded pins</button>' : ''}</div>
+      ${here.length ? `<h3 class="sc" style="margin-top:14px">Expeditions here</h3>${here.map(s => { const l = locOf(s); return `<div class="listed">${shieldSvg(s)}<span class="grow">${esc(exShort(s))} at ${esc(l && l.pin ? l.pin.name : 'no pin')}</span><button class="btn sm" data-a="back" data-s="${s}">Step back</button></div>`; }).join('')}` : ''}
+      <h3 class="sc" style="margin-top:14px">Region details</h3>
+      <form class="form" onsubmit="return false">
+        ${fieldHtml({ key: 'name', label: 'Name', value: r.name })}
+        ${fieldHtml({ key: 'short', label: 'Short name', value: r.short || '' })}
+        ${fieldHtml({ key: 'danger', label: 'Danger (1–5)', type: 'stepper', value: r.danger, min: 1, max: 5 })}
+        ${fieldHtml({ key: 'far', label: 'Far land (later in the campaign)', type: 'toggle', value: r.far })}
+        <div class="f"><label class="l">Opposition here (weight 0–5)</label><div class="two">${Object.entries(FACTIONS).map(([k, f]) => `<div><div class="small" style="margin-bottom:3px">${esc(f.label)}</div>${stepperHtml('fac_' + k, r.factions[k] || 0, 0, 5)}</div>`).join('')}</div>
+          <div class="hint">Missions in phase 3 pick opponents by these weights.</div></div>
+        ${fieldHtml({ key: 'blurb', label: 'Description', type: 'textarea', value: r.blurb || '' })}
+        ${fieldHtml({ key: 'notes', label: 'Notes', type: 'textarea', value: r.notes || '' })}
+      </form>
+      <button class="btn block danger" data-a="delregion" style="margin-top:8px">Delete this region…</button>`,
+    footer: `<button class="btn ghost" data-r="0">Close</button><button class="btn seal" data-r="1">Save details</button>`,
+    onMount: sh => {
+      sh.foot.addEventListener('click', e => {
+        const b = e.target.closest('[data-r]'); if (!b) return;
+        if (b.dataset.r === '1') {
+          const v = readInputs(sh.body);
+          r.name = v.name.trim() || r.name; r.short = v.short.trim() || r.name; r.danger = clamp(Math.round(v.danger) || 1, 1, 5); r.far = !!v.far;
+          for (const k in FACTIONS) { const w = clamp(Math.round(v['fac_' + k] || 0), 0, 5); if (w) r.factions[k] = w; else delete r.factions[k]; }
+          r.blurb = v.blurb; r.notes = v.notes; save(); toast('Region saved', 1400);
+        }
+        sh.close(); render();
+      });
+      sh.body.addEventListener('click', async e => {
+        const b = e.target.closest('[data-a]'); if (!b) return;
+        const a = b.dataset.a;
+        if (a === 'upload') { sh.close(); uploadMap({ kind: 'region', r }); }
+        if (a === 'rmimg') { sh.close(); removeMap({ kind: 'region', r }); }
+        if (a === 'setup') { sh.close(); UI.pinSetup = true; render(); }
+        if (a === 'goto') { const p = pinOf(r, b.dataset.id); sh.close(); if (p && MV) { MV.focus(p.x, p.y, 3); setTimeout(() => pinSheet(r, p), 260); } }
+        if (a === 'back') { sh.close(); stepBack(b.dataset.s); }
+        if (a === 'reseed') {
+          if (!await confirmBox({ title: 'Restore seeded pins?', text: '<p>Put every seeded pin back in its original place, and re-add any you deleted. Pins you added yourself are kept.</p>', ok: 'Restore' })) return;
+          const row = REGION_SEED.find(x => x[0] === r.id); if (!row) return;
+          const fresh = seedRegion(row).pins;
+          for (const fp of fresh) { const ex = r.pins.find(p => p.id === fp.id); if (ex) Object.assign(ex, { x: fp.x, y: fp.y }); else r.pins.push(fp); }
+          save(); sh.close(); render(); toast('Seeded pins restored');
+        }
+        if (a === 'delregion') {
+          if (!await confirmBox({ title: 'Delete region?', danger: true, ok: 'Delete region', text: `<p>Delete <b>${esc(r.name)}</b>, its ${plural(r.pins.length, 'pin')} and its map image? Shard rumours here become unknown.</p>` })) return;
+          if (!await confirmBox({ title: 'Really delete?', danger: true, ok: 'Yes, delete it', text: '<p>This can’t be undone (except by importing a backup).</p>' })) return;
+          if (r.map) { try { await DB.del('images', r.map.key); } catch (er) {} forgetImage(r.map.key); }
+          C.regions = C.regions.filter(x => x !== r);
+          C.shards.forEach(x => { if (x.regionId === r.id) { x.regionId = null; x.pinId = null; } });
+          save(); sh.close(); if (UI.regionPushed) { UI.regionPushed = false; Sheets.skip++; history.back(); } UI.view = 'map'; render(); toast('Region deleted');
+        }
+      });
+    } });
+}
+function ovSheet() {
+  const m = C.overview.map;
+  openSheet({ title: 'The Old World map',
+    html: `<p class="small muted">The overview map with a seal for each region. Add your own image from the gallery or files; it is stored on this phone and travels in the export file.</p>
+      <div class="card">${m ? `<div class="row">${m.thumb ? `<img class="thumbbig" src="${m.thumb}" alt="">` : ''}<div class="grow small">${m.w} × ${m.h} px · ${MB(m.bytes || 0)}<br><span class="muted">${esc(m.name || '')}</span></div></div>` : `<p class="small muted" style="margin-top:0">No image yet. Expected shape: ${ratioTxt(C.overview.aspect)}.</p>`}
+      <div class="btns" style="margin-top:8px"><button class="btn seal" data-a="upload">${m ? 'Replace image' : 'Add Old World map'}</button>${m ? '<button class="btn danger" data-a="rm">Remove</button>' : ''}</div></div>
+      <div class="btns" style="flex-direction:column"><button class="btn block" data-a="arrange">${UI.arrange ? 'Stop arranging regions' : 'Arrange regions (drag the seals)'}</button></div>`,
+    onMount: sh => sh.body.addEventListener('click', e => {
+      const b = e.target.closest('[data-a]'); if (!b) return; sh.close();
+      if (b.dataset.a === 'upload') uploadMap({ kind: 'overview' });
+      if (b.dataset.a === 'rm') removeMap({ kind: 'overview' });
+      if (b.dataset.a === 'arrange') { UI.arrange = !UI.arrange; render(); }
+    }) });
+}
+async function newRegionFlow() {
+  const v = await formSheet({ title: 'New region', ok: 'Create', fields: [
+    { key: 'name', label: 'Name', value: '', placeholder: 'e.g. Reikland' },
+    { key: 'danger', label: 'Danger (1–5)', type: 'stepper', value: 2, min: 1, max: 5 },
+    { key: 'far', label: 'Far land', type: 'toggle', value: false } ] });
+  if (!v || !v.name.trim()) return;
+  const name = v.name.trim(), c = MV ? MV.centerFrac() : { x: .5, y: .45 };
+  const r = { id: slug(name) + '-' + Math.random().toString(36).slice(2, 6), name, short: name, aspect: 1.414, danger: clamp(Math.round(v.danger), 1, 5), far: !!v.far, home: null,
+    hot: { x: clamp(c.x, 0, 1), y: clamp(c.y, 0, 1) }, factions: { bandits: 2 }, blurb: '', notes: '', map: null, pins: [] };
+  C.regions.push(r); save(); toast('Region added. Drag its seal into place.'); UI.arrange = true; render();
+}
+
+Object.assign(ACT, {
+  openRegion: el => openRegion(el.dataset.id),
+  mapBack: () => { if (UI.regionPushed) history.back(); else go('map'); },
+  regionInfo: () => { const r = regionById(UI.regionId); if (r) regionSheet(r); },
+  zoomIn: () => MV && MV.zoomBy(1.6), zoomOut: () => MV && MV.zoomBy(1 / 1.6), zoomFit: () => MV && MV.fit(),
+  pinSetup: () => { UI.pinSetup = !UI.pinSetup; UI.pinMove = null; render(); if (UI.pinSetup) toast('Tap the map to drop a pin', 1800); },
+  cancelMove: () => { UI.pinMove = null; render(); },
+  arrange: () => { UI.arrange = !UI.arrange; render(); },
+  ovSheet, newRegion: newRegionFlow,
+  openMap: () => go('map'), goChron: () => go('chron'), goCodex: () => go('more'),
+});
+
+const setTopH = () => { try { document.documentElement.style.setProperty('--toph', $('#top').offsetHeight + 'px'); } catch (e) {} };
+window.addEventListener('resize', setTopH);
+
+/* =====================================================================
    BOOT
    ===================================================================== */
 async function boot() {
@@ -1441,11 +2391,14 @@ async function boot() {
   let c = null;
   try { c = await DB.get('kv', 'campaign'); } catch (e) { console.warn(e); }
   if (!c) { c = newCampaign(); C = c; dirty = true; await flush(); }
+  const was = c.schema;
   C = migrate(c);
+  if (was !== C.schema) { dirty = true; await flush(); }
   UI.side = C.active;
   if (DB.fallback) toast('App storage unavailable. Export often!', 5000);
   render();
   requestPersist();
+  cleanOrphanImages();
 }
 boot();
 

@@ -1,10 +1,12 @@
 /* Runefang service worker: offline cache for the app shell.
    Bump VERSION whenever index.html changes so phones pick up the update. */
-const VERSION = 'runefang-v1.0-p1';
+const VERSION = 'runefang-v2.0-p2';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)));
+  // cache: 'reload' bypasses the browser's HTTP cache (GitHub Pages sends max-age=600),
+  // so a new version never stores a stale copy of index.html.
+  e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' })))));
 });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k)))).then(() => self.clients.claim()));
