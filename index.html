@@ -454,8 +454,8 @@ body.noscroll #upd{display:none}
    RUNEFANG — Old World campaign companion
    Phase 1: data model, storage, export/import, rosters, gold
    ===================================================================== */
-const APP_VERSION = '5.0.0 · phase 5';
-const SCHEMA = 5;
+const APP_VERSION = '5.1.0 · phase 5.1';
+const SCHEMA = 6;
 const FORMAT = 'runefang-campaign';
 
 /* ---------- tiny helpers ---------- */
@@ -592,6 +592,22 @@ const FACTIONS = {
   dwarfs:  { label: 'Dwarfs',            color: '#2b5f78' },
   cathay:  { label: 'Grand Cathay',      color: '#a3241c' },
 };
+// Phase 5.1: every region belongs to a land. Each land has its own bandits and its own happenings (all editable in the Codex).
+const LANDS = {
+  empire:         { label: 'The Empire',                     bandits: 'Empire Bandits' },
+  worlds_edge:    { label: 'World’s Edge & the Dwarf holds', bandits: 'World’s Edge Bandits' },
+  border_princes: { label: 'The Border Princes',             bandits: 'Border Princes Bandits' },
+  bretonnia:      { label: 'Bretonnia',                      bandits: 'Bretonnian Bandits' },
+  tilea:          { label: 'Tilea',                          bandits: 'Tilean Bandits' },
+  cathay:         { label: 'Grand Cathay',                   bandits: 'Cathayan Bandits' },
+  khuresh:        { label: 'Khuresh',                        bandits: 'Khureshi Bandits' },
+  araby:          { label: 'Araby',                          bandits: 'Arabyan Bandits' },
+  albion:         { label: 'Albion',                         bandits: 'Albion Bandits' },
+};
+const REGION_LAND = { stirland: 'empire', middenheim: 'empire', sylvania: 'empire', ostermark: 'empire', averland: 'empire', hochland: 'empire', nordland: 'empire',
+  worlds_edge: 'worlds_edge', border_princes: 'border_princes', bretonnia: 'bretonnia', tilea: 'tilea', cathay: 'cathay', khuresh: 'khuresh', araby: 'araby', albion: 'albion' };
+const landOf = r => (r && LANDS[r.land]) ? r.land : 'empire';
+const landOpts = () => Object.entries(LANDS).map(([k, l]) => [k, l.label]);
 const slug = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 // [id, name, short, aspect(w/h), danger, far, home, hot{x,y on Old World map}, factions, blurb, pins[name, terrain, faction, x%, y%]]
@@ -714,7 +730,7 @@ const START_POS = { sig: ['stirland', 'Wurtbad'], ulr: ['middenheim', 'Middenhei
 const pinId = (rid, name) => rid + '-' + slug(name);
 function seedRegion(row) {
   const [id, name, short, aspect, danger, far, home, hot, factions, blurb, pins] = row;
-  return { id, name, short, aspect, danger, far, home, hot: { x: hot[0] / 100, y: hot[1] / 100 }, factions: { ...factions }, blurb, notes: '',
+  return { id, name, short, aspect, danger, far, home, land: REGION_LAND[id] || 'empire', hot: { x: hot[0] / 100, y: hot[1] / 100 }, factions: { ...factions }, blurb, notes: '',
     map: null, pins: pins.map(([n, t, f, x, y]) => ({ id: pinId(id, n), name: n, terrain: t, faction: f, x: x / 100, y: y / 100, notes: '', seeded: true })) };
 }
 /* Idempotent: adds anything phase 2 needs to a campaign, never removes rosters or user edits. */
@@ -991,10 +1007,15 @@ const DEFAULT_ENEMIES = {
   beasts: [EN('Beastlord', 'char', 150), EN('Great Bray-Shaman', 'char', 110), EN('Wargor', 'char', 75), EN('Gor Herd', 'unit', 0, 7, 10, 30), EN('Ungor Herd', 'unit', 0, 5, 10, 30), EN('Bestigor Herd', 'unit', 0, 13, 10, 20), EN('Chaos Warhounds', 'unit', 0, 7, 5, 10), EN('Centigors', 'unit', 0, 22, 5, 10), EN('Minotaurs', 'unit', 0, 55, 3, 6)],
   chaos: [EN('Exalted Champion', 'char', 120), EN('Chaos Marauders', 'unit', 0, 6, 10, 30), EN('Chaos Warriors', 'unit', 0, 16, 10, 20), EN('Chaos Spawn', 'mon', 60)],
   orcs: [EN('Orc Warboss', 'char', 110), EN('Orc Shaman', 'char', 70), EN('Night Goblins', 'unit', 0, 3.5, 15, 40), EN('Orc Mob', 'unit', 0, 7, 10, 30), EN('Troll', 'mon', 45)],
-  bandits: [EN('Bandit Chief', 'char', 55), EN('Hedge Wizard', 'char', 45), EN('Cutthroats', 'unit', 0, 5, 10, 20), EN('Brigand Archers', 'unit', 0, 6, 5, 15), EN('Outlaw Riders', 'unit', 0, 14, 5, 8), EN('Ogre Sellsword', 'mon', 45)],
+  bandits: [EN('Bandit Chief (use an Empire captain)', 'char', 55), EN('Outlaw Sergeant (use a unit champion)', 'char', 30),
+    { ...EN('Militia Rabble', 'unit', 0, 5, 10, 40), weight: 4 }, { ...EN('Poacher Archers', 'unit', 0, 7, 10, 20), weight: 3 },
+    EN('Cutthroat Spearmen', 'unit', 0, 5, 10, 20), EN('Deserter Swordsmen', 'unit', 0, 6, 10, 20), EN('Brigand Crossbowmen', 'unit', 0, 8, 5, 15)],
   dwarfs: [EN('Dwarf Thane', 'char', 85), EN('Slayer', 'char', 70), EN('Dwarf Warriors', 'unit', 0, 9, 10, 30), EN('Handgunners', 'unit', 0, 11, 10, 20), EN('Miners', 'unit', 0, 12, 10, 20), EN('Cannon', 'mon', 110)],
   cathay: [EN('Strategist', 'char', 100), EN('Alchemist', 'char', 85), EN('Jade Warriors', 'unit', 0, 8, 10, 25), EN('Peasant Longbowmen', 'unit', 0, 6, 10, 20), EN('Crane Gunners', 'unit', 0, 9, 5, 15), EN('Jade Lancers', 'unit', 0, 20, 5, 10), EN('Celestial Dragon Guard', 'unit', 0, 13, 10, 20), EN('Fire Rain Rocket Battery', 'mon', 90)],
 };
+
+// The bandit list of phases 3–5, kept only to recognise an unedited one (phase 5.1 replaces it with Empire models).
+const OLD_BANDIT_ENEMIES = [EN('Bandit Chief', 'char', 55), EN('Hedge Wizard', 'char', 45), EN('Cutthroats', 'unit', 0, 5, 10, 20), EN('Brigand Archers', 'unit', 0, 6, 5, 15), EN('Outlaw Riders', 'unit', 0, 14, 5, 8), EN('Ogre Sellsword', 'mon', 45)];
 
 // What each injury does to the roster (phase 3). Matched by name for older saves.
 const INJ_DEFAULTS = {
@@ -1617,6 +1638,7 @@ function viewMore() {
       <button class="btn block" data-act="setInvestigate">Investigation results (${C.tables.investigate.length})</button>
       <button class="btn block" data-act="setScenarios">Scenarios (${C.tables.scenarios.length})</button>
       <button class="btn block" data-act="setEnemies">Opposition lists</button>
+      <button class="btn block" data-act="setLandBandits">Bandits of the lands${opt('landBandits') ? '' : ' (off)'}</button>
       <button class="btn block" data-act="setTwists">Battlefield twists (${C.tables.twists.length})</button>
       <button class="btn block" data-act="setLoot">Loot table (${C.tables.loot.length})</button>
     </div></div>
@@ -2918,6 +2940,7 @@ function regionSheet(r) {
         ${fieldHtml({ key: 'short', label: 'Short name', value: r.short || '' })}
         ${fieldHtml({ key: 'danger', label: 'Danger (1–5)', type: 'stepper', value: r.danger, min: 1, max: 5 })}
         ${fieldHtml({ key: 'far', label: 'Far land (later in the campaign)', type: 'toggle', value: r.far })}
+        ${fieldHtml({ key: 'land', label: 'Land', type: 'select', value: landOf(r), options: landOpts(), hint: `Sets the bandits and the events of the land here. Bandits here: ${esc(banditName(banditLand(r)))}.` })}
         <div class="f"><label class="l">Opposition here (weight 0–5)</label><div class="two">${Object.entries(FACTIONS).map(([k, f]) => `<div><div class="small" style="margin-bottom:3px">${esc(f.label)}</div>${stepperHtml('fac_' + k, r.factions[k] || 0, 0, 5)}</div>`).join('')}</div>
           <div class="hint">Missions in phase 3 pick opponents by these weights.</div></div>
         ${fieldHtml({ key: 'blurb', label: 'Description', type: 'textarea', value: r.blurb || '' })}
@@ -2930,7 +2953,7 @@ function regionSheet(r) {
         const b = e.target.closest('[data-r]'); if (!b) return;
         if (b.dataset.r === '1') {
           const v = readInputs(sh.body);
-          r.name = v.name.trim() || r.name; r.short = v.short.trim() || r.name; r.danger = clamp(Math.round(v.danger) || 1, 1, 5); r.far = !!v.far;
+          r.name = v.name.trim() || r.name; r.short = v.short.trim() || r.name; r.danger = clamp(Math.round(v.danger) || 1, 1, 5); r.far = !!v.far; r.land = LANDS[v.land] ? v.land : 'empire';
           for (const k in FACTIONS) { const w = clamp(Math.round(v['fac_' + k] || 0), 0, 5); if (w) r.factions[k] = w; else delete r.factions[k]; }
           r.blurb = v.blurb; r.notes = v.notes; save(); toast('Region saved', 1400);
         }
@@ -2981,10 +3004,11 @@ async function newRegionFlow() {
   const v = await formSheet({ title: 'New region', ok: 'Create', fields: [
     { key: 'name', label: 'Name', value: '', placeholder: 'e.g. Reikland' },
     { key: 'danger', label: 'Danger (1–5)', type: 'stepper', value: 2, min: 1, max: 5 },
-    { key: 'far', label: 'Far land', type: 'toggle', value: false } ] });
+    { key: 'far', label: 'Far land', type: 'toggle', value: false },
+    { key: 'land', label: 'Land', type: 'select', value: 'empire', options: landOpts(), hint: 'Sets the bandits and the events of the land here.' } ] });
   if (!v || !v.name.trim()) return;
   const name = v.name.trim(), c = MV ? MV.centerFrac() : { x: .5, y: .45 };
-  const r = { id: slug(name) + '-' + Math.random().toString(36).slice(2, 6), name, short: name, aspect: 1.414, danger: clamp(Math.round(v.danger), 1, 5), far: !!v.far, home: null,
+  const r = { id: slug(name) + '-' + Math.random().toString(36).slice(2, 6), name, short: name, aspect: 1.414, danger: clamp(Math.round(v.danger), 1, 5), far: !!v.far, land: LANDS[v.land] ? v.land : 'empire', home: null,
     hot: { x: clamp(c.x, 0, 1), y: clamp(c.y, 0, 1) }, factions: { bandits: 2 }, blurb: '', notes: '', map: null, pins: [] };
   C.regions.push(r); save(); toast('Region added. Drag its seal into place.'); UI.arrange = true; render();
 }
@@ -3025,7 +3049,7 @@ function wpick(list, w = x => x.weight ?? 1) {
 }
 const theN = (n, cap) => { n = String(n || ''); return /^the\s/i.test(n) ? (cap ? 'T' : 't') + n.slice(1) : (cap ? 'The ' : 'the ') + n; };
 const article = w => (/^[aeiou]/i.test(w) ? 'an ' : 'a ') + w;
-const oppLabel = m => m.opp === 'rival' ? exName(m.oppSide) : (FACTIONS[m.opp] || {}).label || 'the enemy';
+const oppLabel = m => m.opp === 'rival' ? exName(m.oppSide) : m.oppName || (FACTIONS[m.opp] || {}).label || 'the enemy';
 const oppColor = m => m.opp === 'rival' ? `var(--${m.oppSide})` : facColor(m.opp);
 const activeChain = (s, shard) => (C.chains || []).find(c => c.side === s && c.status === 'active' && (shard == null || c.shard === shard));
 const missionById = id => (C.missions || []).find(m => m.id === id) || null;
@@ -3128,7 +3152,7 @@ function makeRelic(s, entry) {
   const e = EX(s); const rl = { id: uid('rel'), name: entry.name, effect: entry.effect || '', assignedTo: null, found: C.turn };
   e.relics.push(rl); return rl;
 }
-const lootPool = () => C.tables.loot.filter(x => num(x.weight, 1) > 0);
+const lootPool = r => C.tables.loot.filter(x => num(x.weight, 1) > 0 && rowFit(x, r));
 function runFx(s, str, ctx = {}) {
   const e = EX(s), out = { lines: [], battle: null }, L = t => out.lines.push(t);
   const alive = () => e.regiments.filter(r => r.models > 0);
@@ -3139,10 +3163,10 @@ function runFx(s, str, ctx = {}) {
       case 'relic': {
         let x = arg && C.tables.loot.find(l => l.name.toLowerCase() === arg.toLowerCase());
         if (!x && arg) x = { name: arg, effect: '' };
-        if (!x) x = wpick(lootPool().filter(l => !num(l.gold)));
+        if (!x) x = wpick(lootPool(ctx.r || hereOf(s)).filter(l => !num(l.gold)));
         if (x) { makeRelic(s, x); L(`Relic: ${x.name}`); }
         break; }
-      case 'loot': { const x = wpick(lootPool()); if (!x) break; if (num(x.gold)) { addGold(s, num(x.gold), x.name); L(`${x.name}: +${num(x.gold)} gc`); } else { makeRelic(s, x); L(`Relic: ${x.name}`); } break; }
+      case 'loot': { const x = wpick(lootPool(ctx.r || hereOf(s))); if (!x) break; if (num(x.gold)) { addGold(s, num(x.gold), x.name); L(`${x.name}: +${num(x.gold)} gc`); } else { makeRelic(s, x); L(`Relic: ${x.name}`); } break; }
       case 'lose-relic': case 'loserelic': { if (!e.relics.length) break; const x = pickOne(e.relics); e.relics = e.relics.filter(r => r !== x); L(`Lost the relic ${x.name}`); break; }
       case 'unit': {
         const m = arg.match(/^(.*?)\s+(\d+)(?:\s+as\s+(.+))?$/i); if (!m) { L(part); break; }
@@ -3235,12 +3259,12 @@ function rivalEncounter(s, r, p) {
 }
 function eventPool(s, r) {
   return C.tables.roadEvents.filter(ev => ev && (!ev.where || ev.where === r.id) && (!ev.side || ev.side === s) && reqOk(ev.req, s)
-    && !(ev.once && hasFlag('ev:' + ev.id, s)) && num(ev.weight, 1) > 0);
+    && !(ev.once && hasFlag('ev:' + ev.id, s)) && num(ev.weight, 1) > 0 && landFit(ev, r) > 0);
 }
 function roadEvent(s, r, p) {
   const ts = TS();
   if (ts.event && ts.event.id !== '__rival') { const ev = C.tables.roadEvents.find(x => x.id === ts.event.id) || ts.event.quiet; if (ev || ts.event.resolved) return eventSheet(s, ev, r, p); }
-  const ev = wpick(eventPool(s, r), x => num(x.weight, 1) * leanW(x, s)) || EVt('__quiet', 'An Uneventful March', 'camp', '', 1, 'The road is quiet. Nothing troubles the expedition.', [EVc('Onward')]);
+  const ev = wpick(eventPool(s, r), x => num(x.weight, 1) * leanW(x, s) * landFit(x, r)) || EVt('__quiet', 'An Uneventful March', 'camp', '', 1, 'The road is quiet. Nothing troubles the expedition.', [EVc('Onward')]);
   ts.event = { id: ev.id, title: ev.title, resolved: false, regionId: r.id, pinId: p.id, quiet: ev.id === '__quiet' ? ev : undefined };
   save(); eventSheet(s, ev, r, p);
 }
@@ -3302,7 +3326,7 @@ function investigate(s) {
   let inv;
   if (shIdx >= 0 && !activeChain(s, shIdx)) {
     const ch = startChain(s, shIdx, r, p), m = chainMission(ch);
-    inv = { title: 'The Trail Ends Here!', text: `Beneath ${p.name} the searchers find signs that cannot be mistaken: ${theN(C.shards[shIdx].name, false)} is here, and ${FACTIONS[ch.opp] ? 'the ' + FACTIONS[ch.opp].label : 'something'} guard${FACTIONS[ch.opp] ? '' : 's'} it.`,
+    inv = { title: 'The Trail Ends Here!', text: `Beneath ${p.name} the searchers find signs that cannot be mistaken: ${theN(C.shards[shIdx].name, false)} is here, and ${FACTIONS[ch.opp] ? 'the ' + (ch.opp === 'bandits' ? banditName(banditLand(r)) : FACTIONS[ch.opp].label) : 'something'} guard${FACTIONS[ch.opp] ? '' : 's'} it.`,
       lines: [`A chain of ${plural(ch.steps, 'mission')} begins: ${ch.scales.map(x => SCALES[x].label).join(' → ')}`, 'One mission per turn. Marching away abandons the chain.'], missionId: m.id, shard: true };
     recordClue(s, r, p, 'here', `${theN(C.shards[shIdx].name, true)} lies at ${p.name}.`, C.shards[shIdx].id);
     chron(s, 'shard', `${exName(s)} found the resting place of ${theN(C.shards[shIdx].name, false)} at ${p.name}. It will not be taken without a fight.`);
@@ -3310,7 +3334,7 @@ function investigate(s) {
     const mult = ts.event && ts.event.battle ? num(S().missions.afterBattleMult, 15) / 100 : 1;
     const dz = 0.6 + 0.2 * (r.danger || 2);
     const isB = it => /(^|;)\s*battle\b/i.test(it.fx || '');
-    const x = wpick(C.tables.investigate.filter(Boolean), it => num(it.weight, 1) * (isB(it) ? mult * dz : 1) * leanW(it, s)) || { title: 'Nothing', text: 'Nothing of note.', fx: '' };
+    const x = wpick(C.tables.investigate.filter(it => it && rowFit(it, r)), it => num(it.weight, 1) * (isB(it) ? mult * dz : 1) * leanW(it, s)) || { title: 'Nothing', text: 'Nothing of note.', fx: '' };
     const res = runFx(s, x.fx, { title: x.title, r, p });
     const m = res.battle ? createMission({ side: s, regionId: r.id, pinId: p.id, kind: res.battle.opp === 'rival' ? 'rival' : 'investigate', opp: res.battle.opp, scale: res.battle.scale }) : null;
     inv = { title: x.title, text: fill(x.text, s, r, p), lines: res.lines, missionId: m ? m.id : null };
@@ -3346,8 +3370,8 @@ function pickScenario(scale, kind, terrain) {
   if (!L.length) return { name: 'Pitched Battle', objective: 'Score more victory points than the enemy.', special: '' };
   return wpick(L, x => { const t = (x.tags || []).map(y => String(y).toLowerCase()); return (t.includes(kind) ? 4 : t.includes('any') ? 1.5 : 0.4) * (terrain && t.includes(terrain) ? 2.5 : 1); });
 }
-function enemyList(fac, pts, scale, extra = 0, fewer = 0) {
-  const pool = ((C.tables.enemies || {})[fac] || []).filter(x => x && x.name);
+function enemyList(fac, pts, scale, extra = 0, fewer = 0, bl = null) {
+  const pool = oppPool(fac, bl).filter(x => x && x.name && num(x.weight, 1) > 0);
   const chars = pool.filter(x => x.kind === 'char'), units = pool.filter(x => x.kind === 'unit'), mons = pool.filter(x => x.kind === 'mon');
   const lines = [], used = {}; let left = pts;
   const cap = pts * (scale === 'mordheim' ? 0.55 : scale === 'march' ? 0.3 : 0.25);
@@ -3356,10 +3380,10 @@ function enemyList(fac, pts, scale, extra = 0, fewer = 0) {
   if (scale === 'full' && pts >= 1500) { const c2 = chars.filter(c => !used[c.name] && num(c.pts) <= pts * 0.15); if (c2.length) { const c = pickOne(c2); lines.push({ name: c.name, n: 0, pts: Math.round(num(c.pts)), char: true }); left -= num(c.pts); used[c.name] = 1; } }
   const maxEach = scale === 'full' ? 3 : 2;
   for (let guard = 0; guard < 24 && left > 0; guard++) {
-    const opts = [...units.filter(u => (used[u.name] || 0) < maxEach && Math.max(1, num(u.min, 1)) * num(u.ppm, 5) <= left),
-      ...mons.filter(x => (used[x.name] || 0) < (scale === 'mordheim' ? 1 : maxEach - 1) && num(x.pts) <= left && (scale !== 'mordheim' || num(x.pts) <= pts * 0.45))];
+    const opts = [...units.filter(u => (used[u.name] || 0) < (u.rare ? 1 : maxEach + (num(u.weight, 1) >= 3 ? 1 : 0)) && Math.max(1, num(u.min, 1)) * num(u.ppm, 5) <= left),
+      ...mons.filter(x => (used[x.name] || 0) < (scale === 'mordheim' || x.rare ? 1 : maxEach - 1) && num(x.pts) <= left && (scale !== 'mordheim' || num(x.pts) <= pts * 0.45))];
     if (!opts.length) break;
-    const x = wpick(opts, o => used[o.name] ? 1 : 3);
+    const x = wpick(opts, o => (used[o.name] ? 1 : 3) * num(o.weight, 1));
     if (x.kind === 'mon') { lines.push({ name: x.name, n: 0, pts: Math.round(num(x.pts)) }); left -= num(x.pts); }
     else {
       const mn = Math.max(1, Math.round(num(x.min, 5))), mx = Math.max(mn, Math.round(num(x.max, 20))), ppm = num(x.ppm, 5);
@@ -3372,8 +3396,8 @@ function enemyList(fac, pts, scale, extra = 0, fewer = 0) {
   }
   if (fewer && lines.filter(l => !l.char).length > 1) { const c = lines.filter(l => !l.char).sort((a, b) => a.pts - b.pts)[0]; c.removed = true; }
   if (extra) { const x = units.length ? pickOne(units) : mons[0]; if (x) lines.push(x.kind === 'mon' ? { name: x.name, n: 0, pts: Math.round(num(x.pts)), extra: true } : { name: x.name, n: Math.round(num(x.min, 10)), pts: Math.round(num(x.min, 10) * num(x.ppm, 5)), extra: true }); }
-  if (!lines.length) lines.push({ name: `${(FACTIONS[fac] || {}).label || 'Enemy'} force of your choice`, n: 0, pts });
-  return { lines, total: lines.filter(l => !l.removed).reduce((a, l) => a + l.pts, 0) };
+  if (!lines.length) lines.push({ name: `${fac === 'bandits' ? banditName(bl) : (FACTIONS[fac] || {}).label || 'Enemy'} force of your choice`, n: 0, pts });
+  return { lines, total: lines.filter(l => !l.removed).reduce((a, l) => a + l.pts, 0), land: bl || null };
 }
 function rivalList(rv, pts) {
   const e = EX(rv);
@@ -3389,10 +3413,11 @@ function genMission(g) {
   const scale = SCALES[g.scale] ? g.scale : (opp === 'rival' ? 'march' : Math.random() < 0.3 ? 'mordheim' : 'march');
   const points = g.points ? Math.round(num(g.points)) : missionPoints(scale, r);
   const sc = g.scenario || pickScenario(scale, opp === 'rival' ? 'rival' : g.kind, p && p.terrain);
-  const enemy = opp === 'rival' ? rivalList(rv, points) : (scale === 'mordheim' && warbandList(opp, g.extra || 0, g.fewer || 0, points)) || enemyList(opp, points, scale, g.extra || 0, g.fewer || 0);
+  const bl = opp === 'bandits' ? banditLand(r) : null;
+  const enemy = opp === 'rival' ? rivalList(rv, points) : (scale === 'mordheim' && warbandList(opp, g.extra || 0, g.fewer || 0, points, bl)) || enemyList(opp, points, scale, g.extra || 0, g.fewer || 0, bl);
   const where = p ? p.name : r ? (r.short || r.name) : 'the road';
   const ch = g.chainId && (C.chains || []).find(c => c.id === g.chainId), shName = ch ? C.shards[ch.shard].name : '';
-  return { id: uid('msn'), side: g.side, opp, oppSide: opp === 'rival' ? rv : null, regionId: g.regionId, pinId: g.pinId, kind: g.kind, scale, points,
+  return { id: uid('msn'), side: g.side, opp, oppSide: opp === 'rival' ? rv : null, oppName: opp === 'bandits' ? banditName(bl) : null, regionId: g.regionId, pinId: g.pinId, kind: g.kind, scale, points,
     scenario: { name: sc.name, objective: sc.objective || '', special: sc.special || '' }, setup: p ? (TERRAIN[p.terrain] || {}).setup || '' : '',
     twist: null, enemy, mods: g.mods || [], chainId: g.chainId || null, step: g.step ?? null, of: g.of ?? null,
     name: ch ? `${sc.name} at ${where} (${shName}, ${g.step + 1} of ${g.of})` : `${sc.name} at ${where}`,
@@ -3488,7 +3513,7 @@ function enemyHtml(m) {
   if (en.rival) return `<p class="small" style="margin:4px 0">${esc(exName(m.oppSide))} fields ${esc(yourForce(m, m.oppSide).replace(/^Up to/, 'up to'))}</p>
     <div class="elist">${en.lines.map(l => `<div class="el"><span class="grow">${l.n ? l.n + ' × ' : ''}${esc(l.name)}</span><span class="muted">${l.pts} pts</span></div>`).join('')}</div>`;
   return `<div class="elist">${en.lines.map(l => `<div class="el ${l.removed ? 'rm' : ''} ${l.extra ? 'ex' : ''}"><span class="grow">${l.n ? l.n + ' × ' : ''}${esc(l.name)}${l.extra ? ' <b>(extra unit)</b>' : ''}${l.removed ? ' (removed)' : ''}</span><span class="muted">${l.pts} pts</span></div>`).join('')}
-    <div class="el tot"><span class="grow">About</span><b>${en.total} pts</b></div></div><div class="hint">A suggestion from Codex → Opposition lists. Swap units for what you own; stay near the points.</div>`;
+    <div class="el tot"><span class="grow">About</span><b>${en.total} pts</b></div></div><div class="hint">A suggestion from Codex → ${en.land ? `Bandits of the lands (${esc(banditName(en.land))})` : 'Opposition lists'}. Swap units for what you own; stay near the points.</div>`;
 }
 async function renderInset(el, r, p) {
   if (!el) return;
@@ -3544,7 +3569,7 @@ function missionSheet(m) {
         const b = e.target.closest('[data-a]'); if (!b) return; const a = b.dataset.a;
         if (a === 'map' && r && p) { sh.close(); openPinOnMap(r, p); }
         if (a === 'twist') {
-          const t = rollTwist(); if (!t) return toast('The twist table is empty');
+          const t = rollTwist(r); if (!t) return toast('The twist table is empty');
           m.twist = { name: t.name, effect: t.effect }; save();
           $('#twistBox', sh.body).innerHTML = `<div class="note-box"><b>${esc(t.name)}.</b> ${esc(t.effect)}</div><button class="linkbtn" data-a="twist">Roll again</button>`;
         }
@@ -3727,7 +3752,7 @@ function afterBattle(m) {
         if (lb) {
           const s = lb.dataset.loot, ch = num(M.loot[resFor(s)]); d.searched[s] = true; lb.disabled = true;
           const roll = d100();
-          if (roll <= ch) { const x = wpick(lootPool()); if (x) { d.loot[s].push({ name: x.name, effect: x.effect, gold: num(x.gold) }); toast(`Found: ${x.name}`); } }
+          if (roll <= ch) { const x = wpick(lootPool(regionById(m.regionId))); if (x) { d.loot[s].push({ name: x.name, effect: x.effect, gold: num(x.gold) }); toast(`Found: ${x.name}`); } }
           else toast(`Rolled ${roll}: nothing of worth`);
           return drawLoot(s);
         }
@@ -3828,12 +3853,12 @@ function tableEditor({ title, intro = '', get, summary, edit, blank }) {
   }, onClose: () => render() });
 }
 const delField = isNew => isNew ? [] : [{ key: 'remove', type: 'toggle', label: 'Delete this entry', value: false }];
-const regionOpts = () => [['', 'Anywhere (general table)'], ...C.regions.map(r => [r.id, r.name])];
+const regionOpts = () => [['', 'Any region of its land'], ...C.regions.map(r => [r.id, r.name])];
 function roadEventsSheet() {
   tableEditor({ title: 'Road events', get: () => C.tables.roadEvents,
-    intro: `<p class="small muted">Rolled on every march: the general events plus those of the region marched into. Higher weight = more likely. Tap to edit.</p>`,
-    summary: x => `<div class="row between"><b>${esc(x.title)}</b><span class="evk evk-${x.kind}">${esc(EV_KINDS[x.kind] || x.kind)}</span></div><div class="muted">${x.where ? esc((regionById(x.where) || { name: x.where }).name) : 'Anywhere'} · weight ${x.weight}${x.req ? ' · needs ' + esc(x.req) : ''}${x.once ? ' · once' : ''} · ${plural((x.choices || []).length, 'choice')}</div>`,
-    blank: () => EVt(uid('ev'), 'New event', 'choice', '', 2, '', [EVc('Onward')]), edit: editRoadEvent });
+    intro: `<p class="small muted">Rolled on every march: the events of the land you are in, those that happen everywhere, and those of the region marched into.${opt('landEvents') ? ` The Empire’s own events are rare abroad (${Math.round(EMPIRE_ABROAD * 100)}% of their weight).` : ' Events of the land are off (Codex → Campaign options): the Empire’s events are rolled everywhere and the other lands’ events not at all.'} Events that need a flag pay off earlier choices. Higher weight = more likely. Tap to edit.</p>`,
+    summary: x => `<div class="row between"><b>${esc(x.title)}</b><span class="evk evk-${x.kind}">${esc(EV_KINDS[x.kind] || x.kind)}</span></div><div class="muted">${x.where ? esc((regionById(x.where) || { name: x.where }).name) : esc(evLandLabel(x))} · weight ${x.weight}${x.req ? ' · needs ' + esc(x.req) : ''}${x.once ? ' · once' : ''} · ${plural((x.choices || []).length, 'choice')}</div>`,
+    blank: () => ({ ...EVt(uid('ev'), 'New event', 'choice', '', 2, '', [EVc('Onward')]), land: 'empire' }), edit: editRoadEvent });
 }
 function editRoadEvent(x, isNew, opts = {}) {
   return new Promise(res => {
@@ -3845,7 +3870,7 @@ function editRoadEvent(x, isNew, opts = {}) {
         const sync = () => {
           const v = readInputs($('.form', sh.body));
           Object.assign(d, { title: v.title, kind: v.kind, text: v.text });
-          if ('where' in v) d.where = v.where; if ('weight' in v) d.weight = Math.max(0, Math.round(num(v.weight))); if ('side' in v) d.side = v.side;
+          if ('where' in v) d.where = v.where; if ('land' in v) d.land = v.land; if ('weight' in v) d.weight = Math.max(0, Math.round(num(v.weight))); if ('side' in v) d.side = v.side;
           if ('req' in v) d.req = String(v.req).trim(); if ('once' in v) d.once = !!v.once; if ('lean' in v) d.lean = !!v.lean;
           if (opts.read) opts.read(v, d);
           d.choices.forEach((c, i) => Object.assign(c, { label: v[`c${i}_label`], cost: Math.max(0, Math.round(num(v[`c${i}_cost`]))), chance: clamp(Math.round(num(v[`c${i}_chance`])), 0, 100),
@@ -3855,7 +3880,8 @@ function editRoadEvent(x, isNew, opts = {}) {
           ${fieldHtml({ key: 'title', label: 'Title', value: d.title })}
           ${opts.threat ? fieldHtml({ key: 'kind', label: 'Kind', type: 'select', value: d.kind, options: Object.entries(EV_KINDS) }) + opts.fields(d) : `
           <div class="two">${fieldHtml({ key: 'kind', label: 'Kind', type: 'select', value: d.kind, options: Object.entries(EV_KINDS) })}${fieldHtml({ key: 'weight', label: 'Weight', type: 'stepper', value: d.weight, min: 0, max: 20 })}</div>
-          ${fieldHtml({ key: 'where', label: 'Where', type: 'select', value: d.where || '', options: regionOpts() })}
+          ${fieldHtml({ key: 'land', label: 'Land', type: 'select', value: evLand(d), options: evLandOpts(), hint: `The Empire’s events are rare abroad (${Math.round(EMPIRE_ABROAD * 100)}% of their weight). Everywhere = full weight in every land.` })}
+          ${fieldHtml({ key: 'where', label: 'Only in one region', type: 'select', value: d.where || '', options: regionOpts() })}
           <div class="two">${fieldHtml({ key: 'side', label: 'Only for', type: 'select', value: d.side || '', options: [['', 'Either expedition'], ['sig', exShort('sig')], ['ulr', exShort('ulr')]] })}${fieldHtml({ key: 'req', label: 'Requires', value: d.req || '', placeholder: 'e.g. helped_kelham' })}</div>
           ${fieldHtml({ key: 'once', type: 'toggle', label: 'Happens only once per expedition', value: d.once })}
           ${fieldHtml({ key: 'lean', type: 'toggle', label: 'Daemon-touched: twice as likely for the deceived priest’s expedition', value: d.lean })}
@@ -3891,32 +3917,32 @@ function editRoadEvent(x, isNew, opts = {}) {
 function investigateSheet() {
   tableEditor({ title: 'Investigation results', get: () => C.tables.investigate,
     intro: `<p class="small muted">Rolled when an expedition investigates a pin. Entries whose effects start a battle are much rarer if the road event was already a battle (see Missions & scales). The shard’s true resting place always starts its mission chain instead.</p>${FX_HELP}`,
-    summary: x => `<div class="row between"><b>${x.lean ? '☠ ' : ''}${esc(x.title)}</b><span class="small">w ${x.weight}</span></div><div class="muted">${esc(x.fx || 'no effect')}</div>`,
+    summary: x => `<div class="row between"><b>${x.lean ? '☠ ' : ''}${esc(x.title)}</b><span class="small">w ${x.weight}</span></div><div class="muted">${rowLandTag(x)}${esc(x.fx || 'no effect')}</div>`,
     blank: () => ({ id: uid('inv'), title: '', weight: 2, text: '', fx: '' }),
     edit: async (x, isNew) => { const v = await formSheet({ title: isNew ? 'New result' : x.title, fields: [
       { key: 'title', label: 'Title', value: x.title }, { key: 'weight', label: 'Weight', type: 'stepper', value: x.weight, min: 0, max: 20 },
       { key: 'text', label: 'Text', type: 'textarea', value: x.text }, { key: 'fx', label: 'Effects', value: x.fx, placeholder: 'e.g. clue; gold 20' },
-      { key: 'lean', type: 'toggle', label: 'Daemon-touched: twice as likely for the deceived priest’s expedition', value: x.lean }, ...delField(isNew)] });
+      { key: 'lean', type: 'toggle', label: 'Daemon-touched: twice as likely for the deceived priest’s expedition', value: x.lean }, { key: 'land', label: 'Land', type: 'select', value: x.land || '', options: rowLandOpts() }, ...delField(isNew)] });
       if (!v) return null; if (v.remove) return 'delete'; if (!v.title.trim()) return null;
-      return { ...x, title: v.title.trim(), weight: Math.max(0, Math.round(v.weight)), text: v.text, fx: v.fx.trim(), lean: !!v.lean }; } });
+      return { ...x, title: v.title.trim(), weight: Math.max(0, Math.round(v.weight)), text: v.text, fx: v.fx.trim(), lean: !!v.lean, land: v.land || '' }; } });
 }
 function twistsSheet() {
   tableEditor({ title: 'Battlefield twists', get: () => C.tables.twists, intro: '<p class="small muted">Rolled from the mission screen before deployment.</p>',
-    summary: x => `<div class="row between"><b>${esc(x.name)}</b><span class="small">w ${x.weight}</span></div><div class="muted">${esc(x.effect)}</div>`,
+    summary: x => `<div class="row between"><b>${esc(x.name)}</b><span class="small">w ${x.weight}</span></div><div class="muted">${rowLandTag(x)}${esc(x.effect)}</div>`,
     blank: () => ({ id: uid('tw'), name: '', effect: '', weight: 1 }),
     edit: async (x, isNew) => { const v = await formSheet({ title: isNew ? 'New twist' : x.name, fields: [
-      { key: 'name', label: 'Name', value: x.name }, { key: 'effect', label: 'Effect', type: 'textarea', value: x.effect }, { key: 'weight', label: 'Weight', type: 'stepper', value: x.weight, min: 0, max: 20 }, ...delField(isNew)] });
-      if (!v) return null; if (v.remove) return 'delete'; if (!v.name.trim()) return null; return { ...x, name: v.name.trim(), effect: v.effect, weight: Math.max(0, Math.round(v.weight)) }; } });
+      { key: 'name', label: 'Name', value: x.name }, { key: 'effect', label: 'Effect', type: 'textarea', value: x.effect }, { key: 'weight', label: 'Weight', type: 'stepper', value: x.weight, min: 0, max: 20 }, { key: 'land', label: 'Land', type: 'select', value: x.land || '', options: rowLandOpts() }, ...delField(isNew)] });
+      if (!v) return null; if (v.remove) return 'delete'; if (!v.name.trim()) return null; return { ...x, name: v.name.trim(), effect: v.effect, weight: Math.max(0, Math.round(v.weight)), land: v.land || '' }; } });
 }
 function lootSheet() {
-  tableEditor({ title: 'Loot table', get: () => C.tables.loot, intro: '<p class="small muted">Rolled when searching the battlefield, and by the “relic” and “loot” effects. Gold above 0 makes it a purse instead of a relic. Weight 0 = only given by name in an event.</p>',
-    summary: x => `<div class="row between"><b>${num(x.gold) ? '✦' : '◆'} ${esc(x.name)}</b><span class="small">${num(x.weight) ? 'w ' + x.weight : 'event only'}</span></div><div class="muted">${num(x.gold) ? '+' + x.gold + ' gc' : esc(x.effect)}</div>`,
+  tableEditor({ title: 'Loot table', get: () => C.tables.loot, intro: '<p class="small muted">Rolled when searching the battlefield, and by the “relic” and “loot” effects. Gold above 0 makes it a purse instead of a relic. Weight 0 = only given by name in an event. A land: only found there.</p>',
+    summary: x => `<div class="row between"><b>${num(x.gold) ? '✦' : '◆'} ${esc(x.name)}</b><span class="small">${num(x.weight) ? 'w ' + x.weight : 'event only'}</span></div><div class="muted">${rowLandTag(x)}${num(x.gold) ? '+' + x.gold + ' gc' : esc(x.effect)}</div>`,
     blank: () => ({ id: uid('lt'), name: '', effect: '', gold: 0, weight: 1 }),
     edit: async (x, isNew) => { const v = await formSheet({ title: isNew ? 'New loot' : x.name, fields: [
       { key: 'name', label: 'Name', value: x.name }, { key: 'effect', label: 'Effect (relics)', type: 'textarea', value: x.effect },
-      { key: 'gold', label: 'Gold (purses)', type: 'number', value: x.gold || 0 }, { key: 'weight', label: 'Weight', type: 'stepper', value: x.weight, min: 0, max: 20 }, ...delField(isNew)] });
+      { key: 'gold', label: 'Gold (purses)', type: 'number', value: x.gold || 0 }, { key: 'weight', label: 'Weight', type: 'stepper', value: x.weight, min: 0, max: 20 }, { key: 'land', label: 'Land', type: 'select', value: x.land || '', options: rowLandOpts() }, ...delField(isNew)] });
       if (!v) return null; if (v.remove) return 'delete'; if (!v.name.trim()) return null;
-      return { ...x, name: v.name.trim(), effect: v.effect, gold: Math.max(0, Math.round(v.gold)), weight: Math.max(0, Math.round(v.weight)) }; } });
+      return { ...x, name: v.name.trim(), effect: v.effect, gold: Math.max(0, Math.round(v.gold)), weight: Math.max(0, Math.round(v.weight)), land: v.land || '' }; } });
 }
 function scenariosSheet() {
   tableEditor({ title: 'Scenarios', get: () => C.tables.scenarios,
@@ -3934,23 +3960,27 @@ function scenariosSheet() {
 }
 function enemiesSheet() {
   openSheet({ title: 'Opposition lists', html: `<p class="small muted">The models each opposing faction can field. Missions suggest a rough list from these, sized to the points. Points are approximate: edit them to match your army books.</p>
-    ${Object.entries(FACTIONS).map(([k, f]) => `<button class="pick" data-f="${k}"><div class="row"><i class="fdot" style="background:${f.color}"></i><b class="grow">${esc(f.label)}</b><span class="small">${(C.tables.enemies[k] || []).length} entries</span></div></button>`).join('')}`,
-    onMount: sh => sh.body.addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; sh.close(); enemyFaction(b.dataset.f); }) });
+    ${Object.entries(FACTIONS).map(([k, f]) => `<button class="pick" data-f="${k}"><div class="row"><i class="fdot" style="background:${f.color}"></i><b class="grow">${esc(k === 'bandits' ? banditName('empire') : f.label)}</b><span class="small">${(C.tables.enemies[k] || []).length} entries</span></div></button>`).join('')}
+    <button class="pick" data-lands="1"><div class="row"><i class="fdot" style="background:${FACTIONS.bandits.color}"></i><b class="grow">Bandits of the other lands…</b><span class="small">${Object.keys(LANDS).length - 1} lands</span></div></button>`,
+    onMount: sh => sh.body.addEventListener('click', e => { const b = e.target.closest('[data-f],[data-lands]'); if (!b) return; sh.close(); if (b.dataset.lands) setTimeout(landBanditsSheet, 30); else enemyFaction(b.dataset.f); }) });
 }
-function enemyFaction(k) {
-  const KIND = { char: 'Character', unit: 'Unit', mon: 'Monster / war machine' };
-  tableEditor({ title: FACTIONS[k].label, get: () => C.tables.enemies[k] = C.tables.enemies[k] || [],
-    intro: '<p class="small muted">Characters and monsters have a fixed cost. Units cost points per model, between a minimum and maximum size.</p>',
-    summary: x => `<div class="row between"><b>${esc(x.name)}</b><span class="small">${x.kind === 'unit' ? `${x.ppm} pts × ${x.min}–${x.max}` : x.pts + ' pts'}</span></div><div class="muted">${KIND[x.kind] || x.kind}</div>`,
-    blank: () => ({ name: '', kind: 'unit', ppm: 6, min: 10, max: 20, pts: 0 }),
+function enemyFaction(k, bl = null) {
+  const KIND = { char: 'Character', unit: 'Unit', mon: 'Monster / war machine' }, own = bl && bl !== 'empire' && k === 'bandits';
+  tableEditor({ title: k === 'bandits' ? banditName(bl || 'empire') : FACTIONS[k].label, get: () => own ? landBandit(bl).enemies : (C.tables.enemies[k] = C.tables.enemies[k] || []),
+    intro: `<p class="small muted">Characters and monsters have a fixed cost. Units cost points per model, between a minimum and maximum size. Weight: how often a unit is picked (3 = three times as often, 0 = never); at 3 or more it may also field one extra unit.${k === 'bandits' ? ` ${own ? `Used for bandits in ${esc(LANDS[bl].label)} while Custom region bandits is on. Empty it to use the Empire Bandits there.` : 'Used for bandits in the Empire, and everywhere while Custom region bandits is off.'} “(use …)” names the models to field.` : ''}</p>`,
+    summary: x => `<div class="row between"><b>${esc(x.name)}</b><span class="small">${x.kind === 'unit' ? `${x.ppm} pts × ${x.min}–${x.max}` : x.pts + ' pts'}</span></div><div class="muted">${KIND[x.kind] || x.kind}${num(x.weight, 1) !== 1 ? ` · weight ${num(x.weight, 1)}` : ''}${x.rare ? ' · one at most' : ''}</div>`,
+    blank: () => ({ name: '', kind: 'unit', ppm: 6, min: 10, max: 20, pts: 0, weight: 1 }),
     edit: async (x, isNew) => { const v = await formSheet({ title: isNew ? 'New entry' : x.name, fields: [
       { key: 'name', label: 'Name', value: x.name }, { key: 'kind', label: 'Kind', type: 'select', value: x.kind, options: Object.entries(KIND) },
       { key: 'pts', label: 'Points (characters & monsters)', type: 'number', value: x.pts || 0 },
       { key: 'ppm', label: 'Points per model (units)', type: 'number', value: x.ppm || 0 },
-      { key: 'min', label: 'Minimum models', type: 'number', value: x.min || 0 }, { key: 'max', label: 'Maximum models', type: 'number', value: x.max || 0 }, ...delField(isNew)] });
+      { key: 'min', label: 'Minimum models', type: 'number', value: x.min || 0 }, { key: 'max', label: 'Maximum models', type: 'number', value: x.max || 0 },
+      { key: 'weight', label: 'Weight (how often it is picked)', type: 'stepper', value: num(x.weight, 1), min: 0, max: 10 },
+      { key: 'rare', type: 'toggle', label: 'One at most in each battle', value: !!x.rare }, ...delField(isNew)] });
       if (!v) return null; if (v.remove) return 'delete'; if (!v.name.trim()) return null;
-      return v.kind === 'unit' ? { name: v.name.trim(), kind: 'unit', ppm: Math.max(0, num(v.ppm)), min: Math.max(1, Math.round(Math.min(v.min, v.max) || 1)), max: Math.max(1, Math.round(Math.max(v.min, v.max) || 1)) }
-        : { name: v.name.trim(), kind: v.kind, pts: Math.max(0, Math.round(v.pts)) }; } });
+      const w = Math.max(0, Math.round(num(v.weight, 1))), wt = { ...(w === 1 ? {} : { weight: w }), ...(v.rare ? { rare: true } : {}) };
+      return v.kind === 'unit' ? { name: v.name.trim(), kind: 'unit', ppm: Math.max(0, num(v.ppm)), min: Math.max(1, Math.round(Math.min(v.min, v.max) || 1)), max: Math.max(1, Math.round(Math.max(v.min, v.max) || 1)), ...wt }
+        : { name: v.name.trim(), kind: v.kind, pts: Math.max(0, Math.round(v.pts)), ...wt }; } });
 }
 function injurySheet3() {
   const ST = [['fit', 'Fit'], ['wounded', 'Wounded'], ['out', 'Out next game'], ['dead', 'Dead']];
@@ -4250,6 +4280,7 @@ function seedPhase4(c) {
   seedPhase41(c);
   c.schema = Math.max(c.schema || 1, 4);
   seedPhase5(c);   // schema 4 → 5: backup reminders, warband points
+  seedPhase51(c);  // schema 5 → 6: lands, regional bandits, events of the land
   return c;
 }
 
@@ -4260,7 +4291,7 @@ const godOf = s => s === 'sig' ? 'Sigmar' : 'Ulric';
 const revealReady = () => shardsTotalFound() >= num(S().revelationShards, 5);
 
 function omenFor(s, ctx = {}) {
-  const t = wpick((C.tables.omens || []).filter(x => x && x.text && num(x.weight, 1) > 0));
+  const t = wpick((C.tables.omens || []).filter(x => x && x.text && num(x.weight, 1) > 0 && rowFit(x, ctx.r || hereOf(s))));
   if (!t) return '';
   let about = null;
   if (t.kind !== 'neutral') {
@@ -4348,11 +4379,11 @@ function snatchShard(s) {
   const dest = fleeShard(i);
   return `${theN(sh.name, true)} has been moved${dest || ' elsewhere'}. Its trail must be found again.`;
 }
-function rollTwist() {
+function rollTwist(r) {
   const T = S().threat, ct = (C.tables.cultTwists || []).filter(x => x && num(x.weight, 1) > 0);
   const ch = num(T.cultTwistChance, 40) + (hasFlag('tainted_ground') ? 20 : 0);
   if (trackOn('cult') && ct.length && (C.threat.cult || 0) >= num(T.cultTwistAt, 6) && d100() <= ch) { const t = wpick(ct); if (t) return { name: t.name, effect: 'The daemon’s cult is at work. ' + t.effect }; }
-  return wpick(C.tables.twists.filter(Boolean));
+  return wpick(C.tables.twists.filter(x => x && rowFit(x, r)));
 }
 
 /* ---------- requirements, extended: "a|b", "cult>=6", "turn>=10", "shards>=3", "held>=2", "revealed" ---------- */
@@ -4431,11 +4462,11 @@ function p4EventSheet({ s, ev, rec, r, p, badge, where, inFlow, kind }) {
 const QUIET_CAMP = EVt('__quiet', 'A Quiet Night', 'camp', '', 1, 'The fires burn low. Nothing stirs but the sentries.', [EVc('Sleep')]);
 function campPool(s, r) {
   return (C.tables.campEvents || []).filter(ev => ev && (!ev.where || (r && ev.where === r.id)) && (!ev.side || ev.side === s) && reqOk(ev.req, s)
-    && !(ev.once && hasFlag('ev:' + ev.id, s)) && num(ev.weight, 1) > 0);
+    && !(ev.once && hasFlag('ev:' + ev.id, s)) && num(ev.weight, 1) > 0 && landFit(ev, r) > 0);
 }
 function rollCamp(s) {
   const e = EX(s), r = e.pos && regionById(e.pos.regionId), p = r && pinOf(r, e.pos.pinId);
-  const ev = wpick(campPool(s, r), x => num(x.weight, 1) * leanW(x, s));
+  const ev = wpick(campPool(s, r), x => num(x.weight, 1) * leanW(x, s) * landFit(x, r));
   return C.camp[s] = { turn: C.turn, side: s, id: ev ? ev.id : '__quiet', title: ev ? ev.title : QUIET_CAMP.title, regionId: r ? r.id : null, pinId: p ? p.id : null, resolved: false };
 }
 const campEventOf = rec => !rec ? null : rec.id === '__quiet' ? QUIET_CAMP : (C.tables.campEvents || []).find(x => x && x.id === rec.id) || { ...QUIET_CAMP, title: rec.title, text: '' };
@@ -4833,9 +4864,9 @@ function chronicleText() {
 /* ---------- Codex: phase 4 editors ---------- */
 function campEventsSheet() {
   tableEditor({ title: 'Camp events', get: () => C.tables.campEvents,
-    intro: `<p class="small muted">Rolled when an expedition ends its turn and makes camp: the general events plus those of the region it is camped in. Events with a requirement pay off earlier choices. Higher weight = more likely. ☠ = daemon-touched (twice as likely for the deceived priest’s expedition).</p>`,
-    summary: x => `<div class="row between"><b>${x.lean ? '☠ ' : ''}${esc(x.title)}</b><span class="evk evk-${x.kind}">${esc(EV_KINDS[x.kind] || x.kind)}</span></div><div class="muted">${x.where ? esc((regionById(x.where) || { name: x.where }).name) : 'Anywhere'} · weight ${x.weight}${x.req ? ' · needs ' + esc(x.req) : ''}${x.once ? ' · once' : ''}</div>`,
-    blank: () => EVt(uid('c-ev'), 'New camp event', 'camp', '', 2, '', [EVc('Onward')]), edit: (x, isNew) => editRoadEvent(x, isNew, { title: n => n ? 'New camp event' : 'Camp event' }) });
+    intro: `<p class="small muted">Rolled when an expedition ends its turn and makes camp: the events of its land, those that happen everywhere, and those of the region it is camped in.${opt('landEvents') ? ` The Empire’s own events are rare abroad.` : ''} Events with a requirement pay off earlier choices. Higher weight = more likely. ☠ = daemon-touched (twice as likely for the deceived priest’s expedition).</p>`,
+    summary: x => `<div class="row between"><b>${x.lean ? '☠ ' : ''}${esc(x.title)}</b><span class="evk evk-${x.kind}">${esc(EV_KINDS[x.kind] || x.kind)}</span></div><div class="muted">${x.where ? esc((regionById(x.where) || { name: x.where }).name) : esc(evLandLabel(x))} · weight ${x.weight}${x.req ? ' · needs ' + esc(x.req) : ''}${x.once ? ' · once' : ''}</div>`,
+    blank: () => ({ ...EVt(uid('c-ev'), 'New camp event', 'camp', '', 2, '', [EVc('Onward')]), land: 'empire' }), edit: (x, isNew) => editRoadEvent(x, isNew, { title: n => n ? 'New camp event' : 'Camp event' }) });
 }
 function threatEventsSheet() {
   tableEditor({ title: 'Threat events', get: () => C.tables.threatEvents,
@@ -4851,13 +4882,13 @@ function threatEventsSheet() {
 function omensSheet() {
   tableEditor({ title: 'Omens', get: () => C.tables.omens,
     intro: `<p class="small muted">Rolled by the <b>omen</b> effect. A “pointing” omen names one priest: the deceived one ${num(S().threat.lean, 67)}% of the time, the other otherwise. A riddle names nobody. Write {who} (the priest), {whoex} (his expedition), {god}, {sym} (comet or wolf) and {other} (the other priest).</p>`,
-    summary: x => `<div class="row between"><b>${x.kind === 'neutral' ? 'Riddle' : 'Points at a priest'}</b><span class="small">w ${x.weight}</span></div><div class="muted">${esc(x.text)}</div>`,
+    summary: x => `<div class="row between"><b>${x.kind === 'neutral' ? 'Riddle' : 'Points at a priest'}</b><span class="small">w ${x.weight}</span></div><div class="muted">${rowLandTag(x)}${esc(x.text)}</div>`,
     blank: () => ({ id: uid('om'), kind: 'point', weight: 2, text: '' }),
     edit: async (x, isNew) => { const v = await formSheet({ title: isNew ? 'New omen' : 'Omen', fields: [
       { key: 'text', label: 'Text', type: 'textarea', value: x.text }, { key: 'kind', label: 'Kind', type: 'select', value: x.kind, options: [['point', 'Points at a priest'], ['neutral', 'Riddle (names nobody)']] },
-      { key: 'weight', label: 'Weight', type: 'stepper', value: x.weight, min: 0, max: 20 }, ...delField(isNew)] });
+      { key: 'weight', label: 'Weight', type: 'stepper', value: x.weight, min: 0, max: 20 }, { key: 'land', label: 'Land', type: 'select', value: x.land || '', options: rowLandOpts() }, ...delField(isNew)] });
       if (!v) return null; if (v.remove) return 'delete'; if (!v.text.trim()) return null;
-      return { ...x, text: v.text.trim(), kind: v.kind, weight: Math.max(0, Math.round(v.weight)) }; } });
+      return { ...x, text: v.text.trim(), kind: v.kind, weight: Math.max(0, Math.round(v.weight)), land: v.land || '' }; } });
 }
 function cultTwistsSheet() {
   tableEditor({ title: 'Cult twists', get: () => C.tables.cultTwists,
@@ -4935,7 +4966,7 @@ Object.assign(ACT, {
    4.1: campaign options (scope, shard count, agents, cults, blades stay put)
    and Mordheim warbands that grow with the campaign
    ===================================================================== */
-const OPT_DEFAULTS = { agents: true, cult: true, stayPut: false };
+const OPT_DEFAULTS = { agents: true, cult: true, stayPut: false, landBandits: true, landEvents: true };
 const opt = k => { const o = (C && C.options) || OPT_DEFAULTS; return k in o ? !!o[k] : !!OPT_DEFAULTS[k]; };
 const trackOn = tr => tr === 'rival' ? opt('agents') : tr === 'cult' ? opt('cult') : false;
 const tracksOn = () => Object.keys(TRACKS).filter(trackOn);
@@ -4959,7 +4990,7 @@ const SHARD_TERRAIN_W = { ruins: 3, fortress: 2.5, forest: 2, mountains: 2, mars
 function setupScope(c, o) {
   const mode = ['world', 'oldworld', 'region'].includes(o.mode) ? o.mode : 'world';
   c.scope = { mode, regionId: mode === 'region' ? o.regionId : null };
-  c.options = { agents: o.agents !== false, cult: o.cult !== false, stayPut: !!o.stayPut };
+  c.options = { agents: o.agents !== false, cult: o.cult !== false, stayPut: !!o.stayPut, landBandits: o.landBandits !== false, landEvents: o.landEvents !== false };
   const play = c.regions.filter(r => inPlay(r, c) && r.pins.length);
   if (!play.length) { c.scope = { mode: 'world', regionId: null }; return setupScope(c, { ...o, mode: 'world' }); }
   const used = new Set();
@@ -5027,12 +5058,14 @@ async function newCampaignFlow() {
     { key: 'agents', type: 'toggle', label: 'Imperial agents: the court agents track', value: true },
     { key: 'cult', type: 'toggle', label: 'Chaos cults: the cult track, cult raids and cult twists', value: true },
     { key: 'stayPut', type: 'toggle', label: 'The blades stay put: shards never move once hidden', value: false },
+    { key: 'landBandits', type: 'toggle', label: 'Custom region bandits: each land has its own bandits', value: true },
+    { key: 'landEvents', type: 'toggle', label: 'Events of the land: road, camp and other happenings fit the land you are in', value: true },
     { key: 'keep', type: 'toggle', label: 'Keep our world: map images, regions, pins, edited tables and house rules', value: true,
       hint: 'Rosters, gold, positions, shards, missions, flags and the Chronicle always start fresh. Turn this off only for a completely blank slate.' },
   ] });
   if (!v) return;
   const [mode, rid] = String(v.scope).startsWith('region:') ? ['region', v.scope.slice(7)] : [v.scope, null];
-  const scope = { mode, regionId: rid, shards: +v.shards || 0, agents: !!v.agents, cult: !!v.cult, stayPut: !!v.stayPut };
+  const scope = { mode, regionId: rid, shards: +v.shards || 0, agents: !!v.agents, cult: !!v.cult, stayPut: !!v.stayPut, landBandits: !!v.landBandits, landEvents: !!v.landEvents };
   if (!await confirmBox({ title: 'Last chance', text: `<p>The current campaign will be replaced${v.keep ? '. Your maps, pins and tables are kept' : ', <b>including all map images and pins</b>'}. The daemon will choose afresh which vision it planted.</p>`, ok: 'Begin the campaign', danger: true })) return;
   if (!await safeSnapshot()) return;
   const nc = newCampaign({ name: v.name.trim(), p1: v.p1.trim(), p2: v.p2.trim() });
@@ -5057,13 +5090,15 @@ async function campaignOptionsSheet() {
     { key: 'agents', type: 'toggle', label: 'Imperial agents: the court agents track', value: opt('agents') },
     { key: 'cult', type: 'toggle', label: 'Chaos cults: the cult track, cult raids and cult twists', value: opt('cult') },
     { key: 'stayPut', type: 'toggle', label: 'The blades stay put: shards never move once hidden', value: opt('stayPut') },
+    { key: 'landBandits', type: 'toggle', label: 'Custom region bandits: each land has its own bandits', value: opt('landBandits'), hint: 'Off: the Empire Bandits are used everywhere.' },
+    { key: 'landEvents', type: 'toggle', label: 'Events of the land: road, camp and other happenings fit the land you are in', value: opt('landEvents'), hint: 'Off: as in 5.0, the general (Empire) events everywhere and no land events.' },
     { key: 'fixedCult', label: 'With cults off: the final battle’s cult forces count as cult step', type: 'stepper', value: num(S().finale.fixedCult, 6), min: 0, max: 20 },
   ] });
   if (!v) return;
   const was = { ...C.options };
-  C.options = { agents: !!v.agents, cult: !!v.cult, stayPut: !!v.stayPut };
+  C.options = { agents: !!v.agents, cult: !!v.cult, stayPut: !!v.stayPut, landBandits: !!v.landBandits, landEvents: !!v.landEvents };
   S().finale.fixedCult = Math.max(0, Math.round(num(v.fixedCult, 6)));
-  const ch = [['agents', 'Imperial agents'], ['cult', 'Chaos cults'], ['stayPut', 'The blades stay put']].filter(([k]) => !!was[k] !== C.options[k]).map(([k, l]) => `${l} ${C.options[k] ? 'on' : 'off'}`);
+  const ch = [['agents', 'Imperial agents'], ['cult', 'Chaos cults'], ['stayPut', 'The blades stay put'], ['landBandits', 'Custom region bandits'], ['landEvents', 'Events of the land']].filter(([k]) => !!was[k] !== C.options[k]).map(([k, l]) => `${l} ${C.options[k] ? 'on' : 'off'}`);
   if (ch.length) chron(null, 'note', `The campaign’s rules changed: ${ch.join(', ')}.`);
   save(); render(); toast('Saved');
 }
@@ -5072,6 +5107,14 @@ async function campaignOptionsSheet() {
 const WL = (n, name) => ({ n, name });
 const WT = (turn, n, name) => ({ turn, n, name });
 const WB = (id, name, core, later, notes = '', weight = 1) => ({ id, name, weight, core, later, notes });
+const WLp = (n, name, pts) => ({ n, name, pts }), WTp = (turn, n, name, pts) => ({ turn, n, name, pts });
+// The bandit warbands of phases 4.1–5, kept only to recognise unedited ones (phase 5.1 replaces them with Empire models).
+const OLD_BANDIT_WARBANDS = [
+  WB('wb-cutthroats', 'Cutthroats of the Road', [WL(1, 'Bandit Chief'), WL(4, 'Cutthroats'), WL(3, 'Bandits with bows')],
+    [WT(6, 1, 'Thug with great weapon'), WT(12, 2, 'Cutthroats'), WT(18, 1, 'Mercenary Champion')]),
+  WB('wb-deserters', 'The Deserters', [WL(1, 'Brigand Sergeant'), WL(5, 'Deserters (Free Company)'), WL(2, 'Handgunners')],
+    [WT(8, 2, 'War dogs'), WT(14, 2, 'Deserters (Free Company)'), WT(20, 1, 'Pistolier')]),
+];
 const DEFAULT_WARBANDS = {
   beasts: [
     WB('wb-wargor', 'The Wargor’s Raiders', [WL(1, 'Wargor chieftain'), WL(2, 'Gors with great weapons'), WL(3, 'Ungors with bows'), WL(1, 'Chaos Warhound')],
@@ -5105,11 +5148,11 @@ const DEFAULT_WARBANDS = {
     WB('wb-shamblers', 'The Necromancer’s Shamblers', [WL(1, 'Necromancer'), WL(10, 'Zombies')],
       [WT(6, 1, 'Tomb Banshee'), WT(12, 5, 'Zombies'), WT(16, 1, 'Cairn Wraith')], 'Kill the Necromancer and the dead fall still at the end of the turn.'),
   ],
-  bandits: [
-    WB('wb-cutthroats', 'Cutthroats of the Road', [WL(1, 'Bandit Chief'), WL(4, 'Cutthroats'), WL(3, 'Bandits with bows')],
-      [WT(6, 1, 'Thug with great weapon'), WT(12, 2, 'Cutthroats'), WT(18, 1, 'Mercenary Champion')]),
-    WB('wb-deserters', 'The Deserters', [WL(1, 'Brigand Sergeant'), WL(5, 'Deserters (Free Company)'), WL(2, 'Handgunners')],
-      [WT(8, 2, 'War dogs'), WT(14, 2, 'Deserters (Free Company)'), WT(20, 1, 'Pistolier')]),
+  bandits: [   // Empire Bandits (phase 5.1): Empire models, mostly cheap militia and archers
+    WB('wb-cutthroats', 'Cutthroats of the Road', [WLp(1, 'Bandit Chief (use an Empire captain)', 55), WLp(5, 'Militia Rabble', 5), WLp(3, 'Poacher Archers', 7)],
+      [WTp(6, 2, 'Cutthroat Spearmen', 5), WTp(12, 3, 'Militia Rabble', 5), WTp(18, 2, 'Brigand Crossbowmen', 8)]),
+    WB('wb-deserters', 'The Deserters', [WLp(1, 'Outlaw Sergeant (use a unit champion)', 30), WLp(3, 'Deserter Swordsmen', 6), WLp(3, 'Militia Rabble', 5), WLp(2, 'Brigand Crossbowmen', 8)],
+      [WTp(8, 3, 'Poacher Archers', 7), WTp(14, 3, 'Militia Rabble', 5), WTp(20, 2, 'Deserter Swordsmen', 6)]),
   ],
   dwarfs: [
     WB('wb-grudge', 'The Grudge-bearers', [WL(1, 'Dwarf Thane'), WL(4, 'Dwarf Warriors'), WL(2, 'Handgunners')],
@@ -5138,8 +5181,8 @@ function seedPhase41(c) {
    ("2 Gors @ 8"). Leader and core first; over the points, drop models from the biggest group (never the leader);
    under, bring in the next reinforcements early, then more of the core. Chain results come on top. */
 const WB_MAX_MODELS = 20;
-function warbandList(fac, extra = 0, fewer = 0, pts = 0) {
-  const pool = ((C.tables.warbands || {})[fac] || []).filter(w => w && Array.isArray(w.core) && w.core.length && num(w.weight, 1) > 0);
+function warbandList(fac, extra = 0, fewer = 0, pts = 0, bl = null) {
+  const pool = oppWarbands(fac, bl).filter(w => w && Array.isArray(w.core) && w.core.length && num(w.weight, 1) > 0);
   if (!pool.length) return null;
   const w = wpick(pool, x => num(x.weight, 1));
   const ppmOf = l => { const v = num(l.pts, 0); return v > 0 ? v : 0; };
@@ -5183,7 +5226,7 @@ function warbandList(fac, extra = 0, fewer = 0, pts = 0) {
   if (extra) { if (next) add(next, { extra: true }); else { const c = pickOne(lines.filter(x => !x.leader && x.n > 0)) || lines[0]; lines.push({ name: c.name, n: 1, ppm: c.ppm, pts: 0, extra: true }); } }
   if (fewer) { const c = lines.filter(x => !x.leader && !x.extra && x.n > 1).sort((a, b) => b.n - a.n)[0]; if (c) { c.n -= 1; c.fewer = true; } }
   lines.forEach(x => { x.pts = Math.round(x.n * (x.ppm || 0)); });
-  return { warband: w.name, notes: w.notes || '', next: next && !extra ? `${next.n} × ${next.name} (turn ${num(next.turn)})` : '', lines, priced,
+  return { land: bl || null, warband: w.name, notes: w.notes || '', next: next && !extra ? `${next.n} × ${next.name} (turn ${num(next.turn)})` : '', lines, priced,
     total: priced ? lines.reduce((a, x) => a + x.pts, 0) : 0, target: pts || 0 };
 }
 function warbandHtml(en, points) {
@@ -5195,7 +5238,7 @@ function warbandHtml(en, points) {
       ${priced ? `<div class="el tot"><span class="grow">About</span><b>${en.total} pts</b></div>` : ''}
       ${priced && P && P - en.total >= Math.max(25, P * 0.1) ? `<div class="el"><span class="grow"><b>${P - en.total} pts to spare:</b> add models of the opposition player’s choice</span></div>` : ''}</div>
     ${en.notes ? `<p class="small flavour" style="margin:6px 0 0">${esc(en.notes)}</p>` : ''}
-    <div class="hint">${priced ? `Fitted to the mission’s ${P} pts from Codex → Mordheim warbands. Swap models for what you own; stay near the points.`
+    <div class="hint">${priced ? `Fitted to the mission’s ${P} pts from Codex → ${en.land && en.land !== 'empire' ? `Bandits of the lands (${esc(banditName(en.land))})` : 'Mordheim warbands'}. Swap models for what you own; stay near the points.`
       : `${P ? `Field it at about ${P} pts: the leader and core first, then add or drop models to reach the points. ` : ''}Give the warband’s lines points per model in Codex → Mordheim warbands (e.g. “2 Gors @ 8”) and the app fits it for you.`}${en.next ? ` Next to join: ${esc(en.next)}.` : ''}</div>`;
 }
 function parseLines(txt, later) {
@@ -5210,12 +5253,13 @@ function parseLines(txt, later) {
 const ptsSuffix = l => (num(l.pts) > 0 ? ` @ ${num(l.pts)}` : '');
 function warbandsSheet() {
   openSheet({ title: 'Mordheim warbands', html: `<p class="small muted" style="margin-top:8px">Mordheim-scale battles draw their opposition from these warbands instead of the opposition lists. Each warband has a core, and reinforcements that join as the campaign reaches later turns.</p>
-    ${Object.entries(FACTIONS).map(([k, f]) => `<button class="pick" data-f="${k}"><div class="row between"><b>${esc(f.label)}</b><span class="small">${plural(((C.tables.warbands || {})[k] || []).length, 'warband')}</span></div><div class="muted">${((C.tables.warbands || {})[k] || []).map(w => esc(w.name)).join(' · ') || 'None: the opposition list is used instead'}</div></button>`).join('')}`,
+    ${Object.entries(FACTIONS).map(([k, f]) => `<button class="pick" data-f="${k}"><div class="row between"><b>${esc(k === 'bandits' ? banditName('empire') : f.label)}</b><span class="small">${plural(((C.tables.warbands || {})[k] || []).length, 'warband')}</span></div><div class="muted">${((C.tables.warbands || {})[k] || []).map(w => esc(w.name)).join(' · ') || 'None: the opposition list is used instead'}</div></button>`).join('')}`,
     onMount: sh => sh.body.addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; sh.close(); setTimeout(() => warbandTable(b.dataset.f), 30); }) });
 }
-function warbandTable(fac) {
-  tableEditor({ title: `${FACTIONS[fac].label}: warbands`, get: () => C.tables.warbands[fac],
-    intro: `<p class="small muted">One is picked at random for each Mordheim battle against the ${esc(FACTIONS[fac].label)} (higher weight = more often). With none here, the opposition list is used. With points per model on every line, the app fits the warband to each mission’s points.</p>`,
+function warbandTable(fac, bl = null) {
+  const own = bl && bl !== 'empire' && fac === 'bandits', lab = fac === 'bandits' ? banditName(bl || 'empire') : FACTIONS[fac].label;
+  tableEditor({ title: `${lab}: warbands`, get: () => own ? landBandit(bl).warbands : C.tables.warbands[fac],
+    intro: `<p class="small muted">One is picked at random for each Mordheim battle against the ${esc(lab)} (higher weight = more often). With none here, the opposition list is used. With points per model on every line, the app fits the warband to each mission’s points.</p>`,
     summary: w => `<div class="row between"><b>${esc(w.name)}</b><span class="small">weight ${w.weight}</span></div><div class="muted">${(w.core || []).map(l => `${l.n} ${esc(l.name)}${ptsSuffix(l)}`).join(', ')}${(w.later || []).length ? ` · then ${(w.later || []).map(l => `T${l.turn}: ${l.n} ${esc(l.name)}`).join(', ')}` : ''}</div>`,
     blank: () => WB(uid('wb'), 'New warband', [], []),
     edit: async (w, isNew) => {
@@ -5390,7 +5434,7 @@ function viewHelp() {
   const need = num(S5.revelationShards, 5), tot = C.shards.length, roll = num((S5.threat || {}).roll, 4), fin = num((S5.finale || {}).points, 2000);
   const { r: fr, p: fp } = forgeLoc(), forge = fp ? `${fp.name}, ${fr.short || fr.name}` : 'the forge';
   const sec = (id, title, body) => `<h2 class="bl" id="h-${id}">${title}</h2><div class="card">${body}</div>`;
-  const toc = [['aim', 'The aim'], ['turn', 'A turn'], ['scales', 'Scales'], ['shards', 'Shards'], ['world', 'The world moves'], ['reveal', 'The Revelation'], ['finale', 'The finale'], ['options', 'Options'], ['phones', 'Two phones'], ['install', 'Install']];
+  const toc = [['aim', 'The aim'], ['turn', 'A turn'], ['scales', 'Scales'], ['shards', 'Shards'], ['world', 'The world moves'], ['lands', 'Lands'], ['reveal', 'The Revelation'], ['finale', 'The finale'], ['options', 'Options'], ['phones', 'Two phones'], ['install', 'Install']];
   return `<div class="help"><h1 class="bl" style="margin-top:4px">How to Play</h1><button class="linkbtn" data-act="goCodex">← Back to the Codex</button>
     <div class="toc">${toc.map(([k, l]) => `<a href="#h-${k}" data-act="helpJump" data-k="${k}">${l}</a>`).join('')}</div>
     ${sec('aim', 'The Aim', `<p>Two expeditions race to recover the <b>${plural(tot, 'shard')}</b> of the Reikland Runefang. One player commands the <span class="term">Sigmarite Expedition</span>, the other the <span class="term">Ulrican Expedition</span>. When it is one player’s turn to fight, the other plays the opposition.</p>
@@ -5414,6 +5458,10 @@ function viewHelp() {
     ${sec('world', 'The World Moves', tracksOn().length ? `<p>Powers the players don’t control:</p><ul>${tracksOn().map(k => `<li><b>${esc(TRACKS[k].label)}</b>: ${esc(TRACKS[k].sub)}</li>`).join('')}</ul>
       <p>At the end of every round each track rises by 1 on a D6 roll of ${roll}+. Events push them too. When a track reaches a marked step, its event strikes and waits under <b>Awaiting resolution</b> on the Campaign screen.</p>
       <p class="small muted">Details on the Campaign screen shows every step. The Gamesmaster can nudge a track by hand there.</p>` : '<p>Both threat tracks are switched off for this campaign (Codex → Campaign options).</p>')}
+    ${sec('lands', 'Lands of Their Own', `<p>Every region belongs to a <b>land</b>: the Empire, the World’s Edge, the Border Princes, Bretonnia, Tilea, Grand Cathay, Khuresh, Araby or Albion. Set a region’s land in its region sheet (regions you add start in the Empire).</p>
+      <ul><li><b>Bandits</b> (${opt('landBandits') ? 'on' : 'off in this campaign'}): each land has its own, such as ${['tilea', 'bretonnia', 'araby'].map(k => `<span class="term">${esc(banditName(k))}</span>`).join(', ')}. They still count as bandits for pins and region weights. Every unit says which of your models to use, e.g. “Clanrats (use Night Goblin Spearmen)”. Edit them in Codex → Bandits of the lands.</li>
+      <li><b>Events of the land</b> (${opt('landEvents') ? 'on' : 'off in this campaign'}): road and camp events, investigation results, battlefield twists, loot and omens fit the land you are in. The Empire’s own events still happen abroad, but rarely (${Math.round(EMPIRE_ABROAD * 100)}% of their weight). A few happen everywhere, and so does anything that pays off an earlier choice.</li></ul>
+      <p class="small muted">The Codex tables show each row’s land, and their editors let you change it.</p>`)}
     ${sec('reveal', 'Omens and the Revelation', `<p>Omens appear on the road and in camp. Some tell the truth about the deceived priest, some lie on purpose, some are riddles. They are listed on the Revelation page.</p>
       <p>When <b>${need} of ${tot}</b> shards have been recovered, <b>Break the seal</b> appears. Gather both players: it asks twice before it shows the answer. The Gamesmaster’s override can break it earlier, and the Chronicle says so.</p>
       <p>The deceived expedition then chooses: <b>Repent</b> (win a penance battle against the cult to cleanse itself) or <b>Embrace the vision</b> (a daemonic relic now, Chaos allies at the forge).</p>`)}
@@ -5421,11 +5469,13 @@ function viewHelp() {
       <li>Seek the runesmith there: one battle if you have heard rumours of him, two if not, one per turn. Whoever finds him chooses the deployment zones and who goes first in the final battle.</li>
       <li>Call the final battle at the forge: a Full Old World battle at ${fin} pts. The cult joins in, depending on the deceived expedition’s choice.</li></ol>
       <p>The winner reforges the Runefang and wins the campaign.</p>`)}
-    ${sec('options', 'Campaign Options', `<p class="small muted">Chosen when a campaign begins (Codex → Begin a new campaign). The three switches can be changed later in Codex → Campaign options.</p>
+    ${sec('options', 'Campaign Options', `<p class="small muted">Chosen when a campaign begins (Codex → Begin a new campaign). The five switches can be changed later in Codex → Campaign options.</p>
       <ul><li><b>Where:</b> the whole world, the Old World (no far lands or Cathay), or one region. Regions outside are only set aside, with their maps and pins kept.</li>
       <li><b>Shards:</b> automatic (7, or 3 in one region) or 1 to 7. The Revelation comes at about two thirds.</li>
       <li><b>Imperial agents:</b> the court agents track.</li><li><b>Chaos cults:</b> the cult track, cult raids and cult twists. With cults off, the final battle uses a fixed cult step.</li>
       <li><b>The blades stay put:</b> shards never move once hidden. A lost last mission or the agents only break the trail.</li>
+      <li><b>Custom region bandits:</b> each land fields its own bandits. Off: the Empire Bandits everywhere.</li>
+      <li><b>Events of the land:</b> happenings fit the land you are in. Off: the general (Empire) events everywhere, as before 5.1.</li>
       <li><b>Keep our world:</b> a new campaign keeps your map images, regions, pins, edited tables and house rules.</li></ul>`)}
     ${sec('phones', 'Two Phones and Backups', `<p>The campaign lives on one phone at a time. After a session, <b>Export</b> it (Codex → Backup & sharing) and <b>Import</b> the file on the other phone. Importing replaces the campaign there, and keeps the old one as an undo copy.</p>
       <p class="small muted">The app reminds you to back up after ${REMIND_TURNS} turns without an export, and after a shard is taken, the Revelation and the finale.</p>`)}
@@ -5446,6 +5496,563 @@ Object.assign(ACT, {
   journey: () => { UI.journey = !UI.journey; UI.pinSetup = false; UI.pinMove = null; UI.arrange = false; render(); },
 });
 
+
+/* =====================================================================
+   PHASE 5.1: LANDS OF THEIR OWN. Every region belongs to a land (LANDS, near the
+   regions). Each land has its own bandits, and its own road and camp events,
+   investigation results, battlefield twists, loot and omens. All of it is data
+   in C.tables and editable in the Codex. Two campaign switches:
+   "Custom region bandits" (landBandits) and "Events of the land" (landEvents).
+   ===================================================================== */
+const EMPIRE_ABROAD = 0.25;   // the Empire's own events keep a quarter of their weight in other lands
+const hereOf = s => { const e = s && C && C.ex && C.ex[s]; return e && e.pos ? regionById(e.pos.regionId) : null; };
+const evLand = ev => ev && (ev.land === 'any' || LANDS[ev.land]) ? ev.land : 'empire';
+const evLandLabel = ev => { const L = evLand(ev); return L === 'any' ? 'Everywhere' : L === 'empire' ? 'The Empire' : LANDS[L].label; };
+const evLandOpts = () => [['empire', 'The Empire (rare abroad)'], ['any', 'Everywhere'], ...Object.entries(LANDS).filter(([k]) => k !== 'empire').map(([k, l]) => [k, l.label])];
+const rowLandOpts = () => [['', 'Everywhere'], ...landOpts()];
+const rowLandTag = x => x && LANDS[x.land] ? `<b>${esc(LANDS[x.land].label)}</b> · ` : '';
+/* Road and camp events: how much an event counts in region r (0 = not at all). */
+function landFit(ev, r) {
+  if (!ev || ev.where) return 1;                        // a region's own event: the region filter decides
+  const L = evLand(ev), here = landOf(r);
+  if (L === 'any') return 1;
+  if (!opt('landEvents')) return L === 'empire' ? 1 : 0; // switched off: as in 5.0
+  if (L === 'empire') return here === 'empire' ? 1 : EMPIRE_ABROAD;
+  return L === here ? 1 : 0;
+}
+/* Investigation, twists, loot and omens: rows without a land happen everywhere. */
+function rowFit(x, r) {
+  const L = x && x.land;
+  if (!L || !LANDS[L]) return true;
+  return opt('landEvents') ? L === landOf(r) : L === 'empire';
+}
+
+/* ---------- bandits of the lands ---------- */
+function landBandit(k) {
+  const t = C.tables, LB = t.landBandits = t.landBandits && typeof t.landBandits === 'object' ? t.landBandits : {};
+  if (!LB[k] || typeof LB[k] !== 'object') LB[k] = k === 'empire' ? { name: LANDS.empire.bandits } : clone(DEFAULT_LAND_BANDITS[k] || { name: (LANDS[k] || {}).bandits || 'Bandits', enemies: [], warbands: [] });
+  return LB[k];
+}
+const hasOwnBandits = k => k && k !== 'empire' && LANDS[k] && Array.isArray(landBandit(k).enemies) && landBandit(k).enemies.length > 0;
+/* Which bandits fight in region r: a land id, 'empire', or null when Custom region bandits is off. */
+function banditLand(r) {
+  if (!opt('landBandits')) return null;
+  const k = landOf(r);
+  return hasOwnBandits(k) ? k : 'empire';
+}
+function banditName(bl) {
+  if (!bl || !LANDS[bl]) return FACTIONS.bandits.label;
+  const n = (((C.tables || {}).landBandits || {})[bl] || {}).name;
+  return n && String(n).trim() ? String(n).trim() : LANDS[bl].bandits;
+}
+const oppPool = (fac, bl) => fac === 'bandits' && hasOwnBandits(bl) ? landBandit(bl).enemies : ((C.tables.enemies || {})[fac] || []);
+const oppWarbands = (fac, bl) => fac === 'bandits' && hasOwnBandits(bl) ? (landBandit(bl).warbands || []) : ((C.tables.warbands || {})[fac] || []);
+
+/* Seeded lists. “(use …)” names the models from our collection to field. Points are approximate: edit them. */
+const ENw = (name, kind, a, b, c, d, weight) => ({ ...EN(name, kind, a, b, c, d), weight });
+const DEFAULT_LAND_BANDITS = {
+  worlds_edge: { name: 'World’s Edge Bandits', enemies: [
+    EN('Brigand Ataman (use an Empire captain)', 'char', 55), EN('Oathbreaker Thane (use a Dwarf hero)', 'char', 70),
+    ENw('Kislevite Brigands (use Militia)', 'unit', 0, 5, 10, 30, 3), ENw('Kossar Bowmen (use Archers)', 'unit', 0, 7, 10, 20, 2),
+    ENw('Outcast Dwarfs (use Dwarf Warriors)', 'unit', 0, 9, 5, 15, 2), EN('Renegade Miners (use Dwarf Miners)', 'unit', 0, 11, 5, 10),
+    EN('Hobgoblin Cut-throats (use Orc Warriors)', 'unit', 0, 5, 10, 20)],
+    warbands: [
+      WB('wbl-ataman', 'The Ataman’s Band', [WLp(1, 'Brigand Ataman (use an Empire captain)', 55), WLp(4, 'Kislevite Brigands (use Militia)', 5), WLp(3, 'Kossar Bowmen (use Archers)', 7)],
+        [WTp(6, 2, 'Outcast Dwarfs (use Dwarf Warriors)', 9), WTp(12, 3, 'Hobgoblin Cut-throats (use Orc Warriors)', 5), WTp(18, 2, 'Kossar Bowmen (use Archers)', 7)]),
+      WB('wbl-oathbreakers', 'The Oathbreakers', [WLp(1, 'Oathbreaker Thane (use a Dwarf hero)', 70), WLp(3, 'Outcast Dwarfs (use Dwarf Warriors)', 9), WLp(2, 'Renegade Miners (use Dwarf Miners)', 11)],
+        [WTp(8, 3, 'Kislevite Brigands (use Militia)', 5), WTp(14, 2, 'Outcast Dwarfs (use Dwarf Warriors)', 9), WTp(20, 2, 'Renegade Miners (use Dwarf Miners)', 11)],
+        'Dwarfs who broke an oath. Miners may deploy anywhere at least 12" from the enemy, after the enemy deploys.')] },
+  border_princes: { name: 'Border Princes Bandits', enemies: [
+    EN('Robber-Baron (use an Empire captain or the Foot Knight)', 'char', 65), EN('Outcast Dwarf Champion (use a Dwarf Warrior)', 'char', 45),
+    ENw('Freebooters (use Militia)', 'unit', 0, 5, 10, 30, 3), ENw('Freebooter Archers (use Archers)', 'unit', 0, 7, 10, 20, 2),
+    ENw('Outcast Dwarfs (use Dwarf Warriors)', 'unit', 0, 9, 5, 15, 2), ENw('Exiled Men-at-arms (use Bretonnian Men-at-arms)', 'unit', 0, 5, 10, 20, 2),
+    EN('Tilean Crossbowmen (use Crossbowmen)', 'unit', 0, 8, 5, 15), EN('Renegade Arquebusiers (use Dwarf Arquebusiers)', 'unit', 0, 11, 5, 10)],
+    warbands: [
+      WB('wbl-baron', 'The Robber-Baron’s Retinue', [WLp(1, 'Robber-Baron (use an Empire captain or the Foot Knight)', 65), WLp(4, 'Freebooters (use Militia)', 5), WLp(2, 'Outcast Dwarfs (use Dwarf Warriors)', 9), WLp(2, 'Freebooter Archers (use Archers)', 7)],
+        [WTp(6, 3, 'Exiled Men-at-arms (use Bretonnian Men-at-arms)', 5), WTp(12, 2, 'Tilean Crossbowmen (use Crossbowmen)', 8), WTp(18, 1, 'Outcast Dwarf Champion (use a Dwarf Warrior)', 45)]),
+      WB('wbl-grudgebreakers', 'The Grudge-breakers', [WLp(1, 'Outcast Dwarf Champion (use a Dwarf Warrior)', 45), WLp(3, 'Outcast Dwarfs (use Dwarf Warriors)', 9), WLp(2, 'Renegade Arquebusiers (use Dwarf Arquebusiers)', 11)],
+        [WTp(8, 4, 'Freebooters (use Militia)', 5), WTp(14, 2, 'Outcast Dwarfs (use Dwarf Warriors)', 9), WTp(20, 1, 'Robber-Baron (use an Empire captain or the Foot Knight)', 65)],
+        'Their own kin would pay well to see them dead.')] },
+  bretonnia: { name: 'Bretonnian Bandits', enemies: [
+    EN('Bertrand the Brigand', 'char', 65), EN('Disgraced Knight (use the Foot Knight)', 'char', 60),
+    ENw('Brigand Peasants (use Men-at-arms)', 'unit', 0, 5, 10, 30, 3), ENw('Poachers (use Bretonnian Archers)', 'unit', 0, 6, 10, 20, 3),
+    EN('Herrimault Outlaws (use Bretonnian Archers)', 'unit', 0, 9, 5, 10), EN('Marienburg Smugglers (use Crossbowmen)', 'unit', 0, 8, 5, 10)],
+    warbands: [
+      WB('wbl-bertrand', 'Bertrand’s Merry Band', [WLp(1, 'Bertrand the Brigand', 65), WLp(4, 'Brigand Peasants (use Men-at-arms)', 5), WLp(3, 'Poachers (use Bretonnian Archers)', 6)],
+        [WTp(6, 2, 'Herrimault Outlaws (use Bretonnian Archers)', 9), WTp(12, 3, 'Brigand Peasants (use Men-at-arms)', 5), WTp(18, 1, 'Disgraced Knight (use the Foot Knight)', 60)],
+        'They rob the rich, mostly. If Bertrand falls, every peasant must pass a Leadership test or flee.'),
+      WB('wbl-fallen-knight', 'The Fallen Knight', [WLp(1, 'Disgraced Knight (use the Foot Knight)', 60), WLp(4, 'Brigand Peasants (use Men-at-arms)', 5), WLp(2, 'Poachers (use Bretonnian Archers)', 6)],
+        [WTp(8, 2, 'Poachers (use Bretonnian Archers)', 6), WTp(14, 2, 'Marienburg Smugglers (use Crossbowmen)', 8), WTp(20, 3, 'Brigand Peasants (use Men-at-arms)', 5)])] },
+  tilea: { name: 'Tilean Bandits', enemies: [
+    EN('Mercenary Captain (use an Empire captain)', 'char', 60), EN('Hooded Stranger (use a Night Goblin model)', 'char', 35),
+    ENw('Cut-throats (use Swordsmen)', 'unit', 0, 6, 10, 20, 3), ENw('Pike Deserters (use Spearmen)', 'unit', 0, 5, 10, 25, 2),
+    ENw('Tilean Crossbowmen (use Crossbowmen)', 'unit', 0, 8, 5, 15, 2), EN('Duellists (use Militia)', 'unit', 0, 6, 5, 10),
+    { ...EN('Clanrats (use Night Goblin Spearmen)', 'unit', 0, 4, 15, 30), rare: true }, { ...EN('Giant Rats (use Snotlings)', 'unit', 0, 3, 5, 10), rare: true }],
+    warbands: [
+      WB('wbl-cutthroat-company', 'The Cut-throat Company', [WLp(1, 'Mercenary Captain (use an Empire captain)', 60), WLp(4, 'Cut-throats (use Swordsmen)', 6), WLp(2, 'Tilean Crossbowmen (use Crossbowmen)', 8)],
+        [WTp(6, 3, 'Pike Deserters (use Spearmen)', 5), WTp(12, 2, 'Duellists (use Militia)', 6), WTp(18, 2, 'Tilean Crossbowmen (use Crossbowmen)', 8)]),
+      WB('wbl-ratcatcher', 'The Rat-catcher’s Bargain', [WLp(1, 'Hooded Stranger (use a Night Goblin model)', 35), WLp(6, 'Clanrats (use Night Goblin Spearmen)', 4), WLp(3, 'Giant Rats (use Snotlings)', 3)],
+        [WTp(8, 2, 'Cut-throats (use Swordsmen)', 6), WTp(14, 4, 'Clanrats (use Night Goblin Spearmen)', 4), WTp(20, 1, 'Mercenary Captain (use an Empire captain)', 60)],
+        'Who hired whom? Nobody will say. If the Stranger falls, the rats flee at the end of the turn.')] },
+  cathay: { name: 'Cathayan Bandits', enemies: [
+    EN('Bandit Warlord of the Wastes (use a Jade Warrior)', 'char', 70), EN('Renegade Alchemist (use a Peasant model)', 'char', 50),
+    ENw('Rebel Peasants (use Peasant Spearmen)', 'unit', 0, 4, 10, 30, 3), ENw('Hill Bandit Archers (use Peasant Archers)', 'unit', 0, 5, 10, 20, 3),
+    EN('Deserted Jade Warriors (use Jade Warriors)', 'unit', 0, 8, 10, 20), EN('Smugglers with Handguns (use Ironhail Gunners)', 'unit', 0, 9, 5, 10),
+    EN('Hobgoblin Raiders (use Orc Archers)', 'unit', 0, 5, 10, 20)],
+    warbands: [
+      WB('wbl-river-pirates', 'The River Pirates of Shi Long', [WLp(1, 'Bandit Warlord of the Wastes (use a Jade Warrior)', 70), WLp(4, 'Rebel Peasants (use Peasant Spearmen)', 4), WLp(3, 'Hill Bandit Archers (use Peasant Archers)', 5)],
+        [WTp(6, 2, 'Smugglers with Handguns (use Ironhail Gunners)', 9), WTp(12, 3, 'Rebel Peasants (use Peasant Spearmen)', 4), WTp(18, 2, 'Deserted Jade Warriors (use Jade Warriors)', 8)]),
+      WB('wbl-alchemist', 'The Alchemist’s Gang', [WLp(1, 'Renegade Alchemist (use a Peasant model)', 50), WLp(3, 'Deserted Jade Warriors (use Jade Warriors)', 8), WLp(2, 'Smugglers with Handguns (use Ironhail Gunners)', 9)],
+        [WTp(8, 3, 'Hobgoblin Raiders (use Orc Archers)', 5), WTp(14, 3, 'Hill Bandit Archers (use Peasant Archers)', 5), WTp(20, 1, 'Bandit Warlord of the Wastes (use a Jade Warrior)', 70)],
+        'Once per game the Alchemist hurls a fire-pot: a small blast, Strength 3, flaming, range 8".')] },
+  khuresh: { name: 'Khureshi Bandits', enemies: [
+    EN('Pirate Rajah (use any hero)', 'char', 70), EN('Snake-charmer Witch (use the Necromancer)', 'char', 55),
+    ENw('Spice-coast Pirates (use Marauders with axe & shield)', 'unit', 0, 6, 10, 20, 3), ENw('Blowpipe Hunters (use Peasant Archers)', 'unit', 0, 5, 10, 20, 3),
+    EN('Ape-men Mercenaries (use Gors)', 'unit', 0, 7, 5, 15), EN('Serpent-cult Fanatics (use Marauders with flails)', 'unit', 0, 7, 10, 20),
+    EN('Temple Tiger (use a Chaos Spawn)', 'mon', 55)],
+    warbands: [
+      WB('wbl-rajah', 'The Rajah’s Corsairs', [WLp(1, 'Pirate Rajah (use any hero)', 70), WLp(4, 'Spice-coast Pirates (use Marauders with axe & shield)', 6), WLp(3, 'Blowpipe Hunters (use Peasant Archers)', 5)],
+        [WTp(6, 2, 'Ape-men Mercenaries (use Gors)', 7), WTp(12, 3, 'Serpent-cult Fanatics (use Marauders with flails)', 7), WTp(18, 1, 'Temple Tiger (use a Chaos Spawn)', 55)]),
+      WB('wbl-witch', 'The Coils of the Witch', [WLp(1, 'Snake-charmer Witch (use the Necromancer)', 55), WLp(5, 'Serpent-cult Fanatics (use Marauders with flails)', 7)],
+        [WTp(8, 3, 'Blowpipe Hunters (use Peasant Archers)', 5), WTp(14, 2, 'Ape-men Mercenaries (use Gors)', 7), WTp(20, 1, 'Temple Tiger (use a Chaos Spawn)', 55)],
+        'If the Witch falls, her fanatics Hate the enemy for the rest of the game.')] },
+  araby: { name: 'Arabyan Bandits', enemies: [
+    EN('Corsair Captain (use an Empire captain)', 'char', 60), EN('Sorcerer of the Sands (use the Necromancer)', 'char', 55),
+    ENw('Bazaar Cutpurses (use Militia)', 'unit', 0, 4, 10, 30, 3), ENw('Nomad Archers (use Archers)', 'unit', 0, 7, 10, 20, 3),
+    ENw('Corsairs (use Swordsmen)', 'unit', 0, 6, 10, 20, 2), EN('Sell-swords of Copher (use Spearmen)', 'unit', 0, 5, 10, 20),
+    EN('Desert Riders (use Marauder Horsemen)', 'unit', 0, 14, 5, 8)],
+    warbands: [
+      WB('wbl-corsairs', 'The Corsairs of Copher', [WLp(1, 'Corsair Captain (use an Empire captain)', 60), WLp(4, 'Corsairs (use Swordsmen)', 6), WLp(3, 'Nomad Archers (use Archers)', 7)],
+        [WTp(6, 3, 'Bazaar Cutpurses (use Militia)', 4), WTp(12, 2, 'Desert Riders (use Marauder Horsemen)', 14), WTp(18, 2, 'Corsairs (use Swordsmen)', 6)]),
+      WB('wbl-sand-sorcerer', 'The Sand-sorcerer’s Thieves', [WLp(1, 'Sorcerer of the Sands (use the Necromancer)', 55), WLp(5, 'Bazaar Cutpurses (use Militia)', 4), WLp(2, 'Nomad Archers (use Archers)', 7)],
+        [WTp(8, 2, 'Desert Riders (use Marauder Horsemen)', 14), WTp(14, 3, 'Corsairs (use Swordsmen)', 6), WTp(20, 1, 'Corsair Captain (use an Empire captain)', 60)],
+        'Once per game the Sorcerer calls a sandstorm: nothing may shoot further than 12" until his next turn.')] },
+  albion: { name: 'Albion Bandits', enemies: [
+    EN('Outlaw Chieftain (use a Chaos Warrior)', 'char', 60), EN('Hedge-druid (use the Necromancer)', 'char', 45),
+    ENw('Woad Raiders (use Marauders with axe & shield)', 'unit', 0, 6, 10, 20, 3), ENw('Fen Slingers (use Archers)', 'unit', 0, 6, 10, 20, 3),
+    ENw('Tradetown Deserters (use Militia)', 'unit', 0, 5, 10, 20, 2), EN('Norse Wreckers (use Marauders with flails)', 'unit', 0, 7, 10, 20),
+    EN('Fimir Sellsword (use a Chaos Spawn)', 'mon', 50)],
+    warbands: [
+      WB('wbl-fen-outlaws', 'The Fen Outlaws', [WLp(1, 'Outlaw Chieftain (use a Chaos Warrior)', 60), WLp(4, 'Woad Raiders (use Marauders with axe & shield)', 6), WLp(3, 'Fen Slingers (use Archers)', 6)],
+        [WTp(6, 2, 'Tradetown Deserters (use Militia)', 5), WTp(12, 3, 'Woad Raiders (use Marauders with axe & shield)', 6), WTp(18, 1, 'Fimir Sellsword (use a Chaos Spawn)', 50)]),
+      WB('wbl-wreckers', 'The Wreckers of Muddy Point', [WLp(1, 'Wrecker Captain (use a Marauder)', 40), WLp(4, 'Norse Wreckers (use Marauders with flails)', 7), WLp(2, 'Fen Slingers (use Archers)', 6)],
+        [WTp(8, 3, 'Tradetown Deserters (use Militia)', 5), WTp(14, 1, 'Hedge-druid (use the Necromancer)', 45), WTp(20, 3, 'Woad Raiders (use Marauders with axe & shield)', 6)],
+        'Wreckers fight dirty: they re-roll 1s to hit in the first round of each combat.')] },
+};
+
+/* ---------- events of the lands ---------- */
+const LV = (land, id, title, kind, weight, text, choices, o = {}) => ({ ...EVt(id, title, kind, '', weight, text, choices, o), land });
+const LCV = (land, id, title, kind, weight, text, choices, o = {}) => LV(land, 'c-' + id, title, kind, weight, text, choices, o);
+// The general events that fit any land keep their full weight everywhere; so do events that pay off an earlier choice.
+const ROAD_ANY = ['ambush', 'night-raid', 'rival-scouts', 'hunted', 'desertion', 'arm-wrestle', 'stranger-cards', 'fair-weather', 'lame-horse', 'campfire', 'comet', 'strange-lights'];
+const CAMP_ANY = ['c-drill', 'c-sermon', 'c-thief', 'c-fever', 'c-storm', 'c-cult-sigils', 'c-night-deserters', 'c-nightmare'];
+
+const LAND_ROAD_EVENTS = [
+  /* ---- World's Edge & the Dwarf holds ---- */
+  LV('worlds_edge', 'we-toll-gate', 'The Toll of the Karak', 'choice', 4, 'A dwarf gate-ward bars the old road to {pin}. “Toll is owed. Toll was always owed.”', [
+    EVc('Pay the toll', 'clue', 'He stamps a rune on your safe-conduct and points out the quickest pass.', { cost: 25 }),
+    EVc('Argue the toll', '', 'Grudgingly, he lets you through for nothing.', { chance: 40, failText: 'He writes your name in a very thick book.', failFx: 'flag dwarf_grudge' })]),
+  LV('worlds_edge', 'we-avalanche', 'Avalanche Weather', 'camp', 3, 'Snow hangs heavy on the peaks above the pass. The guides want to wait.', [
+    EVc('Wait a day', 'heal', 'The snow comes down behind you, not on you.'),
+    EVc('Push on', 'xp 1 one', 'You are over the pass before nightfall.', { chance: 60, failText: 'The mountain moves. Men and mules vanish under the snow.', failFx: 'lose 2' })]),
+  LV('worlds_edge', 'we-drums', 'Drums in the Deep', 'battle', 4, 'Drums thunder from the halls beneath the road. Greenskins pour out of a side-tunnel.', [EVc('Form a shield-wall!', 'battle orcs march', '')]),
+  LV('worlds_edge', 'we-doomseeker', 'The Doomseeker', 'choice', 3, 'A Slayer with a crest of orange hair asks only to march wherever the fighting is thickest.', [
+    EVc('Buy him a drink and hear his saga', 'rumour; xp 1 one', 'Three hours of saga. Somewhere in the middle was something useful.', { cost: 10 }),
+    EVc('Ask him to scout the old halls', 'clue', 'He comes back covered in goblin, with directions.', { chance: 50, failText: 'He finds a troll instead, and very nearly his doom.', failFx: 'wound' })]),
+  LV('worlds_edge', 'we-fur-traders', 'Kislevite Fur Traders', 'purchase', 4, 'A sledge-caravan of Kislevite fur traders, armed to the teeth, offers trade and gossip from the north.', [
+    EVc('Buy furs for the men', 'heal; xp 1 one', 'Warm men are steady men.', { cost: 30 }),
+    EVc('Buy the bear-claw amulet', 'relic Kislevite Bear-claw Amulet', '“From a bear that killed six men,” says the trader. “Seven, now.”', { cost: 40 }),
+    EVc('Move on', '', '')]),
+  LV('worlds_edge', 'we-oathbreakers', 'Oathbreakers', 'battle', 3, 'Dwarfs with shaven chins and stolen axes hold the road. They broke an oath once; they will break your heads gladly.', [
+    EVc('Fight them', 'battle bandits mordheim', ''),
+    EVc('Pay them off', '', 'They take the gold without a word of thanks.', { cost: 40 })]),
+
+  /* ---- The Border Princes ---- */
+  LV('border_princes', 'bp-princeling', 'A Prince of One Hill', 'choice', 4, 'A “prince” in rusty armour, ruler of one hill and a pig-farm, demands that you swear him fealty.', [
+    EVc('Swear, with fingers crossed', 'xp 1 one', 'He knights your captain on the spot with a cheese knife.'),
+    EVc('Laugh at him', 'battle bandits mordheim', 'His “royal guard” takes it badly.')]),
+  LV('border_princes', 'bp-glyphs', 'Greenskin Glyphs', 'battle', 4, 'Crude glyphs daubed on the waystones. The tribes claim this valley, and they are watching you cross it.', [EVc('Press on, weapons ready', 'battle orcs march', '')]),
+  LV('border_princes', 'bp-sellswords', 'Sellswords Between Wars', 'purchase', 4, 'A free company between wars (Tileans, Bretonnian exiles and two dour dwarfs) will fight for anyone who pays.', [
+    EVc('Hire the company', 'unit Free Company Militia 10 as Border Freebooters', 'They fall in behind your banners, arguing in four languages.', { cost: 60 }),
+    EVc('Hire only the dwarfs', 'unit Swordsmen 4 as Exiled Dwarf Axes', 'The dwarfs count the coins twice, then nod.', { cost: 35 }),
+    EVc('Decline', '', '')]),
+  LV('border_princes', 'bp-burned-keep', 'The Burned Keep', 'choice', 3, 'A keep still smoulders. Its lord hangs from his own gate, and his heir is hiding in the well.', [
+    EVc('Rescue the heir', 'flag saved_heir', 'A boy of ten, who swears you will be rewarded when he is a prince.', { chance: 70, failText: 'The killers are still here.', failFx: 'battle bandits mordheim' }),
+    EVc('Loot the keep', 'gold 40', 'Nobody will miss it. Probably.')]),
+  LV('border_princes', 'bp-fighting-pit', 'The Fighting Pit', 'gamble', 3, 'In a mud-walled town, a pit-master offers odds on your champion against his ogre.', [
+    EVc('Stake 30 gc (40% to win 90)', 'gold 90; xp 1 one', 'The ogre goes down like a felled oak. The crowd goes wild.', { cost: 30, chance: 40, failText: 'The ogre wins. Your champion will live.', failFx: 'wound' }),
+    EVc('Just watch', '', 'A brutal show. The men are quiet afterwards.')]),
+  LV('border_princes', 'bp-dwarf-caravan', 'A Caravan from Barak Varr', 'purchase', 3, 'Dwarf merchants from Barak Varr, with powder, steel and long memories.', [
+    EVc('Buy powder kegs', 'relic Dwarf Powder Kegs', '“Keep it dry. Keep it away from the priest’s candles.”', { cost: 40 }),
+    EVc('Buy a rune-blade', 'relic Border Rune-blade', 'Good dwarf steel, an old rune, a high price.', { cost: 65 }),
+    EVc('Pass', '', '')]),
+
+  /* ---- Bretonnia ---- */
+  LV('bretonnia', 'br-pilgrims', 'Grail Pilgrims', 'choice', 4, 'Ragged Grail pilgrims trail after a knight’s banner and beg alms of every passer-by.', [
+    EVc('Give alms', 'xp 1 all', 'They bless your banners in the name of the Lady. Even the Ulricans stand straighter.', { cost: 15 }),
+    EVc('Ride past', '', 'Their singing follows you for a mile.')]),
+  LV('bretonnia', 'br-revolt', 'The Peasants’ Revolt', 'choice', 4, 'Peasants with pitchforks have besieged their lord’s steward in a mill. Both sides beg for your help.', [
+    EVc('Side with the peasants', 'flag helped_herrimaults', 'The steward flees. A hooded archer watches from the trees, and nods.'),
+    EVc('Side with the steward', 'gold 40; flag betrayed_peasants', 'The steward pays well. The peasants will remember your banner.'),
+    EVc('Ride on', '', '')]),
+  LV('bretonnia', 'br-damsel', 'A Damsel of the Lady', 'choice', 3, 'A Damsel of the Lady stands ankle-deep in a stream, as if she had been waiting for you.', [
+    EVc('Ask her blessing', 'omen', 'She looks long at both priests, and says nothing kind.'),
+    EVc('Ask her the way', 'clue', 'She points. Then she is not there any more.')]),
+  LV('bretonnia', 'br-brigands', 'Brigands of the Forest', 'battle', 4, 'Brigands step onto the road from the trees, bows drawn. “Your purse, or your lives, messieurs.”', [
+    EVc('Fight', 'battle bandits march', ''),
+    EVc('Pay the toll', '', 'They doff their caps and melt back into the trees.', { cost: 30 })]),
+  LV('bretonnia', 'br-tourney', 'A Village Tourney', 'gamble', 3, 'A village holds a tourney. Commoners may only enter the archery.', [
+    EVc('Enter your best archer (20 gc, 45% to win 60)', 'gold 60', 'A bull’s-eye! The knights are not amused.', { cost: 20, chance: 45, failText: 'Beaten by a goose-girl.' }),
+    EVc('Watch the jousting', 'xp 1 one', 'Your cavalry learn a trick or two.')]),
+  LV('bretonnia', 'br-wine', 'The Wine Merchant of Quenelles', 'purchase', 3, 'A merchant with a wagon of Quenelles wine and, beneath it, something better.', [
+    EVc('Buy wine for the men', 'heal; xp 1 one', 'Good wine and a quiet night.', { cost: 25 }),
+    EVc('Buy what is under the wine', 'relic Grail-shaped Vial', 'A little crystal vial, glowing faintly.', { cost: 50, chance: 60, failText: 'A dusty bottle of very expensive vinegar.' }),
+    EVc('Pass', '', '')]),
+
+  /* ---- Tilea ---- */
+  LV('tilea', 'ti-banker', 'The Banker of Miragliano', 'choice', 4, 'A banker offers a loan against the expedition’s future spoils. The interest, he says, is “modest”.', [
+    EVc('Take 80 gc', 'gold 80; flag tilean_debt', 'Sign here. And here. And here.'),
+    EVc('Refuse', '', 'He smiles as if he will see you again.')]),
+  LV('tilea', 'ti-scratchings', 'Scratchings in the Cellar', 'choice', 3, 'At an inn, the cellar walls are covered in tiny scratched marks, and the innkeeper is missing.', [
+    EVc('Go down into the cellar', 'loot', 'A stash of stolen coin, and no sign of what stole it.', { chance: 50, failText: 'Red eyes in the dark. Many red eyes.', failFx: 'battle bandits mordheim' }),
+    EVc('Leave at once', '', 'Nobody argues.')]),
+  LV('tilea', 'ti-duel', 'A Matter of Honour', 'gamble', 4, 'A Tilean duellist insults your captain’s mother, his sword and his god, in that order.', [
+    EVc('Accept the duel (55% to win)', 'xp 1 one; gold 30', 'First blood to you, and his purse.', { chance: 55, failText: 'First blood to the Tilean.', failFx: 'wound' }),
+    EVc('Ignore him', '', 'He follows you for a mile, still insulting.')]),
+  LV('tilea', 'ti-pirates', 'Sartosan Pirates', 'battle', 3, 'Pirates come ashore at dusk to raid the coast road, and your baggage train looks rich.', [EVc('Fight them on the beach', 'battle bandits march', '')]),
+  LV('tilea', 'ti-relic-seller', 'The Relic Seller of Remas', 'purchase', 4, 'A silk-voiced dealer has saints’ fingers, philosophers’ stones and “the very spear of Myrmidia”.', [
+    EVc('Buy the spear-tip', 'relic Spear-tip of Myrmidia', 'It is real. You are almost sure.', { cost: 55, chance: 50, failText: 'It is a fork.' }),
+    EVc('Buy something cheap', 'relic', 'A bargain, and genuine!', { cost: 25, chance: 35, failText: 'A pretty fake.' }),
+    EVc('Pass', '', '')]),
+  LV('tilea', 'ti-plague-doctor', 'The Beaked Doctor', 'purchase', 3, 'A plague doctor in a beaked mask offers his services and his tinctures.', [
+    EVc('Buy tinctures', 'heal', 'They smell vile. They work.', { cost: 25 }),
+    EVc('Let him examine the priest', 'omen', 'He studies {priest} for a long time, then washes his hands twice.', { cost: 10 })]),
+
+  /* ---- Grand Cathay ---- */
+  LV('cathay', 'ca-papers', 'Papers at the Bastion', 'choice', 4, 'Guards of the Great Bastion demand travel papers stamped by three ministries. You have none.', [
+    EVc('Bribe the clerk', 'clue', 'Papers appear, freshly stamped, and the clerk mentions a rumour.', { cost: 30 }),
+    EVc('Wait for the ministries', 'xp 1 one', 'Three days of paperwork. The men learn patience.')]),
+  LV('cathay', 'ca-hobgoblins', 'Hobgoblin Raiders', 'battle', 4, 'Hobgoblin wolf-riders down from the steppe, sniffing for stragglers. Bandits ride with them.', [EVc('Close ranks!', 'battle bandits march', '')]),
+  LV('cathay', 'ca-ivory-road', 'The Ivory Road Caravan', 'purchase', 4, 'A caravan master of the Ivory Road offers wonders from both ends of the world.', [
+    EVc('Buy a jade amulet', 'relic Jade Talisman', 'Cool and green, and humming faintly.', { cost: 40 }),
+    EVc('Buy fireworks', 'relic Dragon-fire Rockets', 'Crated with great ceremony.', { cost: 35 }),
+    EVc('Pass', '', '')]),
+  LV('cathay', 'ca-monk', 'The Wandering Monk', 'choice', 3, 'A monk of the Celestial Monastery sits by the road, as if he had been there for years.', [
+    EVc('Ask him to read the priests', 'omen', 'He reads them both, and bows to only one of them.'),
+    EVc('Ask him to teach the men', 'xp 1 all', 'A morning of strange exercises. They fight better for it.', { cost: 15 })]),
+  LV('cathay', 'ca-lanterns', 'The Lantern Festival', 'gamble', 3, 'A town celebrates with lanterns, fireworks and games of chance.', [
+    EVc('Play mah-jong (25 gc, 40% to win 75)', 'gold 75', 'Your quartermaster turns out to be a natural.', { cost: 25, chance: 40, failText: 'The rules change every hand. You lose every hand.' }),
+    EVc('Watch the fireworks', 'heal', 'A night of wonder and rest.')]),
+  LV('cathay', 'ca-clay-soldiers', 'The Clay Soldiers', 'battle', 3, 'In a broken tomb beside the road, rows of clay soldiers turn their heads to follow you.', [
+    EVc('Run!', '', 'You outrun them, just.', { chance: 50, failText: 'They are faster than they look.', failFx: 'battle undead mordheim' }),
+    EVc('Stand and fight', 'battle undead mordheim; xp 1 one', '')]),
+
+  /* ---- Khuresh ---- */
+  LV('khuresh', 'kh-idol', 'The Serpent Idol', 'choice', 4, 'A jewelled serpent idol stands in a clearing. Its eyes are rubies the size of eggs.', [
+    EVc('Prise out the rubies', 'gold 60; flag robbed_idol', 'The jungle goes very quiet.'),
+    EVc('Leave an offering', 'xp 1 all', 'The men feel watched, but kindly.', { cost: 10 })]),
+  LV('khuresh', 'kh-ape-men', 'The Ape-men', 'battle', 4, 'Hooting ape-men drop from the canopy onto the column.', [EVc('Fight them off', 'battle beasts mordheim', '')]),
+  LV('khuresh', 'kh-river-boat', 'The River Boat', 'purchase', 4, 'A river-boat captain offers passage downstream, faster than any march through the jungle.', [
+    EVc('Pay the passage', 'heal; xp 1 one', 'Days of rest on the river.', { cost: 30 }),
+    EVc('March through the jungle', '', 'Hard going, but you make it.', { chance: 60, failText: 'The jungle takes its toll.', failFx: 'lose 2' })]),
+  LV('khuresh', 'kh-snake-basket', 'The Snake-charmer’s Wager', 'gamble', 3, 'A snake-charmer bets that no man in your column dares put his hand in the basket.', [
+    EVc('Your champion accepts (60% to win 50)', 'gold 50', 'He pulls out his hand, and a coin purse.', { chance: 60, failText: 'The snake bites.', failFx: 'wound' }),
+    EVc('Decline', '', '')]),
+  LV('khuresh', 'kh-tiger', 'The White Tiger', 'choice', 3, 'A white tiger stalks the column for three days. On the fourth, it strikes.', [
+    EVc('Hunt it', 'relic Tiger-skin Cloak', 'A magnificent pelt, and a story for the rest of their lives.', { chance: 50, failText: 'It hunts you instead.', failFx: 'wound' }),
+    EVc('Keep the column close', 'lose 1', 'It takes one straggler and is gone.')]),
+  LV('khuresh', 'kh-spices', 'The Spice Merchant', 'purchase', 3, 'A merchant offers spices worth their weight in gold back home, and an elixir of fabled power.', [
+    EVc('Buy spices to sell on', 'gold 70', 'Sold within the week, at twice the price.', { cost: 40, chance: 70, failText: 'The spices rot in the damp.' }),
+    EVc('Buy the elixir', 'relic Elixir of the Naga', 'It moves in the bottle.', { cost: 40 }),
+    EVc('Pass', '', '')]),
+
+  /* ---- Araby ---- */
+  LV('araby', 'ar-sandstorm', 'Sandstorm', 'camp', 4, 'A wall of sand rolls across the desert towards the column.', [
+    EVc('Shelter and wait', '', 'A day lost, but no men.'),
+    EVc('March through it', 'xp 1 one', 'You march out the other side, half-blind and proud.', { chance: 50, failText: 'When the storm passes, some men are gone.', failFx: 'lose 2' })]),
+  LV('araby', 'ar-corsairs', 'Corsairs of the Coast Road', 'battle', 4, 'Corsairs with curved swords spring up from the dunes.', [EVc('Fight!', 'battle bandits march', '')]),
+  LV('araby', 'ar-bazaar', 'The Great Bazaar', 'purchase', 4, 'The bazaar of El-Kalabad sells everything: carpets, spices, secrets, and an oil lamp the merchant will not let you touch.', [
+    EVc('Buy the lamp', 'relic Brass Lamp of the Djinn', 'It is warm, and something inside it sighs.', { cost: 60, chance: 50, failText: 'It is just a lamp. A lovely lamp.' }),
+    EVc('Buy secrets', 'rumour', 'Some of them are even true.', { cost: 20 }),
+    EVc('Pass', '', '')]),
+  LV('araby', 'ar-oasis', 'The Oasis', 'choice', 3, 'A green oasis, and a sheikh who claims every drop of its water.', [
+    EVc('Pay for water', 'heal', 'Cool water and shade. The wounded mend.', { cost: 20 }),
+    EVc('Take the water by force', 'battle bandits mordheim; flag angered_sheikh', '')]),
+  LV('araby', 'ar-tomb-robbers', 'Tomb Robbers', 'choice', 4, 'Tomb robbers offer to share a tomb they have just opened, if you guard their backs.', [
+    EVc('Join them', 'loot; gold 30', 'The tomb is rich, and its guardians sleep.', { chance: 50, failText: 'The guardians do not sleep.', failFx: 'battle undead march' }),
+    EVc('Refuse', '', '')]),
+  LV('araby', 'ar-camel-race', 'The Camel Race', 'gamble', 3, 'A sheikh’s son bets you cannot outride his camel on your best horse.', [
+    EVc('Race (25 gc, 45% to win 80)', 'gold 80', 'Your outrider wins by a nose.', { cost: 25, chance: 45, failText: 'Camels, it turns out, are fast.' }),
+    EVc('Decline', '', '')]),
+
+  /* ---- Albion ---- */
+  LV('albion', 'al-ogham', 'The Ogham Stones', 'choice', 4, 'A ring of ogham stones hums in the mist. The guides say the old powers here judge all travellers.', [
+    EVc('Walk the ring', 'omen', 'The stones fall silent as one priest passes, and only one.'),
+    EVc('Go around', '', '')]),
+  LV('albion', 'al-giant', 'The Giant’s Footprints', 'choice', 3, 'Footprints the size of carts lead off into the mist.', [
+    EVc('Follow them', 'loot', 'An empty lair, and a giant’s hoard of shiny things.', { chance: 40, failText: 'The giant was at the end of them.', failFx: 'lose 2' }),
+    EVc('Keep well away', '', '')]),
+  LV('albion', 'al-bog', 'The Great Bog', 'camp', 4, 'The causeway ends in a bog. Something moves under the surface.', [
+    EVc('Wade across', '', 'Wet, cold, and all present.', { chance: 60, failText: 'Something pulls two men under.', failFx: 'lose 2' }),
+    EVc('Find another way', 'xp 1 one', 'Two days lost in the fog, but your scouts learn the land.')]),
+  LV('albion', 'al-fimir', 'Fimir in the Mist', 'battle', 4, 'One-eyed shapes move in the fog. The Fimir are hunting.', [EVc('Stand together!', 'battle chaos march', '')]),
+  LV('albion', 'al-painted-tribe', 'The Painted Tribe', 'choice', 4, 'A woad-painted tribe blocks the path. Their chieftain wants a gift, or a fight.', [
+    EVc('Give a gift', 'clue; flag albion_friends', 'He tests the steel of your gift, grins, and tells you what his scouts have seen.', { cost: 25 }),
+    EVc('Fight', 'battle bandits mordheim', '')]),
+  LV('albion', 'al-tradetown', 'The Imperial Tradetown', 'purchase', 3, 'Imperial merchants on Albion’s shore sell home comforts at ruinous prices.', [
+    EVc('Buy supplies', 'heal; xp 1 one', 'Sausage and proper beer. The men nearly weep.', { cost: 35 }),
+    EVc('Hire deserters', 'unit Free Company Militia 8 as Tradetown Deserters', 'They swear they deserted from someone else.', { cost: 40 }),
+    EVc('Pass', '', '')]),
+];
+
+const LAND_CAMP_EVENTS = [
+  /* ---- World's Edge ---- */
+  LCV('worlds_edge', 'we-ancestor-hall', 'An Empty Ancestor Hall', 'choice', 5, 'The expedition shelters in an abandoned hall. Stone faces of the ancestor gods watch the fires.', [
+    EVc('Pay your respects', 'xp 1 all', 'Even the proudest bow their heads.'),
+    EVc('Search the hall', 'loot', 'Under a cracked flagstone: an offering left long ago.', { chance: 50, failText: 'The stone faces seem to frown. A beam falls.', failFx: 'wound' })]),
+  LCV('worlds_edge', 'we-troll', 'Troll at the Stores', 'choice', 5, 'Something big and stinking is eating the mule-fodder, and the mules.', [
+    EVc('Drive it off with fire', '', 'It flees, howling.', { chance: 60, failText: 'It does not flee.', failFx: 'lose 2' }),
+    EVc('Let it eat', 'rob 15', 'It eats a mule’s worth of stores and wanders off.')]),
+  LCV('worlds_edge', 'we-ale', 'Bugman’s Last Barrel', 'purchase', 4, 'A dwarf trader swears this barrel came from Bugman’s brewery itself.', [
+    EVc('Buy it', 'xp 1 all', 'The finest ale this side of Karaz-a-Karak.', { cost: 30, chance: 50, failText: 'It is not Bugman’s. Half the camp is sick.', failFx: 'wound' }),
+    EVc('Pass', '', '')]),
+  LCV('worlds_edge', 'we-grudge', 'Your Name in the Book', 'battle', 6, 'The gate-ward’s kin have come to settle the grudge he wrote down.', [
+    EVc('Settle it with steel', 'battle dwarfs mordheim; unflag dwarf_grudge', ''),
+    EVc('Pay the grudge-price', 'unflag dwarf_grudge', 'The book is amended, in red ink.', { cost: 50 })], { req: 'dwarf_grudge', once: true }),
+
+  /* ---- The Border Princes ---- */
+  LCV('border_princes', 'bp-claimant', 'The Claimant', 'choice', 5, 'A ragged nobleman claims this whole valley by right, and asks for an escort to his “capital”.', [
+    EVc('Escort him', 'gold 30', 'His capital is a barn, but he pays in real silver.', { chance: 60, failText: 'His capital is a bandit camp, and he was the bait.', failFx: 'battle bandits mordheim' }),
+    EVc('Send him away', '', '')]),
+  LCV('border_princes', 'bp-swamp-fever', 'Swamp Fever', 'choice', 5, 'The Blood River runs thick and warm. Half the camp is shivering by morning.', [
+    EVc('Rest a day', 'heal', 'The fever breaks.'),
+    EVc('March it off', 'lose 1; xp 1 one', 'One man does not get up. The rest are hardened.')]),
+  LCV('border_princes', 'bp-brawl', 'A Brawl Among the Sellswords', 'choice', 4, 'Tileans and dwarfs in the camp come to blows over a game of dice.', [
+    EVc('Let them fight it out', 'xp 1 one; wound', 'Bloody noses all round, and a hero with a black eye.'),
+    EVc('Fine both sides', 'gold 10', 'You fine both sides and keep the difference.')]),
+  LCV('border_princes', 'bp-heir', 'The Heir Remembers', 'camp', 6, 'A rider brings a purse and a letter in a child’s hand: the boy you saved has a guardian now, and a treasury.', [
+    EVc('Accept the gift', 'gold 50; unflag saved_heir', '“When I am prince, you will be my generals.”')], { req: 'saved_heir', once: true }),
+
+  /* ---- Bretonnia ---- */
+  LCV('bretonnia', 'br-herald', 'A Knight’s Herald', 'choice', 5, 'A herald brings a challenge: his master, a Knight of the Realm, takes your presence as an insult.', [
+    EVc('Accept the challenge', 'xp 1 one; relic A Lady’s Favour', 'Your champion unhorses the knight, who yields his favour with good grace.', { chance: 50, failText: 'Your champion is carried back to camp on a shield.', failFx: 'wound' }),
+    EVc('Apologise, with a purse', '', '“The insult is withdrawn,” says the herald, pocketing it.', { cost: 20 })]),
+  LCV('bretonnia', 'br-poachers', 'Poachers’ Supper', 'camp', 5, 'Your foragers trade with poachers in the woods. Venison tonight, if nobody asks where it came from.', [
+    EVc('Eat well', 'heal', 'Nobody asks.')]),
+  LCV('bretonnia', 'br-mousillon-wind', 'Wind from Mousillon', 'choice', 4, 'A grey wind blows from the west, smelling of rot and old water. The men cough all night.', [
+    EVc('Burn incense', '', 'The smoke keeps the worst of it away.', { cost: 10 }),
+    EVc('Endure it', 'lose 1', 'One man is too sick to march in the morning.')]),
+  LCV('bretonnia', 'br-hooded-archer', 'The Hooded Archer', 'camp', 6, 'A hooded archer walks into camp, bows to the priest, and leaves a bundle: a rich man’s purse, and a map.', [
+    EVc('Accept the gifts', 'gold 30; clue; unflag helped_herrimaults', 'He is gone before anyone can thank him.')], { req: 'helped_herrimaults', once: true }),
+  LCV('bretonnia', 'br-peasants-remember', 'The Peasants Remember', 'battle', 6, 'Arrows from the hedgerows. The peasants have not forgotten whose side you took.', [
+    EVc('Fight them off', 'battle bandits mordheim; unflag betrayed_peasants', '')], { req: 'betrayed_peasants', once: true }),
+
+  /* ---- Tilea ---- */
+  LCV('tilea', 'ti-opera', 'An Opera in the Square', 'camp', 5, 'A travelling company performs the tragedy of a priest deceived by a daemon. The men find it uncomfortable.', [
+    EVc('Watch to the end', 'omen', 'In the last act, the tenor looks straight at one of your priests.'),
+    EVc('Leave at the interval', '', '')]),
+  LCV('tilea', 'ti-better-pay', 'Better Pay Elsewhere', 'choice', 5, 'A rival condottiere offers your men double pay to change sides.', [
+    EVc('Match the offer', '', 'They stay, richer and smug.', { cost: 30 }),
+    EVc('Let them go', 'lose 3', 'A handful slip away before dawn.')]),
+  LCV('tilea', 'ti-rats', 'Rats in the Stores', 'camp', 4, 'Rats, big ones, have been at the stores. Some of the sacks were opened with what looks like a knife.', [
+    EVc('Count the losses', 'rob 20', 'Grain, cheese, and somehow a bag of coin.')]),
+  LCV('tilea', 'ti-banker-agent', 'The Banker’s Agent', 'choice', 6, 'The banker’s agent finds you, as bankers’ agents always do. One hundred and twenty crowns, please.', [
+    EVc('Pay in full', 'unflag tilean_debt', 'He bows, and makes a note.', { cost: 120 }),
+    EVc('Refuse', 'unflag tilean_debt; battle bandits mordheim', '“Then we collect another way.”')], { req: 'tilean_debt', once: true }),
+
+  /* ---- Grand Cathay ---- */
+  LCV('cathay', 'ca-dragon-dream', 'Dream of the Dragon', 'camp', 5, 'Every man in camp dreams of a vast dragon coiled around the moon, watching.', [
+    EVc('Take it as a blessing', 'xp 1 all', 'They wake rested and strangely bold.')]),
+  LCV('cathay', 'ca-scholar', 'A Scholar of the Court', 'choice', 5, 'A court scholar asks to travel with you and record your deeds for the Emperor’s library.', [
+    EVc('Welcome him', 'flag court_scholar', 'He writes everything down. Everything.'),
+    EVc('Refuse politely', '', '')]),
+  LCV('cathay', 'ca-powder', 'Black Powder Everywhere', 'choice', 4, 'An alchemist’s cart overturns beside the camp. Black powder is everywhere.', [
+    EVc('Gather it up', 'relic Dragon-fire Rockets', 'Enough for a fine display, aimed at the enemy.', { chance: 60, failText: 'A spark. A bang. A very short sergeant.', failFx: 'wound' }),
+    EVc('Move the camp', '', '')]),
+  LCV('cathay', 'ca-scholar-gift', 'The Scholar’s Notes', 'camp', 6, 'The scholar returns to the court, and leaves you a copy of his notes: places, names and rumours.', [
+    EVc('Read the notes', 'clue; rumour; unflag court_scholar', 'Meticulous. Alarming. Useful.')], { req: 'court_scholar', once: true }),
+
+  /* ---- Khuresh ---- */
+  LCV('khuresh', 'kh-fever', 'Jungle Fever', 'choice', 5, 'The jungle heat breeds fever. Men sweat and rave in their tents.', [
+    EVc('Rest', 'heal', 'The fever passes.'),
+    EVc('Press on', 'lose 2; xp 1 one', 'The weak fall behind. The rest grow hard.')]),
+  LCV('khuresh', 'kh-bells', 'Bells in the Night', 'camp', 5, 'Bells ring all night from a temple that nobody can find in the morning.', [
+    EVc('Pray', 'omen', 'The bells stop the moment one priest begins to pray.')]),
+  LCV('khuresh', 'kh-guide', 'The Guide’s Price', 'choice', 4, 'Your Khureshi guide wants more money, or he leaves you here.', [
+    EVc('Pay him', 'clue', 'He leads you on, and shows you a hidden path.', { cost: 25 }),
+    EVc('Let him go', 'lose 1', 'Without him, a scout is lost to the jungle.')]),
+  LCV('khuresh', 'kh-idol-curse', 'The Idol’s Curse', 'battle', 6, 'Serpent cultists come for the rubies, in the dark, from every side.', [
+    EVc('Fight', 'battle bandits mordheim; unflag robbed_idol', ''),
+    EVc('Give back the rubies', 'unflag robbed_idol', 'They take them, hiss, and vanish.', { cost: 60 })], { req: 'robbed_idol', once: true }),
+
+  /* ---- Araby ---- */
+  LCV('araby', 'ar-mirage', 'A Mirage', 'camp', 5, 'The lookouts swear they saw a city of gold on the horizon. It was gone by morning.', [
+    EVc('Send scouts anyway', 'rumour', 'No city, but a caravan with news.')]),
+  LCV('araby', 'ar-scorpions', 'Scorpions in the Bedrolls', 'choice', 5, 'The night is full of scorpions.', [
+    EVc('Ring the camp with fire', '', 'A smoky, sleepless, safe night.', { cost: 10 }),
+    EVc('Bear it', 'wound', 'A hero wakes with a swollen arm.')]),
+  LCV('araby', 'ar-storyteller', 'The Storyteller', 'camp', 4, 'An old storyteller tells of a sword broken by a demon, and of a priest who dreamed the wrong dream.', [
+    EVc('Listen to the end', 'omen', 'He looks at one priest as he finishes.')]),
+  LCV('araby', 'ar-sheikh', 'The Sheikh’s Revenge', 'battle', 6, 'The sheikh of the oasis has hired every blade in the desert.', [
+    EVc('Fight', 'battle bandits march; unflag angered_sheikh', '')], { req: 'angered_sheikh', once: true }),
+
+  /* ---- Albion ---- */
+  LCV('albion', 'al-mist', 'The Endless Mist', 'choice', 5, 'The mist does not lift for three days. Men hear their names called from it.', [
+    EVc('Stay together', 'xp 1 one', 'Nobody wanders. Nobody is lost.'),
+    EVc('Send a patrol', 'clue', 'They come back with a lead.', { chance: 50, failText: 'One of them does not come back.', failFx: 'lose 1' })]),
+  LCV('albion', 'al-truthsayer', 'The Truthsayer', 'choice', 5, 'A truthsayer in white robes walks into camp and asks to see both priests’ hands.', [
+    EVc('Show her', 'omen', 'She takes one hand, drops it, and wipes her own.'),
+    EVc('Send her away', '', '')]),
+  LCV('albion', 'al-rain', 'Albion Rain', 'camp', 4, 'It rains. It rains a great deal. It does not stop.', [
+    EVc('Endure', 'lose 1', 'Trench-foot claims a man.')]),
+  LCV('albion', 'al-tribe-friends', 'Friends of the Tribe', 'camp', 6, 'The painted tribe sends warriors to guide you through the bogs.', [
+    EVc('Welcome them', 'unit Free Company Militia 6 as Woad Guides; unflag albion_friends', 'They paint your banner-poles for luck.')], { req: 'albion_friends', once: true }),
+];
+
+const LAND_INVESTIGATE = [
+  { id: 'we-runes', land: 'worlds_edge', title: 'Old Rune-marks', weight: 3, text: 'Dwarf rune-marks on the rock, some older than the Empire. A guide reads them for you.', fx: 'clue' },
+  { id: 'we-mine', land: 'worlds_edge', title: 'A Collapsed Mine', weight: 3, text: 'A mine-working, fallen in long ago. Something glitters in the spoil.', fx: 'loot' },
+  { id: 'bp-treasury', land: 'border_princes', title: 'A Prince’s Treasury', weight: 3, text: 'The ruined hall of a petty prince. Most of the treasury is gone, but not all.', fx: 'gold 40' },
+  { id: 'bp-informer', land: 'border_princes', title: 'The One-eyed Informer', weight: 3, text: 'An informer sells news to anyone. Today, to you.', fx: 'rumour; clue' },
+  { id: 'br-chapel', land: 'bretonnia', title: 'A Grail Chapel', weight: 3, text: 'A tiny Grail chapel, its keeper blind and very old. He has seen more than his eyes allow.', fx: 'clue' },
+  { id: 'br-gossip', land: 'bretonnia', title: 'Peasant Gossip', weight: 3, text: 'Peasants in the fields talk freely, once the knights are out of earshot.', fx: 'rumour' },
+  { id: 'ti-archives', land: 'tilea', title: 'The Merchant Archives', weight: 3, text: 'A merchant house keeps the ledger of every cargo for three hundred years. Some entries are very interesting.', fx: 'clue; rumour' },
+  { id: 'ti-tunnels', land: 'tilea', title: 'Tunnels Beneath', weight: 2, text: 'The search breaks into a tunnel that no human hands dug.', fx: 'battle bandits mordheim' },
+  { id: 'ca-temple', land: 'cathay', title: 'Temple Records', weight: 3, text: 'A temple of the Dragon has recorded every traveller for a thousand years.', fx: 'clue' },
+  { id: 'ca-tower', land: 'cathay', title: 'The Bastion Watch-tower', weight: 3, text: 'The tower’s watchmen have seen strange lights moving in the Wastes.', fx: 'rumour' },
+  { id: 'kh-drowned', land: 'khuresh', title: 'A Drowned Temple', weight: 3, text: 'A temple half-sunk in a swamp. Its altars still hold offerings.', fx: 'loot' },
+  { id: 'kh-hermit', land: 'khuresh', title: 'The Naga-blooded Hermit', weight: 2, text: 'A hermit with scaled skin speaks in riddles of a broken sword.', fx: 'clue; omen' },
+  { id: 'ar-tomb', land: 'araby', title: 'A Desert Tomb', weight: 3, text: 'Sand has half-buried a tomb. Its doors bear a king’s curse, and its treasury is still there.', fx: 'loot' },
+  { id: 'ar-wells', land: 'araby', title: 'Talk at the Wells', weight: 3, text: 'Caravan masters trade news at the wells like coin.', fx: 'rumour' },
+  { id: 'al-cairn', land: 'albion', title: 'An Old Cairn', weight: 3, text: 'A cairn older than any kingdom. Grave goods glint between the stones.', fx: 'loot' },
+  { id: 'al-druid', land: 'albion', title: 'A Hedge-druid', weight: 2, text: 'A hedge-druid reads the mist for you, for a price in bread.', fx: 'clue' },
+];
+const LAND_TWISTS = [
+  { id: 'we-thin-air', land: 'worlds_edge', name: 'Thin Air', effect: 'High in the passes: no unit may march on turn 1.', weight: 2 },
+  { id: 'we-rockslide', land: 'worlds_edge', name: 'Rockslide', effect: 'At the start of turn 3, a rockslide sweeps a 6"-wide strip across the centre from a random long edge. Units under it take D6 Strength 4 hits.', weight: 2 },
+  { id: 'bp-fumes', land: 'border_princes', name: 'Stinking Fumes', effect: 'Foul gases drift across the field: every unit suffers −1 Leadership on turns 1 and 2.', weight: 2 },
+  { id: 'bp-bought-off', land: 'border_princes', name: 'Bought Off', effect: 'At the start of turn 3, roll a D6 for the smallest unit on each side: on a 1, it has been bribed and leaves the battle.', weight: 2 },
+  { id: 'br-lady-mist', land: 'bretonnia', name: 'Mist of the Lady', effect: 'A silver mist: every unit has a 6+ ward save on turn 1.', weight: 2 },
+  { id: 'br-ploughed', land: 'bretonnia', name: 'Ploughed Fields', effect: 'The fields are freshly ploughed: cavalry treat all open ground off the roads as difficult terrain.', weight: 2 },
+  { id: 'ti-hired', land: 'tilea', name: 'Hired Blades', effect: 'The side with fewer points on the table hires 5 Tilean crossbowmen (Crossbowmen) for this battle.', weight: 2 },
+  { id: 'ti-market', land: 'tilea', name: 'Market Day', effect: 'The table centre is crowded with stalls: a 12" circle there counts as difficult terrain.', weight: 2 },
+  { id: 'ca-yin-yang', land: 'cathay', name: 'Winds of Yin and Yang', effect: 'Each wizard and priest may re-roll one casting or prayer roll this battle.', weight: 2 },
+  { id: 'ca-dusk', land: 'cathay', name: 'Lanterns at Dusk', effect: 'The battle begins at dusk: from turn 4, nothing may be seen or shot beyond 24".', weight: 2 },
+  { id: 'kh-monsoon', land: 'khuresh', name: 'Monsoon', effect: '−1 to hit with all missile weapons. Rivers and marshes are dangerous terrain.', weight: 2 },
+  { id: 'kh-vines', land: 'khuresh', name: 'Strangling Vines', effect: 'All woods and jungle are dangerous terrain this battle.', weight: 2 },
+  { id: 'ar-heat', land: 'araby', name: 'Desert Heat', effect: 'Units in heavy armour may not march on turns 3 and 4.', weight: 2 },
+  { id: 'ar-mirage', land: 'araby', name: 'Mirage', effect: 'Before shooting at a target more than 18" away, roll a D6: on a 1 the shots are wasted.', weight: 2 },
+  { id: 'al-emissary', land: 'albion', name: 'A Dark Emissary’s Curse', effect: 'At the start of turn 2, the unit nearest the table centre takes D6 Strength 3 hits.', weight: 2 },
+  { id: 'al-bog', land: 'albion', name: 'Sucking Bog', effect: 'All open ground below the hills counts as difficult terrain.', weight: 2 },
+];
+const LAND_LOOT = [
+  { id: 'we-amulet', land: 'worlds_edge', name: 'Kislevite Bear-claw Amulet', effect: 'The bearer may re-roll one failed Fear or Terror test each battle.', gold: 0, weight: 1 },
+  { id: 'we-grudge-stone', land: 'worlds_edge', name: 'Grudge-stone', effect: 'Once per game, one friendly unit re-rolls failed rolls to hit against one enemy unit.', gold: 0, weight: 2 },
+  { id: 'we-hoard', land: 'worlds_edge', name: 'A dwarf’s miserly hoard', effect: '', gold: 50, weight: 2 },
+  { id: 'bp-crown', land: 'border_princes', name: 'A pretender’s crown', effect: '', gold: 45, weight: 2 },
+  { id: 'bp-rune-blade', land: 'border_princes', name: 'Border Rune-blade', effect: '+1 Strength in the first round of each combat.', gold: 0, weight: 2 },
+  { id: 'bp-banner', land: 'border_princes', name: 'Banner of a Fallen Princedom', effect: 'The unit carrying it may re-roll a failed Rally test.', gold: 0, weight: 1 },
+  { id: 'br-favour', land: 'bretonnia', name: 'A Lady’s Favour', effect: 'The bearer is Immune to Psychology.', gold: 0, weight: 2 },
+  { id: 'br-vial', land: 'bretonnia', name: 'Grail-shaped Vial', effect: 'One use: at the start of any turn, the bearer recovers one lost wound.', gold: 0, weight: 1 },
+  { id: 'br-purse', land: 'bretonnia', name: 'A noble’s purse', effect: '', gold: 40, weight: 2 },
+  { id: 'ti-ducats', land: 'tilea', name: 'A purse of Tilean ducats', effect: '', gold: 40, weight: 2 },
+  { id: 'ti-myrmidia', land: 'tilea', name: 'Spear-tip of Myrmidia', effect: '+1 to wound when the bearer charges.', gold: 0, weight: 1 },
+  { id: 'ti-poison-ring', land: 'tilea', name: 'Borgio’s Poison Ring', effect: 'Once per game, the bearer’s attacks are poisoned for one round of combat.', gold: 0, weight: 2 },
+  { id: 'ca-jade-sword', land: 'cathay', name: 'Jade Sword', effect: '+1 to hit; the bearer’s attacks are magical.', gold: 0, weight: 1 },
+  { id: 'ca-silk', land: 'cathay', name: 'A bolt of dragon silk', effect: '', gold: 50, weight: 2 },
+  { id: 'ca-scroll', land: 'cathay', name: 'Scroll of the Five Elements', effect: 'One use: dispel one spell automatically.', gold: 0, weight: 2 },
+  { id: 'kh-cloak', land: 'khuresh', name: 'Tiger-skin Cloak', effect: 'The bearer causes Fear in the first round of each combat.', gold: 0, weight: 1 },
+  { id: 'kh-elixir', land: 'khuresh', name: 'Elixir of the Naga', effect: 'One use: the bearer has Regeneration (5+) for one battle.', gold: 0, weight: 1 },
+  { id: 'kh-rubies', land: 'khuresh', name: 'A handful of temple rubies', effect: '', gold: 55, weight: 2 },
+  { id: 'ar-lamp', land: 'araby', name: 'Brass Lamp of the Djinn', effect: 'Once per game: one enemy unit within 12" takes D6 Strength 4 hits.', gold: 0, weight: 1 },
+  { id: 'ar-carpet', land: 'araby', name: 'Flying Carpet', effect: 'Once per game, the bearer may fly 10" instead of moving normally.', gold: 0, weight: 1 },
+  { id: 'ar-dinars', land: 'araby', name: 'A chest of gold dinars', effect: '', gold: 50, weight: 2 },
+  { id: 'al-torc', land: 'albion', name: 'A gold torc', effect: '', gold: 40, weight: 2 },
+  { id: 'al-ogham-charm', land: 'albion', name: 'Ogham Charm', effect: 'The bearer may re-roll one failed Leadership test each battle.', gold: 0, weight: 2 },
+  { id: 'al-staff', land: 'albion', name: 'Truthsayer’s Staff', effect: 'Bound spell: the bearer’s unit gains Magic Resistance (2) until its next turn.', gold: 0, weight: 1 },
+];
+const LAND_OMENS = [
+  { id: 'we-waystone', land: 'worlds_edge', kind: 'point', weight: 3, text: 'A rune-carved waystone cracked as {who} passed it. The dwarf guides will not say what the rune meant.' },
+  { id: 'bp-prophet', land: 'border_princes', kind: 'point', weight: 3, text: 'A mad prophet in a border town screams that {whoex} marches under a borrowed god.' },
+  { id: 'br-spring', land: 'bretonnia', kind: 'point', weight: 3, text: 'Where {who} drank from a holy spring of the Lady, the water ran cloudy for an hour.' },
+  { id: 'ti-astrologer', land: 'tilea', kind: 'point', weight: 3, text: 'A Tilean astrologer cast {who}’s chart, frowned, and burned it.' },
+  { id: 'ca-mirror', land: 'cathay', kind: 'point', weight: 3, text: 'A bronze temple mirror showed {who} with a shadow that was not his own.' },
+  { id: 'kh-snake', land: 'khuresh', kind: 'point', weight: 3, text: 'A snake coiled in {who}’s boot, and did not bite. The guides say that is the worse sign.' },
+  { id: 'ar-eye', land: 'araby', kind: 'point', weight: 3, text: 'At dawn, the sand around {who}’s tent had been swept into the shape of an eye.' },
+  { id: 'al-second-figure', land: 'albion', kind: 'point', weight: 3, text: 'In the mist, the sentries saw {who} walking beside a second figure. Nobody was there.' },
+];
+
+/* ---------- schema 6 seed: idempotent, never touches rosters, pins or what you edited ---------- */
+const canonJSON = v => JSON.stringify(v, (k, x) => x && typeof x === 'object' && !Array.isArray(x) ? Object.fromEntries(Object.keys(x).sort().map(q => [q, x[q]])) : x);
+const stripPts = list => (Array.isArray(list) ? list : []).map(w => w && typeof w === 'object' ? { ...w,
+  core: (w.core || []).map(l => { const { pts, ...o } = l || {}; return o; }), later: (w.later || []).map(l => { const { pts, ...o } = l || {}; return o; }) } : w);
+function defaultEvLand(d, anyIds) { return d.where ? (REGION_LAND[d.where] || 'empire') : (anyIds.includes(d.id) || d.req) ? 'any' : 'empire'; }
+function seedPhase51(c) {
+  const t = c.tables = c.tables || {};
+  const seeds = c.seeds = c.seeds && typeof c.seeds === 'object' ? c.seeds : {};
+  for (const r of c.regions || []) if (r && !LANDS[r.land]) r.land = REGION_LAND[r.id] || 'empire';   // a new field only
+  if (!t.landBandits || typeof t.landBandits !== 'object' || Array.isArray(t.landBandits)) t.landBandits = {};
+  for (const k in LANDS) {
+    let b = t.landBandits[k];
+    if (!b || typeof b !== 'object' || Array.isArray(b)) b = t.landBandits[k] = k === 'empire' ? { name: LANDS.empire.bandits } : clone(DEFAULT_LAND_BANDITS[k]);
+    if (typeof b.name !== 'string' || !b.name.trim()) b.name = LANDS[k].bandits;
+    if (k !== 'empire') { if (!Array.isArray(b.enemies)) b.enemies = []; if (!Array.isArray(b.warbands)) b.warbands = []; }
+  }
+  if (!seeds.empBandits) {   // once: an unedited old bandit list becomes the Empire Bandits (Empire models). Edited lists are left alone.
+    const en = t.enemies = t.enemies && typeof t.enemies === 'object' ? t.enemies : {};
+    if (!Array.isArray(en.bandits) || canonJSON(en.bandits) === canonJSON(OLD_BANDIT_ENEMIES)) en.bandits = clone(DEFAULT_ENEMIES.bandits);
+    const wb = t.warbands;
+    if (wb && typeof wb === 'object' && (!Array.isArray(wb.bandits) || canonJSON(stripPts(wb.bandits)) === canonJSON(stripPts(OLD_BANDIT_WARBANDS)))) wb.bandits = clone(DEFAULT_WARBANDS.bandits);
+    seeds.empBandits = 1;
+  }
+  if (!seeds.lands) {   // once: tag the default events with their land, and add the lands' own rows (only ids that aren't there yet)
+    const tag = (list, defs, anyIds) => { const D = new Map(defs.map(d => [d.id, d])); for (const ev of list || []) if (ev && ev.land === undefined && D.has(ev.id)) ev.land = defaultEvLand(D.get(ev.id), anyIds); };
+    tag(t.roadEvents, DEFAULT_ROAD_EVENTS, ROAD_ANY); tag(t.campEvents, DEFAULT_CAMP_EVENTS, CAMP_ANY);
+    const add = (key, rows, same) => { const L = Array.isArray(t[key]) ? t[key] : (t[key] = []); for (const x of rows) if (!L.some(y => y && (y.id === x.id || (same && same(y, x))))) L.push(clone(x)); };
+    add('roadEvents', LAND_ROAD_EVENTS); add('campEvents', LAND_CAMP_EVENTS); add('investigate', LAND_INVESTIGATE); add('twists', LAND_TWISTS);
+    add('loot', LAND_LOOT, (y, x) => String(y.name || '').toLowerCase() === x.name.toLowerCase()); add('omens', LAND_OMENS);
+    seeds.lands = 1;
+  }
+  c.schema = Math.max(c.schema || 1, 6);
+  return c;
+}
+
+/* ---------- Codex: bandits of the lands ---------- */
+function landBanditsSheet() {
+  const T = C.tables, cnt = (n, a, b) => `${n} ${n === 1 ? a : b}`;
+  openSheet({ title: 'Bandits of the lands', html: `<p class="small muted" style="margin-top:8px">Bandits are still “bandits” for pins, region weights and events, but the list they are drawn from depends on the land. Set a region’s land in its region sheet.
+    ${opt('landBandits') ? '' : '<br><b>Custom region bandits is off</b> (Codex → Campaign options): the Empire Bandits fight everywhere.'}</p>
+    ${Object.keys(LANDS).map(k => {
+      const own = k !== 'empire', B = landBandit(k), n = own ? B.enemies.length : ((T.enemies || {}).bandits || []).length, w = own ? B.warbands.length : ((T.warbands || {}).bandits || []).length;
+      return `<button class="pick" data-l="${k}"><div class="row between"><b>${esc(banditName(k))}</b><span class="small">${esc(LANDS[k].label)}</span></div>
+        <div class="muted">${own && !n ? 'No list of their own: the Empire Bandits fight here' : `${cnt(n, 'entry', 'entries')} · ${cnt(w, 'warband', 'warbands')}`}</div></button>`; }).join('')}`,
+    onMount: sh => sh.body.addEventListener('click', e => { const b = e.target.closest('[data-l]'); if (!b) return; sh.close(); setTimeout(() => landBanditSheet(b.dataset.l), 30); }) });
+}
+function landBanditSheet(k) {
+  const own = k !== 'empire', B = landBandit(k), T = C.tables;
+  const n = own ? B.enemies.length : ((T.enemies || {}).bandits || []).length, w = own ? B.warbands.length : ((T.warbands || {}).bandits || []).length;
+  openSheet({ title: banditName(k), html: `<form class="form" onsubmit="return false" style="margin-top:8px">${fieldHtml({ key: 'name', label: 'Name in missions and the Chronicle', value: banditName(k) })}</form>
+    <p class="small muted">${own ? `They fight in ${esc(LANDS[k].label)} while Custom region bandits is on. With an empty opposition list, the Empire Bandits fight here instead. With no warbands, Mordheim battles use the opposition list.`
+      : 'They fight in the Empire, in any land without a list of its own, and everywhere while Custom region bandits is off. The same lists as Codex → Opposition lists → Empire Bandits.'}</p>
+    <div class="btns" style="flex-direction:column">
+      <button class="btn block" data-e="en">Opposition list: Battle March & Full (${n})</button>
+      <button class="btn block" data-e="wb">Mordheim warbands (${w})</button>
+      <button class="btn block ghost" data-e="reset">Restore the default lists…</button></div>`,
+    onMount: sh => {
+      const keep = () => { const v = readInputs($('.form', sh.body)); const nm = String(v.name || '').trim(); B.name = nm || LANDS[k].bandits; save(); };
+      sh.body.addEventListener('change', keep);
+      sh.body.addEventListener('click', async e => {
+        const b = e.target.closest('[data-e]'); if (!b) return; keep();
+        if (b.dataset.e === 'reset') {
+          if (!await confirmBox({ title: 'Restore the default lists?', danger: true, ok: 'Restore', text: `<p>The opposition list and Mordheim warbands of the ${esc(banditName(k))} go back to the seeded ones. Your changes to them are lost.</p>` })) return;
+          if (own) { T.landBandits[k] = { ...clone(DEFAULT_LAND_BANDITS[k]), name: B.name }; } else { T.enemies.bandits = clone(DEFAULT_ENEMIES.bandits); T.warbands.bandits = clone(DEFAULT_WARBANDS.bandits); }
+          save(); sh.close(); toast('Restored'); setTimeout(() => landBanditSheet(k), 450); return;
+        }
+        sh.close(); setTimeout(() => b.dataset.e === 'en' ? enemyFaction('bandits', k) : warbandTable('bandits', k), 30);
+      });
+    } });
+}
+Object.assign(ACT, { setLandBandits: landBanditsSheet });
 
 const setTopH = () => { try { document.documentElement.style.setProperty('--toph', $('#top').offsetHeight + 'px'); } catch (e) {} };
 window.addEventListener('resize', setTopH);
