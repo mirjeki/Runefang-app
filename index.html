@@ -454,7 +454,7 @@ body.noscroll #upd{display:none}
    RUNEFANG — Old World campaign companion
    Phase 1: data model, storage, export/import, rosters, gold
    ===================================================================== */
-const APP_VERSION = '5.2.0 · phase 5.2';
+const APP_VERSION = '5.2.1 · phase 5.2';
 const SCHEMA = 7;
 const FORMAT = 'runefang-campaign';
 
@@ -3412,10 +3412,13 @@ function genMission(g) {
   if (opp === 'rival' && EX(rv).status === 'lost') opp = null;
   if (!opp || (opp !== 'rival' && !FACTIONS[opp])) opp = pickFaction(r, p);
   const scale = SCALES[g.scale] ? g.scale : (opp === 'rival' ? 'march' : Math.random() < 0.3 ? 'mordheim' : 'march');
-  const points = g.points ? Math.round(num(g.points)) : missionPoints(scale, r);
+  let points = g.points ? Math.round(num(g.points)) : missionPoints(scale, r);
   const sc = g.scenario || pickScenario(scale, opp === 'rival' ? 'rival' : g.kind, p && p.terrain);
   const bl = opp === 'bandits' ? banditLand(r) : null;
   const enemy = opp === 'rival' ? rivalList(rv, points) : (scale === 'mordheim' && warbandList(opp, g.extra || 0, g.fewer || 0, points, bl)) || enemyList(opp, points, scale, g.extra || 0, g.fewer || 0, bl);
+  // A skirmish is fought at what the warband is worth now, so both gangs stay Mordheim-sized and grow together.
+  // Never below 100, so you can always field a hero and a few men.
+  if (enemy.warband && enemy.priced && enemy.fitted > 0 && !g.points) enemy.target = points = Math.min(points, Math.max(100, Math.ceil(enemy.fitted / 25) * 25));
   const where = p ? p.name : r ? (r.short || r.name) : 'the road';
   const ch = g.chainId && (C.chains || []).find(c => c.id === g.chainId), shName = ch ? C.shards[ch.shard].name : '';
   return { id: uid('msn'), side: g.side, opp, oppSide: opp === 'rival' ? rv : null, oppName: opp === 'bandits' ? banditName(bl) : null, regionId: g.regionId, pinId: g.pinId, kind: g.kind, scale, points,
@@ -3504,7 +3507,8 @@ function advanceChain(m, res) {
 /* ---------- mission sheet ---------- */
 function yourForce(m, s = m.side) {
   const P = m.points;
-  return m.scale === 'mordheim' ? `Up to ${P} pts: one or two heroes (the Priest may go, at his peril) and an escort of 5–15 models from your regiments.`
+  return m.scale === 'mordheim' ? (P < 175 ? `Up to ${P} pts: one hero (the Priest may go, at his peril) and a small escort from your regiments, about as many models as the warband.`
+      : `Up to ${P} pts: one or two heroes (the Priest may go, at his peril) and an escort from your regiments, about as many models as the warband.`)
     : m.scale === 'march' ? `Up to ${P} pts from the expedition (${armyPts(s)} pts on the roster).`
     : `Up to ${P} pts: the expedition in full (${armyPts(s)} pts on the roster).`;
 }
@@ -5179,10 +5183,12 @@ function seedPhase41(c) {
   if (c.settings && c.settings.finale && c.settings.finale.fixedCult === undefined) c.settings.finale.fixedCult = 6;
   return c;
 }
-/* Points are the balance: the warband is fitted to the mission's points when its lines carry points per model
-   ("2 Gors @ 8"). Leader and core first; over the points, drop models from the biggest group (never the leader);
-   under, bring in the next reinforcements early, then more of the core. Chain results come on top. */
-const WB_MAX_MODELS = 20;
+/* A warband is the core plus the reinforcements whose turn has come; later ones never join early (except as a chain
+   result), so the gang grows with the campaign. With points per model on every line ("2 Gors @ 8") it is fitted to the
+   mission: over the points, drop models from the biggest group (never the leader); under, add a few more of the rank
+   and file, but only up to a Mordheim-sized gang of 9 to WB_MAX_MODELS models. Joined reinforcements may take it past that.
+   The mission's points then come down to what the warband is worth (genMission). Chain results come on top. */
+const WB_MAX_MODELS = 12;
 function warbandList(fac, extra = 0, fewer = 0, pts = 0, bl = null) {
   const pool = oppWarbands(fac, bl).filter(w => w && Array.isArray(w.core) && w.core.length && num(w.weight, 1) > 0);
   if (!pool.length) return null;
@@ -5206,30 +5212,25 @@ function warbandList(fac, extra = 0, fewer = 0, pts = 0, bl = null) {
       const c = L.filter(x => x.ppm >= over).sort((a, b) => a.ppm - b.ppm)[0] || L.sort((a, b) => (b.n - a.n) || (b.ppm - a.ppm))[0];
       if (!c) break; c.n--;
     }
-    // Under: bring in the next reinforcements early…
-    for (const l of future) {
-      const ppm = ppmOf(l); if (!ppm) continue;
-      const room = Math.min(Math.floor((pts - tot()) / ppm), WB_MAX_MODELS - models()); if (room <= 0) continue;
-      add({ name: l.name, n: Math.min(Math.max(1, Math.round(num(l.n, 1))), room), pts: ppm }, { fill: true, early: num(l.turn) }); pulled.add(l);
-      const nl = lines[lines.length - 1]; nl.n0 = 0; nl.base = nl.n;
-    }
-    // …then more of the rank and file (groups, or cheap troops; never single heroes or monsters), up to about twice
-    // their listed size, choosing models that suit the points left per free place.
+    // Under: a few more of the rank and file (groups, or cheap troops; never single heroes or monsters), up to about
+    // twice their listed size and a gang of WB_MAX_MODELS, choosing models that suit the points left per free place.
     lines.forEach(x => { if (x.base == null) x.base = x.n0; });
-    for (let g = 0; g < 80 && models() < WB_MAX_MODELS; g++) {
-      const left = pts - tot(), per = left / Math.max(1, WB_MAX_MODELS - models());
+    const cap = WB_MAX_MODELS - Math.floor(Math.random() * 4);   // 9–12 models, for some variety
+    for (let g = 0; g < 80 && models() < cap; g++) {
+      const left = pts - tot(), per = left / Math.max(1, cap - models());
       const L = lines.filter(x => !x.leader && x.ppm > 0 && x.ppm <= left && x.base > 0 && (x.base >= 2 || x.ppm <= 8) && x.n < x.base * 2 + 2);
       const c = L.sort((a, b) => (Math.abs(a.ppm - per) - Math.abs(b.ppm - per)) || ((a.n - a.n0) - (b.n - b.n0)))[0];
       if (!c) break; c.n++;
     }
     lines.forEach(x => { const d = x.fill ? x.n - x.base : x.n - x.n0; if (d > 0) x.added = d; if (!x.fill && d < 0) x.trim = -d; delete x.n0; delete x.base; });
   }
+  const fitted = priced ? tot() : 0;   // before chain results, which come on top
   const next = future.find(l => !pulled.has(l));
   if (extra) { if (next) add(next, { extra: true }); else { const c = pickOne(lines.filter(x => !x.leader && x.n > 0)) || lines[0]; lines.push({ name: c.name, n: 1, ppm: c.ppm, pts: 0, extra: true }); } }
   if (fewer) { const c = lines.filter(x => !x.leader && !x.extra && x.n > 1).sort((a, b) => b.n - a.n)[0]; if (c) { c.n -= 1; c.fewer = true; } }
   lines.forEach(x => { x.pts = Math.round(x.n * (x.ppm || 0)); });
   return { land: bl || null, warband: w.name, notes: w.notes || '', next: next && !extra ? `${next.n} × ${next.name} (turn ${num(next.turn)})` : '', lines, priced,
-    total: priced ? lines.reduce((a, x) => a + x.pts, 0) : 0, target: pts || 0 };
+    total: priced ? lines.reduce((a, x) => a + x.pts, 0) : 0, fitted, target: pts || 0 };
 }
 function warbandHtml(en, points) {
   const n = en.lines.reduce((a, l) => a + (l.n || 0), 0), P = en.target || points || 0, priced = en.priced && en.total > 0;
@@ -5261,7 +5262,7 @@ function warbandsSheet() {
 function warbandTable(fac, bl = null) {
   const own = bl && bl !== 'empire' && fac === 'bandits', lab = fac === 'bandits' ? banditName(bl || 'empire') : FACTIONS[fac].label;
   tableEditor({ title: `${lab}: warbands`, get: () => own ? landBandit(bl).warbands : C.tables.warbands[fac],
-    intro: `<p class="small muted">One is picked at random for each Mordheim battle against the ${esc(lab)} (higher weight = more often). With none here, the opposition list is used. With points per model on every line, the app fits the warband to each mission’s points.</p>`,
+    intro: `<p class="small muted">One is picked at random for each Mordheim battle against the ${esc(lab)} (higher weight = more often). With none here, the opposition list is used. With points per model on every line, the app fits the warband to each mission’s points, keeps it to about ${WB_MAX_MODELS} models plus any reinforcements that have joined, and sets the mission’s points to what the warband is worth.</p>`,
     summary: w => `<div class="row between"><b>${esc(w.name)}</b><span class="small">weight ${w.weight}</span></div><div class="muted">${(w.core || []).map(l => `${l.n} ${esc(l.name)}${ptsSuffix(l)}`).join(', ')}${(w.later || []).length ? ` · then ${(w.later || []).map(l => `T${l.turn}: ${l.n} ${esc(l.name)}`).join(', ')}` : ''}</div>`,
     blank: () => WB(uid('wb'), 'New warband', [], []),
     edit: async (w, isNew) => {
@@ -5450,7 +5451,7 @@ function viewHelp() {
       <li><b>Battle.</b> The mission sheet gives the scale, points, scenario, table setup (from the pin’s terrain) and the opposition. Roll the battlefield twist before deployment. Afterwards tap <b>Record the result</b>: casualties, injuries, gold, loot and XP.</li>
       <li><b>End the turn.</b> The expedition makes camp and a camp event is rolled. Then the other expedition marches. When both have marched, a round is over and the world moves.</li></ol>
       <p class="small muted">Between battles: the Camp tab replenishes regiments, heals heroes, hires units and equips relics. The Roster shows rank-ups.</p>`)}
-    ${sec('scales', 'The Three Scales', `<ul><li><b>Mordheim</b> (${rng('mordheim')} pts): heroes and a small escort. Infiltrations, searches, assassinations. The enemy is a warband that grows as the campaign goes on, fitted to the mission’s points.</li>
+    ${sec('scales', 'The Three Scales', `<ul><li><b>Mordheim</b> (${rng('mordheim')} pts): heroes and a small escort. Infiltrations, searches, assassinations. The enemy is a warband of about 8–12 models that grows as reinforcements join on later turns, and both sides field what it is worth.</li>
       <li><b>Battle March</b> (${rng('march')} pts): raids, ambushes and scouting.</li>
       <li><b>Full Old World</b> (${rng('full')} pts): clashes between the two expeditions, and the finales.</li></ul>
       <p class="small muted">Points rise with the shards recovered, the turn, and the danger of the region. Change the ranges in Codex → Missions & scales.</p>`)}
