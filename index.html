@@ -454,8 +454,8 @@ body.noscroll #upd{display:none}
    RUNEFANG — Old World campaign companion
    Phase 1: data model, storage, export/import, rosters, gold
    ===================================================================== */
-const APP_VERSION = '5.1.0 · phase 5.1';
-const SCHEMA = 6;
+const APP_VERSION = '5.2.0 · phase 5.2';
+const SCHEMA = 7;
 const FORMAT = 'runefang-campaign';
 
 /* ---------- tiny helpers ---------- */
@@ -535,23 +535,23 @@ const DEFAULT_INJURIES = [
   { roll: '66', name: 'Survives Against the Odds', effect: '+2 XP.' },
 ];
 
-// Approximate points — check against your army list and edit freely.
+// Points per model from the Old World army lists, with the 2026 points updates, for the usual kit. Edit freely.
 const DEFAULT_CATALOG = [
   { name: 'Halberdiers', type: 'Infantry', ppm: 6, min: 10, max: 30, side: 'any' },
-  { name: 'Spearmen', type: 'Infantry', ppm: 5, min: 10, max: 30, side: 'any' },
+  { name: 'Spearmen', type: 'Infantry', ppm: 6, min: 10, max: 30, side: 'any' },
   { name: 'Swordsmen', type: 'Infantry', ppm: 6, min: 10, max: 30, side: 'any' },
-  { name: 'Free Company Militia', type: 'Infantry', ppm: 5, min: 10, max: 30, side: 'any' },
-  { name: 'Greatswords', type: 'Elite Infantry', ppm: 12, min: 5, max: 20, side: 'any' },
-  { name: 'Flagellants', type: 'Fanatics', ppm: 9, min: 5, max: 20, side: 'sig' },
-  { name: 'Handgunners', type: 'Missile Infantry', ppm: 8, min: 5, max: 20, side: 'any' },
-  { name: 'Crossbowmen', type: 'Missile Infantry', ppm: 8, min: 5, max: 20, side: 'any' },
+  { name: 'Free Company Militia', type: 'Infantry', ppm: 6, min: 10, max: 30, side: 'any' },
+  { name: 'Greatswords', type: 'Elite Infantry', ppm: 11, min: 5, max: 20, side: 'any' },
+  { name: 'Flagellants', type: 'Fanatics', ppm: 13, min: 5, max: 20, side: 'sig' },
+  { name: 'Handgunners', type: 'Missile Infantry', ppm: 8, min: 10, max: 20, side: 'any' },
+  { name: 'Crossbowmen', type: 'Missile Infantry', ppm: 7, min: 10, max: 20, side: 'any' },
   { name: 'Huntsmen (Archers)', type: 'Skirmishers', ppm: 7, min: 5, max: 10, side: 'any' },
-  { name: 'Empire Knights', type: 'Heavy Cavalry', ppm: 20, min: 4, max: 10, side: 'any' },
-  { name: 'Knights of the White Wolf', type: 'Heavy Cavalry', ppm: 21, min: 4, max: 10, side: 'ulr' },
-  { name: 'Pistoliers', type: 'Fast Cavalry', ppm: 17, min: 4, max: 8, side: 'any' },
-  { name: 'Outriders', type: 'Fast Cavalry', ppm: 21, min: 4, max: 8, side: 'any' },
-  { name: 'Great Cannon', type: 'War Machine', ppm: 100, min: 1, max: 1, side: 'any' },
-  { name: 'Mortar', type: 'War Machine', ppm: 90, min: 1, max: 1, side: 'any' },
+  { name: 'Empire Knights', type: 'Heavy Cavalry', ppm: 21, min: 4, max: 10, side: 'any' },
+  { name: 'Knights of the White Wolf', type: 'Heavy Cavalry', ppm: 24, min: 4, max: 10, side: 'ulr' },
+  { name: 'Pistoliers', type: 'Fast Cavalry', ppm: 15, min: 5, max: 8, side: 'any' },
+  { name: 'Outriders', type: 'Fast Cavalry', ppm: 19, min: 4, max: 8, side: 'any' },
+  { name: 'Great Cannon', type: 'War Machine', ppm: 125, min: 1, max: 1, side: 'any' },
+  { name: 'Mortar', type: 'War Machine', ppm: 95, min: 1, max: 1, side: 'any' },
 ].map(u => ({ id: uid('cat'), ...u }));
 
 const SHARD_NAMES = [
@@ -1001,17 +1001,18 @@ const DEFAULT_SCENARIOS = [
 ];
 
 const EN = (name, kind, pts, ppm = 0, min = 0, max = 0) => kind === 'unit' ? { name, kind, ppm, min, max } : { name, kind, pts };
-// Approximate points for suggestions only. Edit them to match your army books and your models.
+// Points from the Old World army lists (2026 updates): characters on foot with basic kit, units per model.
+// Names with "(use …)" are priced as the models named. Edit them to match your army books and your models.
 const DEFAULT_ENEMIES = {
-  undead: [EN('Vampire', 'char', 140), EN('Banshee', 'char', 75), EN('Crypt Ghouls', 'unit', 0, 9, 10, 25), EN('Zombies', 'unit', 0, 4, 15, 40), EN('Cairn Wraith', 'mon', 60), EN('Varghulf', 'mon', 180)],
-  beasts: [EN('Beastlord', 'char', 150), EN('Great Bray-Shaman', 'char', 110), EN('Wargor', 'char', 75), EN('Gor Herd', 'unit', 0, 7, 10, 30), EN('Ungor Herd', 'unit', 0, 5, 10, 30), EN('Bestigor Herd', 'unit', 0, 13, 10, 20), EN('Chaos Warhounds', 'unit', 0, 7, 5, 10), EN('Centigors', 'unit', 0, 22, 5, 10), EN('Minotaurs', 'unit', 0, 55, 3, 6)],
-  chaos: [EN('Exalted Champion', 'char', 120), EN('Chaos Marauders', 'unit', 0, 6, 10, 30), EN('Chaos Warriors', 'unit', 0, 16, 10, 20), EN('Chaos Spawn', 'mon', 60)],
-  orcs: [EN('Orc Warboss', 'char', 110), EN('Orc Shaman', 'char', 70), EN('Night Goblins', 'unit', 0, 3.5, 15, 40), EN('Orc Mob', 'unit', 0, 7, 10, 30), EN('Troll', 'mon', 45)],
-  bandits: [EN('Bandit Chief (use an Empire captain)', 'char', 55), EN('Outlaw Sergeant (use a unit champion)', 'char', 30),
-    { ...EN('Militia Rabble', 'unit', 0, 5, 10, 40), weight: 4 }, { ...EN('Poacher Archers', 'unit', 0, 7, 10, 20), weight: 3 },
-    EN('Cutthroat Spearmen', 'unit', 0, 5, 10, 20), EN('Deserter Swordsmen', 'unit', 0, 6, 10, 20), EN('Brigand Crossbowmen', 'unit', 0, 8, 5, 15)],
-  dwarfs: [EN('Dwarf Thane', 'char', 85), EN('Slayer', 'char', 70), EN('Dwarf Warriors', 'unit', 0, 9, 10, 30), EN('Handgunners', 'unit', 0, 11, 10, 20), EN('Miners', 'unit', 0, 12, 10, 20), EN('Cannon', 'mon', 110)],
-  cathay: [EN('Strategist', 'char', 100), EN('Alchemist', 'char', 85), EN('Jade Warriors', 'unit', 0, 8, 10, 25), EN('Peasant Longbowmen', 'unit', 0, 6, 10, 20), EN('Crane Gunners', 'unit', 0, 9, 5, 15), EN('Jade Lancers', 'unit', 0, 20, 5, 10), EN('Celestial Dragon Guard', 'unit', 0, 13, 10, 20), EN('Fire Rain Rocket Battery', 'mon', 90)],
+  undead: [EN('Vampire', 'char', 75), EN('Banshee', 'char', 90), EN('Crypt Ghouls', 'unit', 0, 9, 10, 25), EN('Zombies', 'unit', 0, 3, 15, 40), EN('Cairn Wraith', 'mon', 50), EN('Varghulf', 'mon', 140)],
+  beasts: [EN('Beastlord', 'char', 115), EN('Great Bray-Shaman', 'char', 150), EN('Wargor', 'char', 55), EN('Gor Herd', 'unit', 0, 7, 10, 30), EN('Ungor Herd', 'unit', 0, 5, 10, 30), EN('Bestigor Herd', 'unit', 0, 13, 10, 20), EN('Chaos Warhounds', 'unit', 0, 6, 5, 10), EN('Centigors', 'unit', 0, 17, 5, 10), EN('Minotaurs', 'unit', 0, 44, 3, 6)],
+  chaos: [EN('Exalted Champion', 'char', 125), EN('Chaos Marauders', 'unit', 0, 6, 10, 30), EN('Chaos Warriors', 'unit', 0, 13, 10, 20), EN('Chaos Spawn', 'mon', 50)],
+  orcs: [EN('Orc Warboss', 'char', 110), EN('Orc Shaman', 'char', 65), EN('Night Goblins', 'unit', 0, 3, 15, 40), EN('Orc Mob', 'unit', 0, 5, 10, 30), EN('Troll', 'mon', 39)],
+  bandits: [EN('Bandit Chief (use an Empire captain)', 'char', 45), EN('Outlaw Sergeant (use a unit champion)', 'char', 30),
+    { ...EN('Militia Rabble', 'unit', 0, 6, 10, 40), weight: 4 }, { ...EN('Poacher Archers', 'unit', 0, 7, 10, 20), weight: 3 },
+    EN('Cutthroat Spearmen', 'unit', 0, 6, 10, 20), EN('Deserter Swordsmen', 'unit', 0, 6, 10, 20), EN('Brigand Crossbowmen', 'unit', 0, 7, 5, 15)],
+  dwarfs: [EN('Dwarf Thane', 'char', 60), EN('Slayer', 'char', 70), EN('Dwarf Warriors', 'unit', 0, 8, 10, 30), EN('Handgunners', 'unit', 0, 10, 10, 20), EN('Miners', 'unit', 0, 12, 10, 20), EN('Cannon', 'mon', 95)],
+  cathay: [EN('Strategist', 'char', 40), EN('Alchemist', 'char', 85), EN('Jade Warriors', 'unit', 0, 8, 10, 25), EN('Peasant Longbowmen', 'unit', 0, 4, 10, 20), EN('Crane Gunners', 'unit', 0, 16, 3, 8), EN('Jade Lancers', 'unit', 0, 20, 5, 10), EN('Celestial Dragon Guard', 'unit', 0, 10, 10, 20), EN('Fire Rain Rocket Battery', 'mon', 130)],
 };
 
 // The bandit list of phases 3–5, kept only to recognise an unedited one (phase 5.1 replaces it with Empire models).
@@ -1067,16 +1068,16 @@ function seedExpeditions(startGold) {
       id: 'sig', name: 'The Sigmarite Expedition', short: 'Sigmarite', player: 'Player 1', army: 'Stirland',
       patron: 'Emperor Karl Franz', status: 'active', gold: startGold, ledger: [],
       characters: [
-        hero('Father Anselm Vogt', 'Priest of Sigmar', 90, { priest: true, notes: 'Leader of the expedition. Claims Sigmar showed him the shards in a dream of comet-fire.' }),
-        hero('Captain Lotte Grünwald', 'Captain of the Empire (Battle Standard)', 75),
+        hero('Father Anselm Vogt', 'Priest of Sigmar', 60, { priest: true, notes: 'Leader of the expedition. Claims Sigmar showed him the shards in a dream of comet-fire.' }),
+        hero('Captain Lotte Grünwald', 'Captain of the Empire (Battle Standard)', 70),
       ],
       regiments: [
-        reg('Wurtbad Halberdiers', 'Halberdiers', 20, 6, { upgrades: [{ name: 'Full command', pts: 20 }] }),
+        reg('Wurtbad Halberdiers', 'Halberdiers', 20, 6, { upgrades: [{ name: 'Full command', pts: 15 }] }),
         reg('Stirland River Wardens', 'Handgunners', 10, 8),
         reg('Hunger Wood Huntsmen', 'Huntsmen (Archers)', 8, 7),
-        reg('Penitents of the Moot', 'Flagellants', 10, 9),
-        reg('Knights of the Blazing Sun', 'Empire Knights', 5, 20, { upgrades: [{ name: 'Full command', pts: 20 }] }),
-        reg('Old Thunder', 'Great Cannon', 1, 100, { notes: 'Crew of 3.' }),
+        reg('Penitents of the Moot', 'Flagellants', 10, 13),
+        reg('Knights of the Blazing Sun', 'Empire Knights', 5, 21, { upgrades: [{ name: 'Full command', pts: 18 }] }),
+        reg('Old Thunder', 'Great Cannon', 1, 125, { notes: 'Crew of 3.' }),
       ],
       relics: [],
     },
@@ -1084,16 +1085,16 @@ function seedExpeditions(startGold) {
       id: 'ulr', name: 'The Ulrican Expedition', short: 'Ulrican', player: 'Player 2', army: 'Middenland',
       patron: 'Graf Boris Todbringer', status: 'active', gold: startGold, ledger: [],
       characters: [
-        hero('Brother Ragnar Eisenwolf', 'Priest of Ulric', 90, { priest: true, notes: 'Leader of the expedition. Swears the White Wolf howled the shards’ resting places to him.' }),
-        hero('Captain Jürgen Todt', 'Captain of the Empire (Battle Standard)', 80),
+        hero('Brother Ragnar Eisenwolf', 'Priest of Ulric', 60, { priest: true, notes: 'Leader of the expedition. Swears the White Wolf howled the shards’ resting places to him.' }),
+        hero('Captain Jürgen Todt', 'Captain of the Empire (Battle Standard)', 70),
       ],
       regiments: [
-        reg('Drakwald Spearmen', 'Spearmen', 20, 5, { upgrades: [{ name: 'Full command', pts: 20 }] }),
-        reg('Greatswords of the Fauschlag', 'Greatswords', 10, 12, { upgrades: [{ name: 'Full command', pts: 15 }] }),
-        reg('Carroburg Road Crossbows', 'Crossbowmen', 10, 8),
+        reg('Drakwald Spearmen', 'Spearmen', 20, 6, { upgrades: [{ name: 'Full command', pts: 15 }] }),
+        reg('Greatswords of the Fauschlag', 'Greatswords', 10, 11, { upgrades: [{ name: 'Full command', pts: 20 }] }),
+        reg('Carroburg Road Crossbows', 'Crossbowmen', 10, 7),
         reg('Drakwald Huntsmen', 'Huntsmen (Archers)', 8, 7),
-        reg('Knights of the White Wolf', 'Knights of the White Wolf', 5, 21, { upgrades: [{ name: 'Full command', pts: 20 }] }),
-        reg('Middenheim Free Company', 'Free Company Militia', 10, 5),
+        reg('Knights of the White Wolf', 'Knights of the White Wolf', 5, 24, { upgrades: [{ name: 'Full command', pts: 18 }] }),
+        reg('Middenheim Free Company', 'Free Company Militia', 10, 6),
       ],
       relics: [],
     },
@@ -1861,7 +1862,7 @@ function editCharacter(id, isNew = false) {
 async function hireSheet(side) {
   const e = EX(side);
   const cat = C.unitCatalog.filter(u => u.side === 'any' || u.side === side);
-  openSheet({ title: 'Hire a regiment', html: `<p class="small muted">War chest: <b>${e.gold} gc</b>. Points shown are approximate. Edit them in Codex → Muster roll.</p>
+  openSheet({ title: 'Hire a regiment', html: `<p class="small muted">War chest: <b>${e.gold} gc</b>. Points follow the Old World army lists (2026). Edit them in Codex → Muster roll.</p>
     ${cat.map(u => { const c = Math.round(u.min * u.ppm * S().goldPerPoint); return `<button class="pick" data-u="${u.id}" ${e.gold < c ? 'style="opacity:.55"' : ''}><div class="row between"><b>${esc(u.name)}</b><span>${u.ppm} pts/model</span></div><div class="muted">${esc(u.type)} · ${u.min}–${u.max} models · from ${c} gc</div></button>`; }).join('')}`,
     onMount: sh => sh.body.addEventListener('click', ev => {
       const b = ev.target.closest('[data-u]'); if (!b) return;
@@ -1972,7 +1973,7 @@ function listEditorSheet({ title, items, intro = '', onSave, placeholder = '' })
 }
 function catalogSheet() {
   openSheet({ title: 'Muster roll', html: '', onMount: sh => {
-    const draw = () => { sh.body.innerHTML = `<p class="small muted">Units available to hire. Points are approximate defaults, so match them to your army book. “Side” limits who can hire them.</p>
+    const draw = () => { sh.body.innerHTML = `<p class="small muted">Units available to hire. Points follow the Old World army lists (2026); edit them if your group plays different ones. “Side” limits who can hire them.</p>
       ${C.unitCatalog.map(u => `<button class="pick" data-u="${u.id}"><div class="row between"><b>${esc(u.name)}</b><span>${u.ppm} pts</span></div><div class="muted">${esc(u.type)} · ${u.min}–${u.max} · ${u.side === 'any' ? 'both sides' : esc(exShort(u.side)) + ' only'}</div></button>`).join('')}
       <button class="btn block seal" data-u="new">+ Add a unit</button>`; };
     draw();
@@ -2183,7 +2184,7 @@ async function doImport(file) {
     toast('Importing…', 20000);
     await replaceCampaign(ic, data.images);
     data = null;
-    UI.side = C.active; render(); toast('Campaign imported');
+    UI.side = C.active; render(); toast(PTS52_NOTE ? 'Campaign imported, and its points updated to the Old World army lists' : 'Campaign imported', PTS52_NOTE ? 4500 : undefined); PTS52_NOTE = 0;
   } catch (e) { console.error(e); alertBox('Import failed', `<p>${esc(e.message || e)}</p>`); }
 }
 async function undoImport() {
@@ -3959,7 +3960,7 @@ function scenariosSheet() {
       return { ...x, name: v.name.trim(), scales: scales.length ? scales : ['march'], tags: v.tags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean), objective: v.objective, special: v.special }; } });
 }
 function enemiesSheet() {
-  openSheet({ title: 'Opposition lists', html: `<p class="small muted">The models each opposing faction can field. Missions suggest a rough list from these, sized to the points. Points are approximate: edit them to match your army books.</p>
+  openSheet({ title: 'Opposition lists', html: `<p class="small muted">The models each opposing faction can field. Missions suggest a rough list from these, sized to the points. Points follow the Old World army lists (2026), for basic kit: edit them to match your army books.</p>
     ${Object.entries(FACTIONS).map(([k, f]) => `<button class="pick" data-f="${k}"><div class="row"><i class="fdot" style="background:${f.color}"></i><b class="grow">${esc(k === 'bandits' ? banditName('empire') : f.label)}</b><span class="small">${(C.tables.enemies[k] || []).length} entries</span></div></button>`).join('')}
     <button class="pick" data-lands="1"><div class="row"><i class="fdot" style="background:${FACTIONS.bandits.color}"></i><b class="grow">Bandits of the other lands…</b><span class="small">${Object.keys(LANDS).length - 1} lands</span></div></button>`,
     onMount: sh => sh.body.addEventListener('click', e => { const b = e.target.closest('[data-f],[data-lands]'); if (!b) return; sh.close(); if (b.dataset.lands) setTimeout(landBanditsSheet, 30); else enemyFaction(b.dataset.f); }) });
@@ -4281,6 +4282,7 @@ function seedPhase4(c) {
   c.schema = Math.max(c.schema || 1, 4);
   seedPhase5(c);   // schema 4 → 5: backup reminders, warband points
   seedPhase51(c);  // schema 5 → 6: lands, regional bandits, events of the land
+  seedPhase52(c);  // schema 6 → 7: points from the Old World army lists
   return c;
 }
 
@@ -5149,10 +5151,10 @@ const DEFAULT_WARBANDS = {
       [WT(6, 1, 'Tomb Banshee'), WT(12, 5, 'Zombies'), WT(16, 1, 'Cairn Wraith')], 'Kill the Necromancer and the dead fall still at the end of the turn.'),
   ],
   bandits: [   // Empire Bandits (phase 5.1): Empire models, mostly cheap militia and archers
-    WB('wb-cutthroats', 'Cutthroats of the Road', [WLp(1, 'Bandit Chief (use an Empire captain)', 55), WLp(5, 'Militia Rabble', 5), WLp(3, 'Poacher Archers', 7)],
-      [WTp(6, 2, 'Cutthroat Spearmen', 5), WTp(12, 3, 'Militia Rabble', 5), WTp(18, 2, 'Brigand Crossbowmen', 8)]),
-    WB('wb-deserters', 'The Deserters', [WLp(1, 'Outlaw Sergeant (use a unit champion)', 30), WLp(3, 'Deserter Swordsmen', 6), WLp(3, 'Militia Rabble', 5), WLp(2, 'Brigand Crossbowmen', 8)],
-      [WTp(8, 3, 'Poacher Archers', 7), WTp(14, 3, 'Militia Rabble', 5), WTp(20, 2, 'Deserter Swordsmen', 6)]),
+    WB('wb-cutthroats', 'Cutthroats of the Road', [WLp(1, 'Bandit Chief (use an Empire captain)', 45), WLp(5, 'Militia Rabble', 6), WLp(3, 'Poacher Archers', 7)],
+      [WTp(6, 2, 'Cutthroat Spearmen', 6), WTp(12, 3, 'Militia Rabble', 6), WTp(18, 2, 'Brigand Crossbowmen', 7)]),
+    WB('wb-deserters', 'The Deserters', [WLp(1, 'Outlaw Sergeant (use a unit champion)', 30), WLp(3, 'Deserter Swordsmen', 6), WLp(3, 'Militia Rabble', 6), WLp(2, 'Brigand Crossbowmen', 7)],
+      [WTp(8, 3, 'Poacher Archers', 7), WTp(14, 3, 'Militia Rabble', 6), WTp(20, 2, 'Deserter Swordsmen', 6)]),
   ],
   dwarfs: [
     WB('wb-grudge', 'The Grudge-bearers', [WL(1, 'Dwarf Thane'), WL(4, 'Dwarf Warriors'), WL(2, 'Handgunners')],
@@ -5291,21 +5293,22 @@ function savePrefs() { try { DB.put('kv', 'prefs', { ...PREFS }).catch(() => {})
 function applyPrefs() { document.documentElement.classList.toggle('t-large', PREFS.text === 'large'); }
 
 /* ---------- schema 5 seed: idempotent, never touches rosters, regions, pins or what you edited ---------- */
-// Points per model for the default warband lines, in line with the opposition lists. Edit them in Codex → Mordheim warbands.
+// Points per model for the default warband lines, from the Old World army lists (2026). A leader drawn from a unit is priced as
+// a model plus its champion upgrade. Edit them in Codex → Mordheim warbands.
 const WB_PTS = {
-  beasts: { 'Wargor chieftain': 75, 'Gors with great weapons': 8, 'Ungors with bows': 6, 'Chaos Warhound': 7, 'Chaos Warhounds': 7, 'Gors with hand weapon and shield': 7,
-    'Bestigor': 13, 'Bestigors': 13, 'Ungor halfhorn': 10, 'Ungors with spears': 5, 'Ungor raiders with bows': 6, 'Gor with great weapon': 8, 'Wargor': 75,
-    'Bray-shaman': 65, 'Gors with paired weapons': 8, 'Minotaur': 55 },
-  chaos: { 'Exalted Champion': 120, 'Chaos Warriors': 16, 'Chaos Marauders': 6, 'Marauders with flails': 7, 'Chaos Warrior with halberd': 17, 'Chaos Spawn': 60,
-    'Marauder Chieftain': 45, 'Aspiring Champion': 60, 'Cultists (Marauders)': 6, 'Chaos Warhounds': 7 },
-  orcs: { 'Night Goblin Boss': 35, 'Night Goblins with spears': 4, 'Night Goblins with bows': 4, 'Night Goblin Shaman': 45, 'Night Goblin Fanatic': 25, 'Troll': 45,
-    'Orc Big Boss': 55, 'Orc Boyz': 7, 'Orc Arrer Boyz': 7, 'Orc Shaman': 70, 'Orc Warlord': 110, 'Orc Boyz with big choppas': 8, 'Night Goblins': 4 },
-  undead: { 'Vampire': 140, 'Crypt Ghouls': 9, 'Zombies': 4, 'Cairn Wraith': 60, 'Varghulf': 180, 'Crypt Ghast': 25, 'Tomb Banshee': 75, 'Necromancer': 60 },
+  beasts: { 'Wargor chieftain': 55, 'Gors with great weapons': 7, 'Ungors with bows': 5, 'Chaos Warhound': 6, 'Chaos Warhounds': 6, 'Gors with hand weapon and shield': 7,
+    'Bestigor': 13, 'Bestigors': 13, 'Ungor halfhorn': 12, 'Ungors with spears': 6, 'Ungor raiders with bows': 5, 'Gor with great weapon': 7, 'Wargor': 55,
+    'Bray-shaman': 65, 'Gors with paired weapons': 7, 'Minotaur': 44 },
+  chaos: { 'Exalted Champion': 125, 'Chaos Warriors': 13, 'Chaos Marauders': 6, 'Marauders with flails': 7, 'Chaos Warrior with halberd': 14, 'Chaos Spawn': 50,
+    'Marauder Chieftain': 65, 'Aspiring Champion': 70, 'Cultists (Marauders)': 6, 'Chaos Warhounds': 6 },
+  orcs: { 'Night Goblin Boss': 30, 'Night Goblins with spears': 4, 'Night Goblins with bows': 4, 'Night Goblin Shaman': 55, 'Night Goblin Fanatic': 25, 'Troll': 39,
+    'Orc Big Boss': 55, 'Orc Boyz': 5, 'Orc Arrer Boyz': 5, 'Orc Shaman': 65, 'Orc Warlord': 110, 'Orc Boyz with big choppas': 6, 'Night Goblins': 3 },
+  undead: { 'Vampire': 75, 'Crypt Ghouls': 9, 'Zombies': 3, 'Cairn Wraith': 50, 'Varghulf': 140, 'Crypt Ghast': 15, 'Tomb Banshee': 90, 'Necromancer': 60 },
   bandits: { 'Bandit Chief': 55, 'Cutthroats': 5, 'Bandits with bows': 6, 'Thug with great weapon': 8, 'Mercenary Champion': 40, 'Brigand Sergeant': 30,
     'Deserters (Free Company)': 5, 'Handgunners': 8, 'War dogs': 6, 'Pistolier': 18 },
-  dwarfs: { 'Dwarf Thane': 85, 'Dwarf Warriors': 9, 'Handgunners': 11, 'Troll Slayer': 13, 'Miners': 12, 'Engineer with pistol': 50, 'Mining Prospector': 30 },
-  cathay: { 'Jade Officer': 50, 'Jade Warriors': 8, 'Crane Gunners': 9, 'Peasant Levy': 5, 'Strategist': 100, 'Celestial Dragon Guard': 13,
-    'Peasant Levy with crossbows': 6, 'Lord Magistrate': 150 },
+  dwarfs: { 'Dwarf Thane': 60, 'Dwarf Warriors': 8, 'Handgunners': 10, 'Troll Slayer': 12, 'Miners': 12, 'Engineer with pistol': 56, 'Mining Prospector': 18 },
+  cathay: { 'Jade Officer': 14, 'Jade Warriors': 8, 'Crane Gunners': 16, 'Peasant Levy': 4, 'Strategist': 40, 'Celestial Dragon Guard': 10,
+    'Peasant Levy with crossbows': 4, 'Lord Magistrate': 65 },
 };
 function seedPhase5(c) {
   const B = c.backup = c.backup && typeof c.backup === 'object' ? c.backup : {};
@@ -5548,95 +5551,96 @@ function banditName(bl) {
 const oppPool = (fac, bl) => fac === 'bandits' && hasOwnBandits(bl) ? landBandit(bl).enemies : ((C.tables.enemies || {})[fac] || []);
 const oppWarbands = (fac, bl) => fac === 'bandits' && hasOwnBandits(bl) ? (landBandit(bl).warbands || []) : ((C.tables.warbands || {})[fac] || []);
 
-/* Seeded lists. “(use …)” names the models from our collection to field. Points are approximate: edit them. */
+/* Seeded lists. “(use …)” names the models from our collection to field, and the points are those models’ Old World costs
+   (2026 lists). Bandit leaders with no army-book profile keep their own made-up points. Edit them freely. */
 const ENw = (name, kind, a, b, c, d, weight) => ({ ...EN(name, kind, a, b, c, d), weight });
 const DEFAULT_LAND_BANDITS = {
   worlds_edge: { name: 'World’s Edge Bandits', enemies: [
-    EN('Brigand Ataman (use an Empire captain)', 'char', 55), EN('Oathbreaker Thane (use a Dwarf hero)', 'char', 70),
-    ENw('Kislevite Brigands (use Militia)', 'unit', 0, 5, 10, 30, 3), ENw('Kossar Bowmen (use Archers)', 'unit', 0, 7, 10, 20, 2),
-    ENw('Outcast Dwarfs (use Dwarf Warriors)', 'unit', 0, 9, 5, 15, 2), EN('Renegade Miners (use Dwarf Miners)', 'unit', 0, 11, 5, 10),
+    EN('Brigand Ataman (use an Empire captain)', 'char', 45), EN('Oathbreaker Thane (use a Dwarf hero)', 'char', 60),
+    ENw('Kislevite Brigands (use Militia)', 'unit', 0, 6, 10, 30, 3), ENw('Kossar Bowmen (use Archers)', 'unit', 0, 7, 10, 20, 2),
+    ENw('Outcast Dwarfs (use Dwarf Warriors)', 'unit', 0, 8, 5, 15, 2), EN('Renegade Miners (use Dwarf Miners)', 'unit', 0, 12, 5, 10),
     EN('Hobgoblin Cut-throats (use Orc Warriors)', 'unit', 0, 5, 10, 20)],
     warbands: [
-      WB('wbl-ataman', 'The Ataman’s Band', [WLp(1, 'Brigand Ataman (use an Empire captain)', 55), WLp(4, 'Kislevite Brigands (use Militia)', 5), WLp(3, 'Kossar Bowmen (use Archers)', 7)],
-        [WTp(6, 2, 'Outcast Dwarfs (use Dwarf Warriors)', 9), WTp(12, 3, 'Hobgoblin Cut-throats (use Orc Warriors)', 5), WTp(18, 2, 'Kossar Bowmen (use Archers)', 7)]),
-      WB('wbl-oathbreakers', 'The Oathbreakers', [WLp(1, 'Oathbreaker Thane (use a Dwarf hero)', 70), WLp(3, 'Outcast Dwarfs (use Dwarf Warriors)', 9), WLp(2, 'Renegade Miners (use Dwarf Miners)', 11)],
-        [WTp(8, 3, 'Kislevite Brigands (use Militia)', 5), WTp(14, 2, 'Outcast Dwarfs (use Dwarf Warriors)', 9), WTp(20, 2, 'Renegade Miners (use Dwarf Miners)', 11)],
+      WB('wbl-ataman', 'The Ataman’s Band', [WLp(1, 'Brigand Ataman (use an Empire captain)', 45), WLp(4, 'Kislevite Brigands (use Militia)', 6), WLp(3, 'Kossar Bowmen (use Archers)', 7)],
+        [WTp(6, 2, 'Outcast Dwarfs (use Dwarf Warriors)', 8), WTp(12, 3, 'Hobgoblin Cut-throats (use Orc Warriors)', 5), WTp(18, 2, 'Kossar Bowmen (use Archers)', 7)]),
+      WB('wbl-oathbreakers', 'The Oathbreakers', [WLp(1, 'Oathbreaker Thane (use a Dwarf hero)', 60), WLp(3, 'Outcast Dwarfs (use Dwarf Warriors)', 8), WLp(2, 'Renegade Miners (use Dwarf Miners)', 12)],
+        [WTp(8, 3, 'Kislevite Brigands (use Militia)', 6), WTp(14, 2, 'Outcast Dwarfs (use Dwarf Warriors)', 8), WTp(20, 2, 'Renegade Miners (use Dwarf Miners)', 12)],
         'Dwarfs who broke an oath. Miners may deploy anywhere at least 12" from the enemy, after the enemy deploys.')] },
   border_princes: { name: 'Border Princes Bandits', enemies: [
-    EN('Robber-Baron (use an Empire captain or the Foot Knight)', 'char', 65), EN('Outcast Dwarf Champion (use a Dwarf Warrior)', 'char', 45),
-    ENw('Freebooters (use Militia)', 'unit', 0, 5, 10, 30, 3), ENw('Freebooter Archers (use Archers)', 'unit', 0, 7, 10, 20, 2),
-    ENw('Outcast Dwarfs (use Dwarf Warriors)', 'unit', 0, 9, 5, 15, 2), ENw('Exiled Men-at-arms (use Bretonnian Men-at-arms)', 'unit', 0, 5, 10, 20, 2),
-    EN('Tilean Crossbowmen (use Crossbowmen)', 'unit', 0, 8, 5, 15), EN('Renegade Arquebusiers (use Dwarf Arquebusiers)', 'unit', 0, 11, 5, 10)],
+    EN('Robber-Baron (use an Empire captain or the Foot Knight)', 'char', 45), EN('Outcast Dwarf Champion (use a Dwarf Warrior)', 'char', 45),
+    ENw('Freebooters (use Militia)', 'unit', 0, 6, 10, 30, 3), ENw('Freebooter Archers (use Archers)', 'unit', 0, 7, 10, 20, 2),
+    ENw('Outcast Dwarfs (use Dwarf Warriors)', 'unit', 0, 8, 5, 15, 2), ENw('Exiled Men-at-arms (use Bretonnian Men-at-arms)', 'unit', 0, 4, 10, 20, 2),
+    EN('Tilean Crossbowmen (use Crossbowmen)', 'unit', 0, 7, 5, 15), EN('Renegade Arquebusiers (use Dwarf Arquebusiers)', 'unit', 0, 10, 5, 10)],
     warbands: [
-      WB('wbl-baron', 'The Robber-Baron’s Retinue', [WLp(1, 'Robber-Baron (use an Empire captain or the Foot Knight)', 65), WLp(4, 'Freebooters (use Militia)', 5), WLp(2, 'Outcast Dwarfs (use Dwarf Warriors)', 9), WLp(2, 'Freebooter Archers (use Archers)', 7)],
-        [WTp(6, 3, 'Exiled Men-at-arms (use Bretonnian Men-at-arms)', 5), WTp(12, 2, 'Tilean Crossbowmen (use Crossbowmen)', 8), WTp(18, 1, 'Outcast Dwarf Champion (use a Dwarf Warrior)', 45)]),
-      WB('wbl-grudgebreakers', 'The Grudge-breakers', [WLp(1, 'Outcast Dwarf Champion (use a Dwarf Warrior)', 45), WLp(3, 'Outcast Dwarfs (use Dwarf Warriors)', 9), WLp(2, 'Renegade Arquebusiers (use Dwarf Arquebusiers)', 11)],
-        [WTp(8, 4, 'Freebooters (use Militia)', 5), WTp(14, 2, 'Outcast Dwarfs (use Dwarf Warriors)', 9), WTp(20, 1, 'Robber-Baron (use an Empire captain or the Foot Knight)', 65)],
+      WB('wbl-baron', 'The Robber-Baron’s Retinue', [WLp(1, 'Robber-Baron (use an Empire captain or the Foot Knight)', 45), WLp(4, 'Freebooters (use Militia)', 6), WLp(2, 'Outcast Dwarfs (use Dwarf Warriors)', 8), WLp(2, 'Freebooter Archers (use Archers)', 7)],
+        [WTp(6, 3, 'Exiled Men-at-arms (use Bretonnian Men-at-arms)', 4), WTp(12, 2, 'Tilean Crossbowmen (use Crossbowmen)', 7), WTp(18, 1, 'Outcast Dwarf Champion (use a Dwarf Warrior)', 45)]),
+      WB('wbl-grudgebreakers', 'The Grudge-breakers', [WLp(1, 'Outcast Dwarf Champion (use a Dwarf Warrior)', 45), WLp(3, 'Outcast Dwarfs (use Dwarf Warriors)', 8), WLp(2, 'Renegade Arquebusiers (use Dwarf Arquebusiers)', 10)],
+        [WTp(8, 4, 'Freebooters (use Militia)', 6), WTp(14, 2, 'Outcast Dwarfs (use Dwarf Warriors)', 8), WTp(20, 1, 'Robber-Baron (use an Empire captain or the Foot Knight)', 45)],
         'Their own kin would pay well to see them dead.')] },
   bretonnia: { name: 'Bretonnian Bandits', enemies: [
     EN('Bertrand the Brigand', 'char', 65), EN('Disgraced Knight (use the Foot Knight)', 'char', 60),
-    ENw('Brigand Peasants (use Men-at-arms)', 'unit', 0, 5, 10, 30, 3), ENw('Poachers (use Bretonnian Archers)', 'unit', 0, 6, 10, 20, 3),
-    EN('Herrimault Outlaws (use Bretonnian Archers)', 'unit', 0, 9, 5, 10), EN('Marienburg Smugglers (use Crossbowmen)', 'unit', 0, 8, 5, 10)],
+    ENw('Brigand Peasants (use Men-at-arms)', 'unit', 0, 4, 10, 30, 3), ENw('Poachers (use Bretonnian Archers)', 'unit', 0, 5, 10, 20, 3),
+    EN('Herrimault Outlaws (use Bretonnian Archers)', 'unit', 0, 5, 5, 10), EN('Marienburg Smugglers (use Crossbowmen)', 'unit', 0, 7, 5, 10)],
     warbands: [
-      WB('wbl-bertrand', 'Bertrand’s Merry Band', [WLp(1, 'Bertrand the Brigand', 65), WLp(4, 'Brigand Peasants (use Men-at-arms)', 5), WLp(3, 'Poachers (use Bretonnian Archers)', 6)],
-        [WTp(6, 2, 'Herrimault Outlaws (use Bretonnian Archers)', 9), WTp(12, 3, 'Brigand Peasants (use Men-at-arms)', 5), WTp(18, 1, 'Disgraced Knight (use the Foot Knight)', 60)],
+      WB('wbl-bertrand', 'Bertrand’s Merry Band', [WLp(1, 'Bertrand the Brigand', 65), WLp(4, 'Brigand Peasants (use Men-at-arms)', 4), WLp(3, 'Poachers (use Bretonnian Archers)', 5)],
+        [WTp(6, 2, 'Herrimault Outlaws (use Bretonnian Archers)', 5), WTp(12, 3, 'Brigand Peasants (use Men-at-arms)', 4), WTp(18, 1, 'Disgraced Knight (use the Foot Knight)', 60)],
         'They rob the rich, mostly. If Bertrand falls, every peasant must pass a Leadership test or flee.'),
-      WB('wbl-fallen-knight', 'The Fallen Knight', [WLp(1, 'Disgraced Knight (use the Foot Knight)', 60), WLp(4, 'Brigand Peasants (use Men-at-arms)', 5), WLp(2, 'Poachers (use Bretonnian Archers)', 6)],
-        [WTp(8, 2, 'Poachers (use Bretonnian Archers)', 6), WTp(14, 2, 'Marienburg Smugglers (use Crossbowmen)', 8), WTp(20, 3, 'Brigand Peasants (use Men-at-arms)', 5)])] },
+      WB('wbl-fallen-knight', 'The Fallen Knight', [WLp(1, 'Disgraced Knight (use the Foot Knight)', 60), WLp(4, 'Brigand Peasants (use Men-at-arms)', 4), WLp(2, 'Poachers (use Bretonnian Archers)', 5)],
+        [WTp(8, 2, 'Poachers (use Bretonnian Archers)', 5), WTp(14, 2, 'Marienburg Smugglers (use Crossbowmen)', 7), WTp(20, 3, 'Brigand Peasants (use Men-at-arms)', 4)])] },
   tilea: { name: 'Tilean Bandits', enemies: [
-    EN('Mercenary Captain (use an Empire captain)', 'char', 60), EN('Hooded Stranger (use a Night Goblin model)', 'char', 35),
-    ENw('Cut-throats (use Swordsmen)', 'unit', 0, 6, 10, 20, 3), ENw('Pike Deserters (use Spearmen)', 'unit', 0, 5, 10, 25, 2),
-    ENw('Tilean Crossbowmen (use Crossbowmen)', 'unit', 0, 8, 5, 15, 2), EN('Duellists (use Militia)', 'unit', 0, 6, 5, 10),
+    EN('Mercenary Captain (use an Empire captain)', 'char', 45), EN('Hooded Stranger (use a Night Goblin model)', 'char', 35),
+    ENw('Cut-throats (use Swordsmen)', 'unit', 0, 6, 10, 20, 3), ENw('Pike Deserters (use Spearmen)', 'unit', 0, 6, 10, 25, 2),
+    ENw('Tilean Crossbowmen (use Crossbowmen)', 'unit', 0, 7, 5, 15, 2), EN('Duellists (use Militia)', 'unit', 0, 6, 5, 10),
     { ...EN('Clanrats (use Night Goblin Spearmen)', 'unit', 0, 4, 15, 30), rare: true }, { ...EN('Giant Rats (use Snotlings)', 'unit', 0, 3, 5, 10), rare: true }],
     warbands: [
-      WB('wbl-cutthroat-company', 'The Cut-throat Company', [WLp(1, 'Mercenary Captain (use an Empire captain)', 60), WLp(4, 'Cut-throats (use Swordsmen)', 6), WLp(2, 'Tilean Crossbowmen (use Crossbowmen)', 8)],
-        [WTp(6, 3, 'Pike Deserters (use Spearmen)', 5), WTp(12, 2, 'Duellists (use Militia)', 6), WTp(18, 2, 'Tilean Crossbowmen (use Crossbowmen)', 8)]),
+      WB('wbl-cutthroat-company', 'The Cut-throat Company', [WLp(1, 'Mercenary Captain (use an Empire captain)', 45), WLp(4, 'Cut-throats (use Swordsmen)', 6), WLp(2, 'Tilean Crossbowmen (use Crossbowmen)', 7)],
+        [WTp(6, 3, 'Pike Deserters (use Spearmen)', 6), WTp(12, 2, 'Duellists (use Militia)', 6), WTp(18, 2, 'Tilean Crossbowmen (use Crossbowmen)', 7)]),
       WB('wbl-ratcatcher', 'The Rat-catcher’s Bargain', [WLp(1, 'Hooded Stranger (use a Night Goblin model)', 35), WLp(6, 'Clanrats (use Night Goblin Spearmen)', 4), WLp(3, 'Giant Rats (use Snotlings)', 3)],
-        [WTp(8, 2, 'Cut-throats (use Swordsmen)', 6), WTp(14, 4, 'Clanrats (use Night Goblin Spearmen)', 4), WTp(20, 1, 'Mercenary Captain (use an Empire captain)', 60)],
+        [WTp(8, 2, 'Cut-throats (use Swordsmen)', 6), WTp(14, 4, 'Clanrats (use Night Goblin Spearmen)', 4), WTp(20, 1, 'Mercenary Captain (use an Empire captain)', 45)],
         'Who hired whom? Nobody will say. If the Stranger falls, the rats flee at the end of the turn.')] },
   cathay: { name: 'Cathayan Bandits', enemies: [
     EN('Bandit Warlord of the Wastes (use a Jade Warrior)', 'char', 70), EN('Renegade Alchemist (use a Peasant model)', 'char', 50),
-    ENw('Rebel Peasants (use Peasant Spearmen)', 'unit', 0, 4, 10, 30, 3), ENw('Hill Bandit Archers (use Peasant Archers)', 'unit', 0, 5, 10, 20, 3),
-    EN('Deserted Jade Warriors (use Jade Warriors)', 'unit', 0, 8, 10, 20), EN('Smugglers with Handguns (use Ironhail Gunners)', 'unit', 0, 9, 5, 10),
+    ENw('Rebel Peasants (use Peasant Spearmen)', 'unit', 0, 4, 10, 30, 3), ENw('Hill Bandit Archers (use Peasant Archers)', 'unit', 0, 4, 10, 20, 3),
+    EN('Deserted Jade Warriors (use Jade Warriors)', 'unit', 0, 8, 10, 20), EN('Smugglers with Handguns (use Ironhail Gunners)', 'unit', 0, 12, 5, 10),
     EN('Hobgoblin Raiders (use Orc Archers)', 'unit', 0, 5, 10, 20)],
     warbands: [
-      WB('wbl-river-pirates', 'The River Pirates of Shi Long', [WLp(1, 'Bandit Warlord of the Wastes (use a Jade Warrior)', 70), WLp(4, 'Rebel Peasants (use Peasant Spearmen)', 4), WLp(3, 'Hill Bandit Archers (use Peasant Archers)', 5)],
-        [WTp(6, 2, 'Smugglers with Handguns (use Ironhail Gunners)', 9), WTp(12, 3, 'Rebel Peasants (use Peasant Spearmen)', 4), WTp(18, 2, 'Deserted Jade Warriors (use Jade Warriors)', 8)]),
-      WB('wbl-alchemist', 'The Alchemist’s Gang', [WLp(1, 'Renegade Alchemist (use a Peasant model)', 50), WLp(3, 'Deserted Jade Warriors (use Jade Warriors)', 8), WLp(2, 'Smugglers with Handguns (use Ironhail Gunners)', 9)],
-        [WTp(8, 3, 'Hobgoblin Raiders (use Orc Archers)', 5), WTp(14, 3, 'Hill Bandit Archers (use Peasant Archers)', 5), WTp(20, 1, 'Bandit Warlord of the Wastes (use a Jade Warrior)', 70)],
+      WB('wbl-river-pirates', 'The River Pirates of Shi Long', [WLp(1, 'Bandit Warlord of the Wastes (use a Jade Warrior)', 70), WLp(4, 'Rebel Peasants (use Peasant Spearmen)', 4), WLp(3, 'Hill Bandit Archers (use Peasant Archers)', 4)],
+        [WTp(6, 2, 'Smugglers with Handguns (use Ironhail Gunners)', 12), WTp(12, 3, 'Rebel Peasants (use Peasant Spearmen)', 4), WTp(18, 2, 'Deserted Jade Warriors (use Jade Warriors)', 8)]),
+      WB('wbl-alchemist', 'The Alchemist’s Gang', [WLp(1, 'Renegade Alchemist (use a Peasant model)', 50), WLp(3, 'Deserted Jade Warriors (use Jade Warriors)', 8), WLp(2, 'Smugglers with Handguns (use Ironhail Gunners)', 12)],
+        [WTp(8, 3, 'Hobgoblin Raiders (use Orc Archers)', 5), WTp(14, 3, 'Hill Bandit Archers (use Peasant Archers)', 4), WTp(20, 1, 'Bandit Warlord of the Wastes (use a Jade Warrior)', 70)],
         'Once per game the Alchemist hurls a fire-pot: a small blast, Strength 3, flaming, range 8".')] },
   khuresh: { name: 'Khureshi Bandits', enemies: [
-    EN('Pirate Rajah (use any hero)', 'char', 70), EN('Snake-charmer Witch (use the Necromancer)', 'char', 55),
-    ENw('Spice-coast Pirates (use Marauders with axe & shield)', 'unit', 0, 6, 10, 20, 3), ENw('Blowpipe Hunters (use Peasant Archers)', 'unit', 0, 5, 10, 20, 3),
+    EN('Pirate Rajah (use any hero)', 'char', 70), EN('Snake-charmer Witch (use the Necromancer)', 'char', 60),
+    ENw('Spice-coast Pirates (use Marauders with axe & shield)', 'unit', 0, 7, 10, 20, 3), ENw('Blowpipe Hunters (use Peasant Archers)', 'unit', 0, 4, 10, 20, 3),
     EN('Ape-men Mercenaries (use Gors)', 'unit', 0, 7, 5, 15), EN('Serpent-cult Fanatics (use Marauders with flails)', 'unit', 0, 7, 10, 20),
-    EN('Temple Tiger (use a Chaos Spawn)', 'mon', 55)],
+    EN('Temple Tiger (use a Chaos Spawn)', 'mon', 50)],
     warbands: [
-      WB('wbl-rajah', 'The Rajah’s Corsairs', [WLp(1, 'Pirate Rajah (use any hero)', 70), WLp(4, 'Spice-coast Pirates (use Marauders with axe & shield)', 6), WLp(3, 'Blowpipe Hunters (use Peasant Archers)', 5)],
-        [WTp(6, 2, 'Ape-men Mercenaries (use Gors)', 7), WTp(12, 3, 'Serpent-cult Fanatics (use Marauders with flails)', 7), WTp(18, 1, 'Temple Tiger (use a Chaos Spawn)', 55)]),
-      WB('wbl-witch', 'The Coils of the Witch', [WLp(1, 'Snake-charmer Witch (use the Necromancer)', 55), WLp(5, 'Serpent-cult Fanatics (use Marauders with flails)', 7)],
-        [WTp(8, 3, 'Blowpipe Hunters (use Peasant Archers)', 5), WTp(14, 2, 'Ape-men Mercenaries (use Gors)', 7), WTp(20, 1, 'Temple Tiger (use a Chaos Spawn)', 55)],
+      WB('wbl-rajah', 'The Rajah’s Corsairs', [WLp(1, 'Pirate Rajah (use any hero)', 70), WLp(4, 'Spice-coast Pirates (use Marauders with axe & shield)', 7), WLp(3, 'Blowpipe Hunters (use Peasant Archers)', 4)],
+        [WTp(6, 2, 'Ape-men Mercenaries (use Gors)', 7), WTp(12, 3, 'Serpent-cult Fanatics (use Marauders with flails)', 7), WTp(18, 1, 'Temple Tiger (use a Chaos Spawn)', 50)]),
+      WB('wbl-witch', 'The Coils of the Witch', [WLp(1, 'Snake-charmer Witch (use the Necromancer)', 60), WLp(5, 'Serpent-cult Fanatics (use Marauders with flails)', 7)],
+        [WTp(8, 3, 'Blowpipe Hunters (use Peasant Archers)', 4), WTp(14, 2, 'Ape-men Mercenaries (use Gors)', 7), WTp(20, 1, 'Temple Tiger (use a Chaos Spawn)', 50)],
         'If the Witch falls, her fanatics Hate the enemy for the rest of the game.')] },
   araby: { name: 'Arabyan Bandits', enemies: [
-    EN('Corsair Captain (use an Empire captain)', 'char', 60), EN('Sorcerer of the Sands (use the Necromancer)', 'char', 55),
-    ENw('Bazaar Cutpurses (use Militia)', 'unit', 0, 4, 10, 30, 3), ENw('Nomad Archers (use Archers)', 'unit', 0, 7, 10, 20, 3),
-    ENw('Corsairs (use Swordsmen)', 'unit', 0, 6, 10, 20, 2), EN('Sell-swords of Copher (use Spearmen)', 'unit', 0, 5, 10, 20),
-    EN('Desert Riders (use Marauder Horsemen)', 'unit', 0, 14, 5, 8)],
+    EN('Corsair Captain (use an Empire captain)', 'char', 45), EN('Sorcerer of the Sands (use the Necromancer)', 'char', 60),
+    ENw('Bazaar Cutpurses (use Militia)', 'unit', 0, 6, 10, 30, 3), ENw('Nomad Archers (use Archers)', 'unit', 0, 7, 10, 20, 3),
+    ENw('Corsairs (use Swordsmen)', 'unit', 0, 6, 10, 20, 2), EN('Sell-swords of Copher (use Spearmen)', 'unit', 0, 6, 10, 20),
+    EN('Desert Riders (use Marauder Horsemen)', 'unit', 0, 12, 5, 8)],
     warbands: [
-      WB('wbl-corsairs', 'The Corsairs of Copher', [WLp(1, 'Corsair Captain (use an Empire captain)', 60), WLp(4, 'Corsairs (use Swordsmen)', 6), WLp(3, 'Nomad Archers (use Archers)', 7)],
-        [WTp(6, 3, 'Bazaar Cutpurses (use Militia)', 4), WTp(12, 2, 'Desert Riders (use Marauder Horsemen)', 14), WTp(18, 2, 'Corsairs (use Swordsmen)', 6)]),
-      WB('wbl-sand-sorcerer', 'The Sand-sorcerer’s Thieves', [WLp(1, 'Sorcerer of the Sands (use the Necromancer)', 55), WLp(5, 'Bazaar Cutpurses (use Militia)', 4), WLp(2, 'Nomad Archers (use Archers)', 7)],
-        [WTp(8, 2, 'Desert Riders (use Marauder Horsemen)', 14), WTp(14, 3, 'Corsairs (use Swordsmen)', 6), WTp(20, 1, 'Corsair Captain (use an Empire captain)', 60)],
+      WB('wbl-corsairs', 'The Corsairs of Copher', [WLp(1, 'Corsair Captain (use an Empire captain)', 45), WLp(4, 'Corsairs (use Swordsmen)', 6), WLp(3, 'Nomad Archers (use Archers)', 7)],
+        [WTp(6, 3, 'Bazaar Cutpurses (use Militia)', 6), WTp(12, 2, 'Desert Riders (use Marauder Horsemen)', 12), WTp(18, 2, 'Corsairs (use Swordsmen)', 6)]),
+      WB('wbl-sand-sorcerer', 'The Sand-sorcerer’s Thieves', [WLp(1, 'Sorcerer of the Sands (use the Necromancer)', 60), WLp(5, 'Bazaar Cutpurses (use Militia)', 6), WLp(2, 'Nomad Archers (use Archers)', 7)],
+        [WTp(8, 2, 'Desert Riders (use Marauder Horsemen)', 12), WTp(14, 3, 'Corsairs (use Swordsmen)', 6), WTp(20, 1, 'Corsair Captain (use an Empire captain)', 45)],
         'Once per game the Sorcerer calls a sandstorm: nothing may shoot further than 12" until his next turn.')] },
   albion: { name: 'Albion Bandits', enemies: [
-    EN('Outlaw Chieftain (use a Chaos Warrior)', 'char', 60), EN('Hedge-druid (use the Necromancer)', 'char', 45),
-    ENw('Woad Raiders (use Marauders with axe & shield)', 'unit', 0, 6, 10, 20, 3), ENw('Fen Slingers (use Archers)', 'unit', 0, 6, 10, 20, 3),
-    ENw('Tradetown Deserters (use Militia)', 'unit', 0, 5, 10, 20, 2), EN('Norse Wreckers (use Marauders with flails)', 'unit', 0, 7, 10, 20),
+    EN('Outlaw Chieftain (use a Chaos Warrior)', 'char', 60), EN('Hedge-druid (use the Necromancer)', 'char', 60),
+    ENw('Woad Raiders (use Marauders with axe & shield)', 'unit', 0, 7, 10, 20, 3), ENw('Fen Slingers (use Archers)', 'unit', 0, 7, 10, 20, 3),
+    ENw('Tradetown Deserters (use Militia)', 'unit', 0, 6, 10, 20, 2), EN('Norse Wreckers (use Marauders with flails)', 'unit', 0, 7, 10, 20),
     EN('Fimir Sellsword (use a Chaos Spawn)', 'mon', 50)],
     warbands: [
-      WB('wbl-fen-outlaws', 'The Fen Outlaws', [WLp(1, 'Outlaw Chieftain (use a Chaos Warrior)', 60), WLp(4, 'Woad Raiders (use Marauders with axe & shield)', 6), WLp(3, 'Fen Slingers (use Archers)', 6)],
-        [WTp(6, 2, 'Tradetown Deserters (use Militia)', 5), WTp(12, 3, 'Woad Raiders (use Marauders with axe & shield)', 6), WTp(18, 1, 'Fimir Sellsword (use a Chaos Spawn)', 50)]),
-      WB('wbl-wreckers', 'The Wreckers of Muddy Point', [WLp(1, 'Wrecker Captain (use a Marauder)', 40), WLp(4, 'Norse Wreckers (use Marauders with flails)', 7), WLp(2, 'Fen Slingers (use Archers)', 6)],
-        [WTp(8, 3, 'Tradetown Deserters (use Militia)', 5), WTp(14, 1, 'Hedge-druid (use the Necromancer)', 45), WTp(20, 3, 'Woad Raiders (use Marauders with axe & shield)', 6)],
+      WB('wbl-fen-outlaws', 'The Fen Outlaws', [WLp(1, 'Outlaw Chieftain (use a Chaos Warrior)', 60), WLp(4, 'Woad Raiders (use Marauders with axe & shield)', 7), WLp(3, 'Fen Slingers (use Archers)', 7)],
+        [WTp(6, 2, 'Tradetown Deserters (use Militia)', 6), WTp(12, 3, 'Woad Raiders (use Marauders with axe & shield)', 7), WTp(18, 1, 'Fimir Sellsword (use a Chaos Spawn)', 50)]),
+      WB('wbl-wreckers', 'The Wreckers of Muddy Point', [WLp(1, 'Wrecker Captain (use a Marauder)', 40), WLp(4, 'Norse Wreckers (use Marauders with flails)', 7), WLp(2, 'Fen Slingers (use Archers)', 7)],
+        [WTp(8, 3, 'Tradetown Deserters (use Militia)', 6), WTp(14, 1, 'Hedge-druid (use the Necromancer)', 60), WTp(20, 3, 'Woad Raiders (use Marauders with axe & shield)', 7)],
         'Wreckers fight dirty: they re-roll 1s to hit in the first round of each combat.')] },
 };
 
@@ -6017,6 +6021,88 @@ function seedPhase51(c) {
   return c;
 }
 
+/* ---------- schema 7 (phase 5.2): points from the Old World army lists ----------
+   Once only: each default entry, warband line, starting regiment and starting hero still at its 5.1 value
+   moves to the army-list value. Pairs are [5.1 value, 5.2 value]. Anything edited by hand is left alone. */
+const PTS52 = {
+  "cat": {
+    "Spearmen": {"ppm": [5, 6]},
+    "Free Company Militia": {"ppm": [5, 6]},
+    "Greatswords": {"ppm": [12, 11]},
+    "Flagellants": {"ppm": [9, 13]},
+    "Handgunners": {"min": [5, 10]},
+    "Crossbowmen": {"ppm": [8, 7], "min": [5, 10]},
+    "Empire Knights": {"ppm": [20, 21]},
+    "Knights of the White Wolf": {"ppm": [21, 24]},
+    "Pistoliers": {"ppm": [17, 15], "min": [4, 5]},
+    "Outriders": {"ppm": [21, 19]},
+    "Great Cannon": {"ppm": [100, 125]},
+    "Mortar": {"ppm": [90, 95]}
+  },
+  "en": {
+    "undead": {"Vampire": {"pts": [140, 75]}, "Banshee": {"pts": [75, 90]}, "Zombies": {"ppm": [4, 3]}, "Cairn Wraith": {"pts": [60, 50]}, "Varghulf": {"pts": [180, 140]}},
+    "beasts": {"Beastlord": {"pts": [150, 115]}, "Great Bray-Shaman": {"pts": [110, 150]}, "Wargor": {"pts": [75, 55]}, "Chaos Warhounds": {"ppm": [7, 6]}, "Centigors": {"ppm": [22, 17]}, "Minotaurs": {"ppm": [55, 44]}},
+    "chaos": {"Exalted Champion": {"pts": [120, 125]}, "Chaos Warriors": {"ppm": [16, 13]}, "Chaos Spawn": {"pts": [60, 50]}},
+    "orcs": {"Orc Shaman": {"pts": [70, 65]}, "Night Goblins": {"ppm": [3.5, 3]}, "Orc Mob": {"ppm": [7, 5]}, "Troll": {"pts": [45, 39]}},
+    "bandits": {"Bandit Chief (use an Empire captain)": {"pts": [55, 45]}, "Militia Rabble": {"ppm": [5, 6]}, "Cutthroat Spearmen": {"ppm": [5, 6]}, "Brigand Crossbowmen": {"ppm": [8, 7]}},
+    "dwarfs": {"Dwarf Thane": {"pts": [85, 60]}, "Dwarf Warriors": {"ppm": [9, 8]}, "Handgunners": {"ppm": [11, 10]}, "Cannon": {"pts": [110, 95]}},
+    "cathay": {"Strategist": {"pts": [100, 40]}, "Peasant Longbowmen": {"ppm": [6, 4]}, "Crane Gunners": {"ppm": [9, 16], "min": [5, 3], "max": [15, 8]}, "Celestial Dragon Guard": {"ppm": [13, 10]}, "Fire Rain Rocket Battery": {"pts": [90, 130]}}
+  },
+  "land": {
+    "worlds_edge": {"Brigand Ataman (use an Empire captain)": {"pts": [55, 45]}, "Oathbreaker Thane (use a Dwarf hero)": {"pts": [70, 60]}, "Kislevite Brigands (use Militia)": {"ppm": [5, 6]}, "Outcast Dwarfs (use Dwarf Warriors)": {"ppm": [9, 8]}, "Renegade Miners (use Dwarf Miners)": {"ppm": [11, 12]}},
+    "border_princes": {"Robber-Baron (use an Empire captain or the Foot Knight)": {"pts": [65, 45]}, "Freebooters (use Militia)": {"ppm": [5, 6]}, "Outcast Dwarfs (use Dwarf Warriors)": {"ppm": [9, 8]}, "Exiled Men-at-arms (use Bretonnian Men-at-arms)": {"ppm": [5, 4]}, "Tilean Crossbowmen (use Crossbowmen)": {"ppm": [8, 7]}, "Renegade Arquebusiers (use Dwarf Arquebusiers)": {"ppm": [11, 10]}},
+    "bretonnia": {"Brigand Peasants (use Men-at-arms)": {"ppm": [5, 4]}, "Poachers (use Bretonnian Archers)": {"ppm": [6, 5]}, "Herrimault Outlaws (use Bretonnian Archers)": {"ppm": [9, 5]}, "Marienburg Smugglers (use Crossbowmen)": {"ppm": [8, 7]}},
+    "tilea": {"Mercenary Captain (use an Empire captain)": {"pts": [60, 45]}, "Pike Deserters (use Spearmen)": {"ppm": [5, 6]}, "Tilean Crossbowmen (use Crossbowmen)": {"ppm": [8, 7]}},
+    "cathay": {"Hill Bandit Archers (use Peasant Archers)": {"ppm": [5, 4]}, "Smugglers with Handguns (use Ironhail Gunners)": {"ppm": [9, 12]}},
+    "khuresh": {"Snake-charmer Witch (use the Necromancer)": {"pts": [55, 60]}, "Spice-coast Pirates (use Marauders with axe & shield)": {"ppm": [6, 7]}, "Blowpipe Hunters (use Peasant Archers)": {"ppm": [5, 4]}, "Temple Tiger (use a Chaos Spawn)": {"pts": [55, 50]}},
+    "araby": {"Corsair Captain (use an Empire captain)": {"pts": [60, 45]}, "Sorcerer of the Sands (use the Necromancer)": {"pts": [55, 60]}, "Bazaar Cutpurses (use Militia)": {"ppm": [4, 6]}, "Sell-swords of Copher (use Spearmen)": {"ppm": [5, 6]}, "Desert Riders (use Marauder Horsemen)": {"ppm": [14, 12]}},
+    "albion": {"Hedge-druid (use the Necromancer)": {"pts": [45, 60]}, "Woad Raiders (use Marauders with axe & shield)": {"ppm": [6, 7]}, "Fen Slingers (use Archers)": {"ppm": [6, 7]}, "Tradetown Deserters (use Militia)": {"ppm": [5, 6]}}
+  },
+  "wb": {
+    "bandits": {"Bandit Chief (use an Empire captain)": [55, 45], "Militia Rabble": [5, 6], "Cutthroat Spearmen": [5, 6], "Brigand Crossbowmen": [8, 7]},
+    "beasts": {"Wargor chieftain": [75, 55], "Gors with great weapons": [8, 7], "Ungors with bows": [6, 5], "Chaos Warhound": [7, 6], "Chaos Warhounds": [7, 6], "Ungor halfhorn": [10, 12], "Ungors with spears": [5, 6], "Ungor raiders with bows": [6, 5], "Gor with great weapon": [8, 7], "Wargor": [75, 55], "Gors with paired weapons": [8, 7], "Minotaur": [55, 44]},
+    "chaos": {"Exalted Champion": [120, 125], "Chaos Warriors": [16, 13], "Chaos Warrior with halberd": [17, 14], "Chaos Spawn": [60, 50], "Marauder Chieftain": [45, 65], "Aspiring Champion": [60, 70], "Chaos Warhounds": [7, 6]},
+    "orcs": {"Night Goblin Boss": [35, 30], "Night Goblin Shaman": [45, 55], "Troll": [45, 39], "Orc Boyz": [7, 5], "Orc Arrer Boyz": [7, 5], "Orc Shaman": [70, 65], "Orc Boyz with big choppas": [8, 6], "Night Goblins": [4, 3]},
+    "undead": {"Vampire": [140, 75], "Zombies": [4, 3], "Cairn Wraith": [60, 50], "Varghulf": [180, 140], "Crypt Ghast": [25, 15], "Tomb Banshee": [75, 90]},
+    "dwarfs": {"Dwarf Thane": [85, 60], "Dwarf Warriors": [9, 8], "Handgunners": [11, 10], "Troll Slayer": [13, 12], "Engineer with pistol": [50, 56], "Mining Prospector": [30, 18]},
+    "cathay": {"Jade Officer": [50, 14], "Crane Gunners": [9, 16], "Peasant Levy": [5, 4], "Strategist": [100, 40], "Celestial Dragon Guard": [13, 10], "Peasant Levy with crossbows": [6, 4], "Lord Magistrate": [150, 65]}
+  },
+  "cmd": {"Halberdiers": [20, 15], "Empire Knights": [20, 18], "Spearmen": [20, 15], "Greatswords": [15, 20], "Knights of the White Wolf": [20, 18]},
+  "hero": {"Priest of Sigmar": [[90], 60], "Captain of the Empire (Battle Standard)": [[75, 80], 70], "Priest of Ulric": [[90], 60]}
+};
+let PTS52_NOTE = 0;   // how many values the migration changed, for one toast
+function seedPhase52(c) {
+  const seeds = c.seeds = c.seeds && typeof c.seeds === 'object' ? c.seeds : {};
+  if (!seeds.pts52) {
+    let n = 0;
+    const arr = a => Array.isArray(a) ? a : [];
+    const fix = (o, f, pair) => { if (o && Array.isArray(pair) && o[f] === pair[0]) { o[f] = pair[1]; n++; } };
+    const fixEntry = (e, M) => { const m = e && M && M[e.name]; if (m) for (const f in m) fix(e, f, m[f]); };
+    const fixLines = (wbs, get) => { for (const w of arr(wbs)) for (const l of [...arr(w && w.core), ...arr(w && w.later)]) if (l) fix(l, 'pts', get(l.name)); };
+    const t = c.tables || {}, en = t.enemies || {}, wb = t.warbands || {}, LB = t.landBandits || {};
+    for (const u of arr(c.unitCatalog)) fixEntry(u, PTS52.cat);
+    for (const f in PTS52.en) for (const e of arr(en[f])) fixEntry(e, PTS52.en[f]);
+    for (const f in PTS52.wb) fixLines(wb[f], name => PTS52.wb[f][name]);
+    for (const k in PTS52.land) {
+      const b = LB[k], M = PTS52.land[k]; if (!b || typeof b !== 'object') continue;
+      for (const e of arr(b.enemies)) fixEntry(e, M);
+      fixLines(b.warbands, name => M[name] && (M[name].pts || M[name].ppm));
+    }
+    for (const s of SIDES) {
+      const e = c.ex && c.ex[s]; if (!e) continue;
+      for (const r of arr(e.regiments)) {
+        if (!r) continue;
+        fix(r, 'ppm', (PTS52.cat[r.unitType] || {}).ppm);
+        for (const u of arr(r.upgrades)) if (u && u.name === 'Full command') fix(u, 'pts', PTS52.cmd[r.unitType]);
+      }
+      for (const h of arr(e.characters)) { const m = h && PTS52.hero[h.role]; if (m && m[0].includes(h.points)) { h.points = m[1]; n++; } }
+    }
+    seeds.pts52 = 1; PTS52_NOTE = n;
+  }
+  c.schema = Math.max(c.schema || 1, 7);
+  return c;
+}
+
 /* ---------- Codex: bandits of the lands ---------- */
 function landBanditsSheet() {
   const T = C.tables, cnt = (n, a, b) => `${n} ${n === 1 ? a : b}`;
@@ -6080,6 +6166,8 @@ async function boot() {
   UI.side = C.active;
   if (DB.fallback) toast('App storage unavailable. Export often!', 5000);
   render();
+  if (PTS52_NOTE && !fresh) toast('Runefang 5.2: points now follow the Old World army lists. Anything you had edited was kept.', 6000);
+  PTS52_NOTE = 0;
   requestPersist();
   if (!fresh) cleanOrphanImages();
 }
